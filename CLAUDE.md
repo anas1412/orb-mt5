@@ -39,6 +39,7 @@ verified working under Wine, so there is no copy step and no `docker cp`.
     ├── CLAUDE.md
     ├── TimeZones.mqh       broker time <-> UTC <-> session time
     ├── TestTimeZones.mq5   asserts the time model
+    ├── CheckBrokerOffset.mq5  measures the two broker inputs
     └── ORB.mq5             the EA (not written yet)
 ```
 
@@ -170,8 +171,16 @@ server time). Implies a +2 winter offset.
 **`BrokerFollowsUSDST` is still unverified.** August is DST under both US and
 EU rules, so the measurement cannot distinguish them. It matters for the ~1
 week each autumn when the EU has fallen back and the US has not — the range
-opens an hour wrong for exactly that stretch and nowhere else. Settle it by
-reading a late-October M1 bar out of `Bases/<BROKER>/history`.
+opens an hour wrong for exactly that stretch and nowhere else.
+
+Run `CheckBrokerOffset` to settle it. It prints the weekly open in broker time
+across the Oct 2025 and Nov 2025 switch weekends. The week opens at 17:00 New
+York, which is 21:00 UTC on EDT and 22:00 UTC on EST, so:
+
+- **constant** broker hour across both weekends -> broker follows **US** dates
+- **shifts** at the end of October and back in November -> **EU** dates
+
+Needs M1 history back to Oct 2025 for the probe symbol.
 
 ---
 
@@ -180,6 +189,7 @@ reading a late-October M1 bar out of `Bases/<BROKER>/history`.
 | # | Step | State |
 |---|---|---|
 | 1 | Time module | written, compiles clean — **not yet run** |
+| 1b | Broker offset probe | written, compiles clean — needs Oct 2025 M1 history |
 | 2 | `ORB.mq5` | not started |
 | 3 | Compile toolchain | working headless under Wine |
 | 4 | M1 + real tick history | cached for EURUSD, GBPUSD, USDCHF, USDJPY, XAUUSD, US100.cash |
@@ -191,7 +201,7 @@ assertion passes before writing a line of trading logic.
 
 ### Blocked on the user
 
-- Working demo login — both FTMO demos expired ("Invalid account")
+- ~~Working demo login~~ — done, FTMO-Demo `1514367467`, trial, 2026-08-21
 - First symbol and first session to test
 
 Neither blocks steps 1–3.
