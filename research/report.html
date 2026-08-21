@@ -629,6 +629,27 @@ ETF-driven: participation moved into Asian hours.</p>
 <tr><td>New York</td><td>+0.030 &plusmn;0.064</td><td>+0.048</td><td>20.9%</td><td>flat; best year was 2025</td></tr>
 </tbody></table></div>
 
+
+<div class="note">
+  <div class="t">Correction &mdash; the first session test ignored DST</div>
+  <p>The comparison above initially anchored each session to a <strong>fixed UTC
+  hour</strong>: 07:00 London, 13:30 New York. Those are the <em>summer</em> opens.
+  In winter London opens at 08:00 UTC and New York at 14:30 UTC, so roughly five
+  months of every year measured an hour before the real open &mdash; London during
+  the pre-open, New York during US pre-market.</p>
+  <p>Re-run with each zone on its own local clock and DST rule (Asia 00:00 UTC, no
+  DST; London 08:00 local, EU dates; New York 09:30 local, US dates):</p>
+  <p><strong>Asia &minus;0.024 unchanged. London &minus;0.137 &rarr;
+  &minus;0.207. New York &minus;0.036 &rarr; &minus;0.082.</strong> Asia is
+  identical as it must be, and both other sessions got <em>worse</em> &mdash; the
+  sloppy version had been flattering them. Best of 16 settings in 2026: Asia
+  +0.387, London &minus;0.205, New York +0.024. Verdict unchanged, now on correct
+  data.</p>
+  <p>The EA itself was never affected: <code>TimeZones.mqh</code> resolves London
+  and New York through their own switch dates and <code>TestTimeZones</code>
+  asserts it. The fault was in the offline comparison only.</p>
+</div>
+
 <div class="note">
   <div class="t">This forces a correction to section 11</div>
   <p>Section 11 established that range size predicts the Asia edge, and offered

@@ -547,6 +547,39 @@ stop distance, target and stop movement):
 **New York has the widest ranges of any session and produces no edge.** 0.364% of
 price in 2026, well past the 0.15% line from §11, and still nothing.
 
+### Correction: the first session test ignored DST
+
+The comparison above initially anchored each session to a **fixed UTC hour** —
+07:00 for London, 13:30 for New York. Those are the summer opens. In winter
+London opens at 08:00 UTC and New York at 14:30 UTC, so roughly five months of
+every year measured an hour before the real open: London during the pre-open,
+New York during US pre-market.
+
+Re-run with each zone on its own local clock and its own DST rule:
+
+| Session | Anchor | DST rule |
+|---|---|---|
+| Asia | 00:00 UTC | none |
+| London | 08:00 London | EU dates, last Sun Mar to last Sun Oct |
+| New York | 09:30 New York | US dates, 2nd Sun Mar to 1st Sun Nov |
+
+| Session | Pooled EV, fixed UTC | Pooled EV, DST-correct | 2026 |
+|---|---|---|---|
+| Asia | -0.024 | -0.024 (unchanged) | +0.362 |
+| London | -0.137 | **-0.207** | -0.293 |
+| New York | -0.036 | **-0.082** | -0.051 |
+
+Asia is identical, as it must be. **Both other sessions got worse**, so the
+sloppy version had been flattering them. Best of 16 settings in 2026: Asia
++0.387, London -0.205, New York +0.024.
+
+The verdict is unchanged and now rests on correct data.
+
+Note the EA itself was never affected — `TimeZones.mqh` resolves London and New
+York through their own switch dates and `TestTimeZones` asserts it. The fault was
+in the offline comparison only. `research/sessionsim2.py` is the corrected
+version; `sessionsim.py` is kept for the fixed-UTC contrast.
+
 ### The correction this forces
 
 Section 11 established that range size predicts the Asia edge, and offered 0.15%
