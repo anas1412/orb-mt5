@@ -56,6 +56,41 @@ returns +0.002 — it sits inside normal noise, so it is taken out before the mo
 resolves and you pay full risk on a coin that never lands. The relationship is
 monotone below 0.5 and there is no case for going tighter.
 
+### Two ideas tested and rejected
+
+**Structure-based stops** (`research/structsl.py`). Place the stop under the swing
+low of the last K range bars instead of at the midpoint, accepting it only when
+the distance lands in 0.25–0.50. Tested at K = 3, 5, 8 and 15, it loses in every
+variant, with a clean dose-response: firing on 42% of trades costs −0.131 R,
+32% costs −0.116, 15% costs −0.015, 0% costs nothing.
+
+Isolating structure from distance settles it. On the 37 setups where a 3-bar swing
+qualified, the structure stop returned +0.207 R against **+0.188 R for an
+arithmetic stop at exactly the same distance** — a difference of +0.019, t = 0.06.
+Against the midpoint on the same 37 setups: **+0.519 R**.
+
+**A stop is a price level; the market does not know why you chose it.** If swing
+lows were safer, a structure stop would beat an arithmetic one at equal distance.
+It does not, so the entire cost is the tightening — §1 arriving through a
+different door.
+
+**The optimal stop distance depends on the target** (`research/rr1sl.py`). At RR 1
+the best stop is the *far side*, not the midpoint:
+
+| Target | Best SL | EV | Win rate | Pass both | ~Days |
+|---|---|---|---|---|---|
+| RR 1.0 | 1.00 far side | +0.231 | **61.4%** | 92.3% | 30 |
+| **RR 2.0** | **0.50 midpoint** | **+0.568** | 52.3% | **94.9%** | **13** |
+| RR 3.0 | 0.50 midpoint | +0.506 | 40.9% | 85.6% | 15 |
+
+At RR 1 price need only travel one stop-width, so a wide stop buys a wide target
+noise can still reach — 61.4% win rate, the highest in the study. At RR 2 it needs
+two stop-widths, so a wide stop puts the target out of reach inside 60 minutes.
+
+RR 1 is still the wrong choice: 2.5× less edge and 17 more days per challenge for
+9 points of win rate. It is the clearest illustration of §5 — win rate only pays
+when it comes free.
+
 ---
 
 ## 2. Reward to risk
