@@ -81,7 +81,7 @@ input double           InpBreakevenAtR    = 0;     // 0 = off
 input group                 "Risk"
 input ENUM_LOT_MODE    InpLotMode         = LOT_RISK_PERCENT;
 input double           InpLots            = 0.01;
-input double           InpRiskPercent     = 1.0;
+input double           InpRiskPercent     = 2.0;
 input long             InpMagic           = 20260821;
 
 CTrade   g_trade;
@@ -309,25 +309,65 @@ void Enter(const ENUM_ORDER_TYPE dir)
    const bool   isBuy = (dir == ORDER_TYPE_BUY);
    const double level = isBuy ? g_rangeHigh : g_rangeLow;
    const double sl    = StopLossFor(isBuy, level);
-   const double tp    = TakeProfitFor(isBuy, level, sl);
    const double lots  = LotsFor(level, sl);
    if(lots <= 0)
       return;
 
    if(InpEntryMode == ENTRY_LIMIT_RETEST)
      {
+      // A pending order fills at its own price, so that price is the
+      // anchor and the target can go on the order itself.
       const double price = NormalizeDouble(level, g_digits);
-      const bool ok = isBuy ? g_trade.BuyLimit(lots, price, _Symbol, sl, tp)
-                            : g_trade.SellLimit(lots, price, _Symbol, sl, tp);
+      const double tp    = TakeProfitFrom(isBuy, price, sl);
+      const bool   ok    = isBuy ? g_trade.BuyLimit(lots, price, _Symbol, sl, tp)
+                                 : g_trade.SellLimit(lots, price, _Symbol, sl, tp);
       if(!ok)
          PrintFormat("limit order rejected: %d %s", g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
       return;
      }
 
-   const bool ok = isBuy ? g_trade.Buy(lots, _Symbol, 0, sl, tp)
-                         : g_trade.Sell(lots, _Symbol, 0, sl, tp);
+   // Market entry. The stop is structural, so it ships with the order,
+   // but the target cannot be known until we see the fill — the bar
+   // closed somewhere past the level, and that gap is real risk.
+   const bool ok = isBuy ? g_trade.Buy(lots, _Symbol, 0, sl, 0)
+                         : g_trade.Sell(lots, _Symbol, 0, sl, 0);
    if(!ok)
+     {
       PrintFormat("market order rejected: %d %s", g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
+      return;
+     }
+   AnchorTakeProfitToFill(g_trade.ResultPrice(), isBuy, sl);
+  }
+
+//+------------------------------------------------------------------+
+//| Set the target once the fill price is known, measuring R from the |
+//| fill to the stop rather than from the range level. Without this,  |
+//| RR=2 produces whatever ratio the breakout gap happened to leave.  |
+//+------------------------------------------------------------------+
+void AnchorTakeProfitToFill(const double fill, const bool isBuy, const double sl)
+  {
+   if(InpTPMode == TP_NONE || fill <= 0)
+      return;
+
+   const double tp = TakeProfitFrom(isBuy, fill, sl);
+   if(tp <= 0)
+      return;
+
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
+     {
+      const ulong ticket = PositionGetTicket(i);
+      if(ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol)
+         continue;
+      if(PositionGetInteger(POSITION_MAGIC) != InpMagic)
+         continue;
+
+      if(!g_trade.PositionModify(ticket, sl, tp))
+         PrintFormat("could not set target on #%I64u: %d %s", ticket,
+                     g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
+      return;
+     }
   }
 
 //+------------------------------------------------------------------+
@@ -338,8 +378,9 @@ void PlaceStopOrders()
 
    const double slBuy  = StopLossFor(true,  g_rangeHigh);
    const double slSell = StopLossFor(false, g_rangeLow);
-   const double tpBuy  = TakeProfitFor(true,  g_rangeHigh, slBuy);
-   const double tpSell = TakeProfitFor(false, g_rangeLow,  slSell);
+   // Stop orders fill at the level, so the level is the anchor.
+   const double tpBuy  = TakeProfitFrom(true,  g_rangeHigh, slBuy);
+   const double tpSell = TakeProfitFrom(false, g_rangeLow,  slSell);
    const double lotBuy = LotsFor(g_rangeHigh, slBuy);
    const double lotSell= LotsFor(g_rangeLow,  slSell);
 
@@ -366,20 +407,22 @@ double StopLossFor(const bool isBuy, const double level)
   }
 
 //+------------------------------------------------------------------+
-double TakeProfitFor(const bool isBuy, const double level, const double sl)
+//| `anchor` is the price the trade actually enters at. In RR mode the |
+//| risk is the anchor-to-stop distance, so RR is the ratio you get.   |
+double TakeProfitFrom(const bool isBuy, const double anchor, const double sl)
   {
    double distance = 0;
    switch(InpTPMode)
      {
       case TP_NONE:           return 0;
-      case TP_FIXED_POINTS:   distance = InpTPFixedPoints * g_point;                    break;
+      case TP_FIXED_POINTS:   distance = InpTPFixedPoints * g_point;                     break;
       case TP_RANGE_MULTIPLE: distance = (g_rangeHigh - g_rangeLow) * InpTPRangeMultiple; break;
-      case TP_RR:             distance = MathAbs(level - sl) * InpRR;                   break;
+      case TP_RR:             distance = MathAbs(anchor - sl) * InpRR;                   break;
      }
    if(distance <= 0)
       return 0;
 
-   const double tp = isBuy ? level + distance : level - distance;
+   const double tp = isBuy ? anchor + distance : anchor - distance;
    return NormalizeDouble(tp, g_digits);
   }
 
