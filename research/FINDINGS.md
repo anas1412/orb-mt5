@@ -355,9 +355,10 @@ runs of the sweep above with a different `Session start hour`.
 | London | 07:00 | the volatility open; widest ranges of the day on gold |
 | New York | 13:30 | cash open, overlaps London's afternoon |
 
-Gold's peak volume window is the London–New York overlap, so on prior grounds
-London should produce wider ranges relative to spread than Asia — which §1
-suggests is where this strategy works best.
+~~Gold's peak volume window is the London–New York overlap, so on prior grounds
+London should produce wider ranges relative to spread than Asia.~~
+**Measured and wrong — see §12.** In 2026 London's range is 0.80x Asia's, and
+neither London nor New York carries an edge at any parameter setting.
 
 ### Then: NDX100 (`US100.cash`)
 
@@ -506,3 +507,73 @@ The offline sweep predicted +0.068 pooled and +0.426 for 2026 at threshold 1.00.
 MT5 returned **+0.074 and +0.454**. Far closer than the unfiltered validation in
 the Method section, which supports using the sweep to shortlist and MT5 to
 confirm.
+
+---
+
+## 12. Sessions compared: Asia, London, New York
+
+The roadmap asserted that London would carry the widest gold ranges. **That was a
+prior, not a measurement, and it is wrong.**
+
+### Range and activity, measured
+
+Median 15-minute opening range. 1 point = $0.01. Ticks = M1 tick count over the
+15-minute window.
+
+| Year | Asia 00:00 | London 07:00 | New York 13:30 |
+|---|---|---|---|
+| 2024 | 177 pts / 0.075% | 268 / 0.111% | **610 / 0.245%** |
+| 2025 | 504 / 0.143% | 506 / 0.143% | **846 / 0.247%** |
+| 2026 | **1141 / 0.247%** | 910 / 0.205% | **1630 / 0.364%** |
+
+2026 ticks: Asia 2852, London 2765, New York 4494.
+
+**In 2026 London is 0.80x Asia by range and 0.97x by activity — it is now the
+quietest of the three.** Asia's range grew 6.4x since 2024 against London's 3.4x.
+That is consistent with the 2026 rally being Asian and ETF-driven: participation
+moved into Asian hours.
+
+### Does the edge follow the range? No.
+
+Same engine, each session given its **own** parameter search (48 combinations of
+stop distance, target and stop movement):
+
+| Session | Best pooled EV | Best 2026 EV | 2026 pass rate | Verdict |
+|---|---|---|---|---|
+| Asia | -0.014 | **+0.387** | 84.4% | the only session with an edge |
+| London | -0.068 +/- 0.050 | **-0.111** | 4.6% | dead — every one of 48 combinations negative in 2026 |
+| New York | +0.030 +/- 0.064 | +0.048 | 20.9% | flat; its best year was 2025 |
+
+**New York has the widest ranges of any session and produces no edge.** 0.364% of
+price in 2026, well past the 0.15% line from §11, and still nothing.
+
+### The correction this forces
+
+Section 11 established that range size predicts the Asia edge, and offered 0.15%
+of price as a monitoring line. New York clears that line in all three years and
+fails anyway.
+
+**So range size is necessary but not sufficient.** It is a filter on Asia days,
+not a law about sessions.
+
+The likely mechanism: the New York cash open is a two-sided, news-driven spike.
+The opening range gets violated in *both* directions, so a breakout carries no
+information. Asia's 2026 breakouts ride sustained one-way flow from the gold bull
+market. Wide range without directional persistence is just whipsaw with a bigger
+stop.
+
+### Roadmap consequence
+
+- **Drop London on gold.** Not a parameter problem; there is nothing there.
+- **Drop New York on gold.** Break-even at best, and its only positive year was
+  2025 — the reverse of Asia's profile, which is interesting but not tradeable.
+- **`US100.cash` is still worth testing**, and the New York result does not
+  condemn it. An index's cash open is its primary session rather than a
+  mid-session news spike, which is a structurally different setup from gold at
+  13:30 UTC.
+- **Asia stays the only live configuration.**
+
+One caveat on cost: the same per-year spread (21/28/52 points) was applied to
+every session, measured at the Asia open. New York liquidity is deeper, so its
+true spread is tighter — meaning the New York result is, if anything, flattered.
+It still has no edge.

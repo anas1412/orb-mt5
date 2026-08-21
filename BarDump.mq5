@@ -14,7 +14,7 @@
 #property strict
 
 input int InpFromHour = 2;   // first broker hour to record
-input int InpToHour   = 5;   // last broker hour to record
+input int InpToHour   = 18;  // last broker hour to record
 
 int      g_csv  = INVALID_HANDLE;
 datetime g_last = 0;
@@ -29,7 +29,7 @@ int OnInit()
       return INIT_FAILED;
      }
    if(FileSize(g_csv) == 0)
-      FileWrite(g_csv, "time", "open", "high", "low", "close");
+      FileWrite(g_csv, "time", "open", "high", "low", "close", "ticks", "volume");
    FileSeek(g_csv, 0, SEEK_END);
    PrintFormat("recording M1 bars, broker hours %d-%d, to %s", InpFromHour, InpToHour, name);
    return INIT_SUCCEEDED;
@@ -63,6 +63,8 @@ void OnTick()
              DoubleToString(b[0].open,  _Digits),
              DoubleToString(b[0].high,  _Digits),
              DoubleToString(b[0].low,   _Digits),
-             DoubleToString(b[0].close, _Digits));
+             DoubleToString(b[0].close, _Digits),
+             IntegerToString(b[0].tick_volume),
+             IntegerToString(b[0].real_volume));
   }
 //+------------------------------------------------------------------+
