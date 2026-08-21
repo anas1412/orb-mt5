@@ -594,7 +594,75 @@ precisely the evidence that justified it.</p>
   shortlisting offline and confirming in MT5.</p>
 </div>
 
-<h2><span class="num">12</span>Recommendations</h2>
+
+<h2><span class="num">13</span>Sessions compared: Asia, London, New York</h2>
+
+<p>The roadmap asserted London would carry the widest gold ranges.
+<strong>That was a prior, not a measurement, and it is wrong.</strong></p>
+
+<h3>Range and activity, measured</h3>
+
+<div class="scroll"><table>
+<caption>Median 15-minute opening range. 1 point = $0.01.</caption>
+<thead><tr><th>Year</th><th>Asia 00:00</th><th>London 07:00</th><th>New York 13:30</th></tr></thead>
+<tbody>
+<tr><td>2024</td><td>177 pts / 0.075%</td><td>268 / 0.111%</td><td class="pos">610 / 0.245%</td></tr>
+<tr><td>2025</td><td>504 / 0.143%</td><td>506 / 0.143%</td><td class="pos">846 / 0.247%</td></tr>
+<tr class="hi"><td>2026</td><td>1141 / 0.247%</td><td>910 / 0.205%</td><td class="pos">1630 / 0.364%</td></tr>
+</tbody></table></div>
+
+<p>2026 tick activity: Asia 2852, London 2765, New York 4494.</p>
+
+<p><strong>In 2026 London is 0.80&times; Asia by range and 0.97&times; by activity
+&mdash; now the quietest of the three.</strong> Asia's range grew 6.4&times; since
+2024 against London's 3.4&times;, consistent with the 2026 rally being Asian and
+ETF-driven: participation moved into Asian hours.</p>
+
+<h3>Does the edge follow the range? No.</h3>
+
+<div class="scroll"><table>
+<caption>Each session given its own 48-combination parameter search &mdash; not Asia's settings.</caption>
+<thead><tr><th>Session</th><th>Best pooled EV</th><th>Best 2026 EV</th><th>2026 pass</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr class="hi"><td>Asia</td><td>&minus;0.014</td><td class="pos">+0.387</td><td>84.4%</td><td>the only session with an edge</td></tr>
+<tr><td>London</td><td>&minus;0.068 &plusmn;0.050</td><td class="neg">&minus;0.111</td><td>4.6%</td><td>dead &mdash; all 48 combinations negative in 2026</td></tr>
+<tr><td>New York</td><td>+0.030 &plusmn;0.064</td><td>+0.048</td><td>20.9%</td><td>flat; best year was 2025</td></tr>
+</tbody></table></div>
+
+<div class="note">
+  <div class="t">This forces a correction to section 11</div>
+  <p>Section 11 established that range size predicts the Asia edge, and offered
+  0.15% of price as a monitoring line. <strong>New York clears that line in all
+  three years and fails anyway</strong> &mdash; 0.364% of price in 2026 with no
+  edge at any setting.</p>
+  <p>So <strong>range size is necessary but not sufficient</strong>. It filters
+  Asia days; it is not a law about sessions. The likely mechanism: the New York
+  cash open is a two-sided news spike whose opening range gets violated in
+  <em>both</em> directions, so the break carries no information. Asia's 2026
+  breakouts ride sustained one-way flow from the gold rally. Wide range without
+  directional persistence is whipsaw with a bigger stop.</p>
+</div>
+
+<h3>Roadmap consequence</h3>
+
+<ul>
+<li><strong>Drop London on gold.</strong> Not a parameter problem &mdash; there is
+nothing there.</li>
+<li><strong>Drop New York on gold.</strong> Break-even at best, and its only
+positive year was 2025 &mdash; the mirror of Asia's profile. Interesting, not
+tradeable.</li>
+<li><strong><code>US100.cash</code> is still worth testing.</strong> The New York
+result does not condemn it: an index's cash open is its primary session, not a
+mid-session news spike, which is structurally different from gold at 13:30 UTC.</li>
+<li><strong>Asia stays the only live configuration.</strong></li>
+</ul>
+
+<p>One cost caveat: the same per-year spread (21 / 28 / 52 points) was applied to
+every session, measured at the Asia open. New York liquidity is deeper so its
+true spread is tighter &mdash; meaning the New York result is, if anything,
+flattered. It still has no edge.</p>
+
+<h2><span class="num">14</span>Recommendations</h2>
 
 <ul>
 <li><strong>Keep the current configuration.</strong> Midpoint stop, RR 2.0, stop
@@ -607,8 +675,7 @@ objective.</li>
 can flip a profitable configuration to a losing one.</li>
 <li><strong>Rolling range filter set to 1.25</strong> &mdash; MT5 verified. Doubles pooled pass rate and makes 2024 profitable. At 1.50 all three years turn positive, at the cost of speed.</li>
 <li><strong>Keep the 15-minute entry cutoff.</strong> It is a genuine peak &mdash; late breaks are net harmful.</li>
-<li><strong>Run London and New York next</strong>, then NDX100 on New York.
-Pre-commit the acceptance threshold before looking at results.</li>
+<li><strong>London and New York on gold are dead</strong> &mdash; measured, section 13. Next test is <code>US100.cash</code> on its own cash open, with the acceptance threshold pre-committed.</li>
 </ul>
 
 <footer>
