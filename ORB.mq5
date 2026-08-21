@@ -49,6 +49,7 @@ input int              InpRangeMinutes    = 15;
 input ENUM_TIMEFRAMES  InpSignalTF        = PERIOD_M1;
 input int              InpNoEntryAfterMin = 45;    // minutes after range close; 0 = no limit
 input int              InpForceCloseMin   = 360;   // minutes after range close; 0 = off
+input int              InpMaxHoldMinutes  = 60;    // per position, from its own open; 0 = off
 
 input group                 "Broker time"
 input int              InpWinterOffset    = 2;     // hours ahead of UTC in winter
@@ -146,6 +147,7 @@ void OnTick()
       return;
 
    ManageOpenPosition();
+   CloseExpiredPositions(now);
 
    if(InpForceCloseMin > 0 && now >= g_rangeEnd + InpForceCloseMin * 60)
      {
@@ -523,6 +525,37 @@ void ManageOpenPosition()
          continue;  // already there
 
       g_trade.PositionModify(ticket, NormalizeDouble(open, g_digits), tp);
+     }
+  }
+
+//+------------------------------------------------------------------+
+//| Hard cap on how long a single position may stay open, measured    |
+//| from its own fill. ForceCloseMin cannot do this job: it counts     |
+//| from the range close, and an entry may arrive up to               |
+//| NoEntryAfterMin later, so the same deadline allows very different  |
+//| holding times depending on when the break happened.               |
+//+------------------------------------------------------------------+
+void CloseExpiredPositions(const datetime now)
+  {
+   if(InpMaxHoldMinutes <= 0)
+      return;
+
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
+     {
+      const ulong ticket = PositionGetTicket(i);
+      if(ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol)
+         continue;
+      if(PositionGetInteger(POSITION_MAGIC) != InpMagic)
+         continue;
+
+      const datetime opened = (datetime)PositionGetInteger(POSITION_TIME);
+      if(now - opened < InpMaxHoldMinutes * 60)
+         continue;
+
+      PrintFormat("closing #%I64u: held %d minutes", ticket, (int)((now - opened) / 60));
+      g_trade.PositionClose(ticket);
      }
   }
 
