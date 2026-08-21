@@ -642,7 +642,63 @@ rate. That combination is rare enough to act on.
 
 ---
 
-## 13. Method and caveats
+## 13. US100.cash at the New York cash open
+
+The last roadmap idea with a real argument behind it: an index's cash open is its
+*primary* session, not a mid-session news spike the way 13:30 UTC is for gold.
+Different instrument, different cost structure, structurally different event.
+
+MT5 real ticks, 2026, 09:30 New York local (DST handled by `TimeZones.mqh`),
+15-minute range, M1 signal, 15-minute entry window, 60-minute hold, stop move
++0.5R → −0.5R, Friday included, close-position filter off, 2% risk.
+
+| Config | n | EV | ±SE | WR | sd(R) | Total R | Pass both | ~Days |
+|---|---|---|---|---|---|---|---|---|
+| RR 1 · SL 100% far side | 140 | −0.038 | 0.062 | 50.0% | 0.74 | −5.29 | 19.7% | 50 |
+| RR 1 · SL 50% midpoint | 140 | −0.028 | 0.076 | 44.3% | 0.90 | −3.91 | 26.7% | 34 |
+| **RR 2 · SL 100% far side** | 140 | **−0.016** | 0.069 | 49.3% | 0.82 | −2.30 | 28.1% | 43 |
+| RR 2 · SL 50% midpoint | 140 | −0.052 | 0.089 | 36.4% | 1.05 | −7.35 | 21.4% | 27 |
+
+**All four negative, all within one standard error of zero.** That is a coin flip
+rather than a losing strategy — a different failure from gold's New York session,
+which loses decisively.
+
+### Costs are not the obstacle
+
+| | Gold Asia | US100 NY |
+|---|---|---|
+| Median range | 1 141 pts | 13 775 pts |
+| Median spread | 52 pts | 145 pts |
+| **Spread as % of risk** | **9.5%** | **2.1%** |
+
+US100 has the cheapest execution of anything tested here — spread is barely a
+fifth of the burden gold carries. It still produces nothing. **The 15-minute
+opening range carries no directional information at the index cash open**, and no
+amount of cost advantage substitutes for that.
+
+### Nothing in the calendar either
+
+Best config by day: Monday −0.121, Tuesday −0.024, Wednesday +0.029, Thursday
++0.017, Friday +0.018. Three marginally positive, none above +0.03, all inside
+noise on ~28 trades each.
+
+### Verdict
+
+**Not tradeable.** The far-side variant at −0.016 with a 49.3% win rate is the
+least-bad thing found outside gold's Asia session, and it is still a coin flip.
+
+This closes the roadmap's last argued idea. **Every session and symbol tested
+outside Asia-on-gold has failed:** London (decisively negative), New York on gold
+(negative at three range lengths, two UTC anchors, and in both directions), and
+now US100 at its own cash open (flat).
+
+The pattern across all of them is the same one §7 identified — a range that gets
+violated in both directions carries no information, and neither wide ranges nor
+cheap spreads change that.
+
+---
+
+## 14. Method and caveats
 
 The Strategy Tester needs about 90 seconds per real-tick pass over 2.6 years, so
 600 configurations would take hours. Instead `BarDump.mq5` recorded 730 857 M1
@@ -680,11 +736,12 @@ out-of-sample data left — forward live results are the only validation remaini
 
 ---
 
-## 14. Roadmap
+## 15. Roadmap
 
-- **`US100.cash` on its own cash open.** The New York result on gold does not
-  condemn it: an index's cash open is its primary session, not a mid-session news
-  spike. Cost structure needs re-measuring, not assuming.
+- ~~`US100.cash` on its own cash open.~~ **Done — §14. Flat, not tradeable.**
+  With it, every session and symbol tested outside Asia-on-gold has failed. There
+  is no obvious next candidate that is more than a guess; the productive direction
+  is a different *signal*, not another market for this one.
 - **Pre-commit the acceptance threshold** before sweeping any new session or
   symbol — say EV above +0.20 R with win rate above 40% — and trade every stream
   that clears it rather than ranking and picking the best. Selecting a maximum

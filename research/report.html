@@ -122,6 +122,7 @@ trying. This is what survived.</p>
 <li><a href="#s11">The kill switch</a></li>
 <li><a href="#s12b">The close-position filter</a></li>
 <li><a href="#s12c">Day of week</a></li>
+<li><a href="#s13b">US100.cash at the NY open</a></li>
 <li><a href="#s12">Rules of thumb</a></li>
 <li><a href="#s13">Method and caveats</a></li>
 <li><a href="#s14">Roadmap</a></li>
@@ -850,7 +851,59 @@ Note the standard error growing with each cut &mdash; 0.132 &rarr; 0.150 &rarr;
   speed and pass rate. That combination is rare enough to act on.</p>
 </div>
 
-<h2 id="s12"><span class="num">14</span>Rules of thumb</h2>
+<h2 id="s13b"><span class="num">14</span>US100.cash at the New York cash open</h2>
+
+<p>The last roadmap idea with a real argument behind it: an index's cash open is
+its <em>primary</em> session, not a mid-session news spike the way 13:30 UTC is for
+gold. Different instrument, different cost structure, structurally different
+event.</p>
+
+<div class="scroll"><table>
+<caption>MT5 real ticks, 2026, 09:30 New York local (DST handled by TimeZones.mqh). 15-min range, M1 signal, 60-min hold, stop move +0.5R &rarr; &minus;0.5R, Friday included, close-position filter off, 2% risk.</caption>
+<thead><tr><th>Config</th><th>n</th><th>EV</th><th>&plusmn;SE</th><th>WR</th><th>sd(R)</th><th>Total R</th><th>Pass both</th><th>~Days</th></tr></thead>
+<tbody>
+<tr><td>RR 1 &middot; SL 100% far side</td><td>140</td><td>&minus;0.038</td><td>0.062</td><td>50.0%</td><td>0.74</td><td>&minus;5.29</td><td>19.7%</td><td>50</td></tr>
+<tr><td>RR 1 &middot; SL 50% midpoint</td><td>140</td><td>&minus;0.028</td><td>0.076</td><td>44.3%</td><td>0.90</td><td>&minus;3.91</td><td>26.7%</td><td>34</td></tr>
+<tr class="hi"><td>RR 2 &middot; SL 100% far side</td><td>140</td><td>&minus;0.016</td><td>0.069</td><td>49.3%</td><td>0.82</td><td>&minus;2.30</td><td>28.1%</td><td>43</td></tr>
+<tr><td>RR 2 &middot; SL 50% midpoint</td><td>140</td><td class="neg">&minus;0.052</td><td>0.089</td><td>36.4%</td><td>1.05</td><td>&minus;7.35</td><td>21.4%</td><td>27</td></tr>
+</tbody></table></div>
+
+<p><strong>All four negative, all within one standard error of zero.</strong> That
+is a coin flip rather than a losing strategy &mdash; a different failure from
+gold's New York session, which loses decisively.</p>
+
+<h3>Costs are not the obstacle</h3>
+
+<div class="scroll"><table>
+<thead><tr><th></th><th>Gold Asia</th><th>US100 NY</th></tr></thead>
+<tbody>
+<tr><td>Median range</td><td>1 141 pts</td><td>13 775 pts</td></tr>
+<tr><td>Median spread</td><td>52 pts</td><td>145 pts</td></tr>
+<tr class="hi"><td>Spread as % of risk</td><td>9.5%</td><td class="pos">2.1%</td></tr>
+</tbody></table></div>
+
+<p>US100 has the cheapest execution of anything tested &mdash; spread is barely a
+fifth of the burden gold carries. It still produces nothing. <strong>The
+15-minute opening range carries no directional information at the index cash
+open</strong>, and no amount of cost advantage substitutes for that.</p>
+
+<p>Nothing in the calendar either. Best config by day: Monday &minus;0.121,
+Tuesday &minus;0.024, Wednesday +0.029, Thursday +0.017, Friday +0.018. Three
+marginally positive, none above +0.03, all inside noise on ~28 trades each.</p>
+
+<div class="verdict">
+  <div class="t">Verdict &mdash; not tradeable</div>
+  <p>The far-side variant at &minus;0.016 with a 49.3% win rate is the least-bad
+  thing found outside gold's Asia session, and it is still a coin flip.</p>
+  <p>This closes the roadmap's last argued idea. <strong>Every session and symbol
+  tested outside Asia-on-gold has failed</strong> &mdash; London decisively
+  negative, New York on gold negative at three range lengths, two UTC anchors and
+  in both directions, and now US100 at its own cash open, flat. The pattern is the
+  one &sect;02 identified: a range violated in both directions carries no
+  information, and neither wide ranges nor cheap spreads change that.</p>
+</div>
+
+<h2 id="s12"><span class="num">15</span>Rules of thumb</h2>
 
 <ol class="rules">
 <li><strong>Only Asia works.</strong> London is negative in every configuration
@@ -883,7 +936,8 @@ error bar against MT5. Several "improvements" in this study were noise, and
 saying so is cheaper than trading them.</li>
 </ol>
 
-<h2 id="s13"><span class="num">15</span>Method and caveats</h2>
+
+<h2 id="s13"><span class="num">16</span>Method and caveats</h2>
 
 <p>The Strategy Tester needs about 90 seconds per real-tick pass over 2.6 years,
 so 600 configurations would take hours. Instead <code>BarDump.mq5</code> recorded
@@ -923,13 +977,14 @@ most likely history gaps and entry-window boundary handling.</li>
 are not.</strong> And 119 trades in 2026 on one symbol and one session is enough
 to rank parameters, nowhere near enough to establish an edge.</p>
 
-<h2 id="s14"><span class="num">16</span>Roadmap</h2>
+<h2 id="s14"><span class="num">17</span>Roadmap</h2>
 
 <ul>
-<li><strong><code>US100.cash</code> on its own cash open.</strong> The only
-untested idea left with a real rationale: an index's cash open is its primary
-session, not a mid-session news spike, which is structurally different from gold
-at 13:30 UTC. Cost structure needs re-measuring, not assuming.</li>
+<li><s><code>US100.cash</code> on its own cash open.</s> <strong>Done &mdash;
+&sect;14. Flat, not tradeable.</strong> With it, every session and symbol tested
+outside Asia-on-gold has failed. There is no obvious next candidate that is more
+than a guess; the productive direction is a different <em>signal</em>, not another
+market for this one.</li>
 <li><strong>Pre-commit the acceptance threshold</strong> before sweeping any new
 session or symbol &mdash; say 2026 EV above +0.20 R with win rate above 40% &mdash;
 and trade every stream that clears it rather than ranking and picking the best.
