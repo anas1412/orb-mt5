@@ -132,6 +132,12 @@ These cost time to rediscover:
   folder, so a freshly compiled EA is missing from the dropdown. Fix with
   Navigator > right-click > Refresh, or restart the terminal. Compiling with F7
   inside the GUI MetaEditor notifies the terminal and avoids it.
+- **`tester.ini` bool inputs reject inline `;` comments.** `InpTradeFri=false ; note`
+  parses as true and the run silently ignores the setting. Integers and doubles
+  tolerate them; bools do not. Put the comment on its own line above.
+- **A `sed`-driven parameter sweep fails silently if the key is absent from
+  `tester.ini`.** Every pass then uses the compiled default and the results come
+  back identical. Identical row counts across a sweep is the tell.
 - Symlinked sources compile correctly. Verified, not assumed.
 
 ---

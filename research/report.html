@@ -101,10 +101,10 @@ trying. This is what survived.</p>
 </div>
 
 <div class="cards">
-  <div class="card"><div class="l">2026 EV / trade</div><div class="v pos">+0.404R</div><div class="n">real ticks, 112 trades</div></div>
-  <div class="card"><div class="l">Pass both phases</div><div class="v">86.6%</div><div class="n">2% risk, 1 trade/day</div></div>
-  <div class="card"><div class="l">Median duration</div><div class="v">18 <span style="font-size:.55em;font-weight:400">days</span></div><div class="n">both phases</div></div>
-  <div class="card"><div class="l">Win rate</div><div class="v">44.6%</div><div class="n">112 trades</div></div>
+  <div class="card"><div class="l">EV / trade</div><div class="v pos">+0.580R</div><div class="n">real ticks, 88 trades</div></div>
+  <div class="card"><div class="l">Pass both phases</div><div class="v">95.3%</div><div class="n">2% risk, 1 trade/day</div></div>
+  <div class="card"><div class="l">Median duration</div><div class="v">15 <span style="font-size:.55em;font-weight:400">days</span></div><div class="n">both phases</div></div>
+  <div class="card"><div class="l">Win rate</div><div class="v">51.1%</div><div class="n">45 of 88</div></div>
   <div class="card"><div class="l">Sessions that work</div><div class="v">1 <span style="font-size:.5em;font-weight:400">of 3</span></div><div class="n">Asia only</div></div>
 </div>
 
@@ -121,6 +121,7 @@ trying. This is what survived.</p>
 <li><a href="#s10">The rolling range filter</a></li>
 <li><a href="#s11">The kill switch</a></li>
 <li><a href="#s12b">The close-position filter</a></li>
+<li><a href="#s12c">Day of week</a></li>
 <li><a href="#s12">Rules of thumb</a></li>
 <li><a href="#s13">Method and caveats</a></li>
 <li><a href="#s14">Roadmap</a></li>
@@ -784,11 +785,79 @@ winners, and paying seven extra calendar days for it. Fees per pass improve by
   optimistic by the usual ~0.03 R.</p>
 </div>
 
-<h2 id="s12"><span class="num">13</span>Rules of thumb</h2>
+<h2 id="s12c"><span class="num">13</span>Day of week</h2>
+
+<div class="scroll"><table>
+<caption>Live configuration, 112 trades.</caption>
+<thead><tr><th>Day</th><th>n</th><th>EV</th><th>&plusmn;SE</th><th>Win rate</th><th>Total R</th></tr></thead>
+<tbody>
+<tr><td>Monday</td><td>23</td><td>+0.657</td><td>0.303</td><td>52.2%</td><td>+15.12</td></tr>
+<tr><td>Tuesday</td><td>22</td><td>+0.310</td><td>0.281</td><td>36.4%</td><td>+6.83</td></tr>
+<tr><td>Wednesday</td><td>24</td><td class="pos">+0.909</td><td>0.276</td><td class="pos">66.7%</td><td>+21.80</td></tr>
+<tr><td>Thursday</td><td>19</td><td>+0.386</td><td>0.325</td><td>47.4%</td><td>+7.33</td></tr>
+<tr class="hi"><td>Friday</td><td>24</td><td class="neg">&minus;0.241</td><td>0.240</td><td class="neg">20.8%</td><td class="neg">&minus;5.78</td></tr>
+<tr><td>All</td><td>112</td><td>+0.404</td><td>0.132</td><td>44.6%</td><td>+45.30</td></tr>
+</tbody></table></div>
+
+<div class="scroll"><table>
+<caption>Each day tested against the other four combined.</caption>
+<thead><tr><th>Day</th><th>Difference</th><th>t</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>Monday</td><td>+0.318</td><td>+0.95</td><td class="dead">no</td></tr>
+<tr><td>Tuesday</td><td>&minus;0.117</td><td>&minus;0.37</td><td class="dead">no</td></tr>
+<tr><td>Wednesday</td><td>+0.642</td><td>+2.05</td><td>significant</td></tr>
+<tr><td>Thursday</td><td>&minus;0.023</td><td>&minus;0.06</td><td class="dead">no</td></tr>
+<tr class="hi"><td>Friday</td><td class="neg">&minus;0.821</td><td class="neg">&minus;2.91</td><td class="neg">significant</td></tr>
+</tbody></table></div>
+
+<p><strong>Friday is the only losing day, and it is not marginal</strong> &mdash;
+five winners from 24 trades, &minus;5.78 R, dragging the whole sample down.</p>
+
+<h3>Effect of dropping it</h3>
+
+<div class="scroll"><table>
+<thead><tr><th>Config</th><th>n</th><th>Winners</th><th>Win rate</th><th>EV</th><th>&plusmn;SE</th><th>Pass both</th><th>~Days</th></tr></thead>
+<tbody>
+<tr><td>keep all five days</td><td>112</td><td>50</td><td>44.6%</td><td>+0.404</td><td>0.132</td><td>87.0%</td><td>19</td></tr>
+<tr class="hi"><td>drop Friday</td><td>88</td><td>45</td><td class="pos">51.1%</td><td class="pos">+0.581</td><td>0.150</td><td class="pos">95.5%</td><td class="pos">15</td></tr>
+<tr class="mute"><td>drop Friday + Tuesday</td><td>66</td><td>37</td><td>56.1%</td><td>+0.671</td><td>0.175</td><td>96.7%</td><td>12</td></tr>
+</tbody></table></div>
+
+<p><strong>Better on every axis including speed</strong>, because the trades
+removed lose rather than merely win less. That is the opposite of the 0.25 &rarr;
+0.50 threshold question in &sect;12, where the cut removed winners.</p>
+
+<p><strong>Why this one is believable:</strong> there is a mechanism, not just a
+number. Friday's Asia session is the last of the week &mdash; by the time London
+opens, position-squaring into the weekend dominates. A breakout at 00:15 UTC on a
+Friday has to survive a session driven by people flattening rather than
+committing.</p>
+
+<p><strong>Why Tuesday stays.</strong> Tuesday is the second-weakest day and
+cutting it <em>also</em> improves every headline number. It stays anyway:
+<code>t = &minus;0.37</code> against the other days is nothing, its expectancy is
+clearly positive, and at 66 trades the estimate is weaker than the improvement it
+appears to buy. Cutting Tuesday is fitting the calendar, not finding a pattern.
+Note the standard error growing with each cut &mdash; 0.132 &rarr; 0.150 &rarr;
+0.175.</p>
+
+<div class="note">
+  <div class="t">Caveat</div>
+  <p>24 Friday trades at &plusmn;0.240, so the true value sits somewhere between
+  &minus;0.72 and +0.24. Five days were tested, so the worst of five landing near
+  two standard errors out is partly what chance produces. What tips it: negative
+  expectancy, a 20.8% win rate, a mechanism, and simultaneous improvement in both
+  speed and pass rate. That combination is rare enough to act on.</p>
+</div>
+
+<h2 id="s12"><span class="num">14</span>Rules of thumb</h2>
 
 <ol class="rules">
 <li><strong>Only Asia works.</strong> London is negative in every configuration
 tested; New York is flat at every range length.</li>
+<li><strong>Do not trade Friday.</strong> The only losing day of the week, at a
+20.8% win rate. Dropping it improves expectancy, win rate, pass rate <em>and</em>
+speed at once &mdash; the rare change with no trade-off.</li>
 <li><strong>Shortest range, fastest candle.</strong> 15 minutes with M1 beats 30/M3
 and 60/M5. The edge lives in the first 15 minutes and the earliest break;
 lengthening the range dilutes it.</li>
@@ -814,7 +883,7 @@ error bar against MT5. Several "improvements" in this study were noise, and
 saying so is cheaper than trading them.</li>
 </ol>
 
-<h2 id="s13"><span class="num">14</span>Method and caveats</h2>
+<h2 id="s13"><span class="num">15</span>Method and caveats</h2>
 
 <p>The Strategy Tester needs about 90 seconds per real-tick pass over 2.6 years,
 so 600 configurations would take hours. Instead <code>BarDump.mq5</code> recorded
@@ -854,7 +923,7 @@ most likely history gaps and entry-window boundary handling.</li>
 are not.</strong> And 119 trades in 2026 on one symbol and one session is enough
 to rank parameters, nowhere near enough to establish an edge.</p>
 
-<h2 id="s14"><span class="num">15</span>Roadmap</h2>
+<h2 id="s14"><span class="num">16</span>Roadmap</h2>
 
 <ul>
 <li><strong><code>US100.cash</code> on its own cash open.</strong> The only

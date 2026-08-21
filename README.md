@@ -23,7 +23,7 @@ Full analysis: **[research/report.html](research/report.html)** ·
 
 | Period | Trades | EV / trade | Win rate | Median range |
 |---|---|---|---|---|
-| **2026** | 112 | **+0.404 R** | **44.6%** | 1 108 pts |
+| **2026** | 88 | **+0.580 R** | **51.1%** | 1 108 pts |
 
 Results are regime-dependent. Gold's realised volatility ran above 50% in 2026
 against a long-run norm near 15–16%, and the Asia opening range widened 6.4×.
@@ -161,7 +161,8 @@ Find yours with `CheckBrokerOffset`, or compare a D1 candle's start time to UTC.
 | `InpRangeLookback` | `0` | rolling filter: sessions to compare against (0 = off) |
 | `InpMinRangeRatio` | `1.25` | rolling filter: range must be this multiple of their median |
 | `InpMinClosePos` | `0.25` | skip reversal breaks — see below (0 = off) |
-| `InpTradeMon` … `InpTradeFri` | `true` | day-of-week filter |
+| `InpTradeMon` … `InpTradeThu` | `true` | day-of-week filter |
+| `InpTradeFri` | **`false`** | Friday is the only losing day — 20.8% win rate |
 
 `InpMinClosePos` scores how near price was, when the range closed, to the side it
 then broke — `1.0` means the final range bar closed right against that boundary,

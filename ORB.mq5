@@ -68,7 +68,7 @@ input bool             InpTradeMon        = true;          // Trade Monday
 input bool             InpTradeTue        = true;          // Trade Tuesday
 input bool             InpTradeWed        = true;          // Trade Wednesday
 input bool             InpTradeThu        = true;          // Trade Thursday
-input bool             InpTradeFri        = true;          // Trade Friday
+input bool             InpTradeFri        = false;         // Trade Friday (off: only losing day of the week)
 
 input group                 "Stop loss"
 input ENUM_SL_MODE     InpSLMode          = SL_PERCENT_OF_RANGE;    // SL mode

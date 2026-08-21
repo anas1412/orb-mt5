@@ -27,10 +27,11 @@ market does to this strategy.
 | Stop move | at +0.5R, to −0.5R |
 | Close-position filter | 0.25 |
 | Max hold | 60 minutes |
+| Days traded | Monday to Thursday (Friday off, §12) |
 | Risk | 2% |
 
-**Result: +0.404 R per trade, 44.6% win rate, 86.6% chance of passing both
-phases, median 19 trading days.** 112 trades.
+**Result: +0.580 R per trade, 51.1% win rate, 95.3% chance of passing both
+phases, median 15 calendar days.** 88 trades, verified on real ticks.
 
 ---
 
@@ -533,10 +534,80 @@ shows neither qualifies, so on gold this remains unsolved.
     MT5. Several apparent improvements here were noise.
 11. **Only Asia works.** London loses in every configuration; New York is flat at
     every range length.
+12. **Do not trade Friday.** The only losing day of the week, at a 20.8% win rate.
+    Dropping it improves expectancy, win rate, pass rate *and* speed at once.
 
 ---
 
-## 12. Method and caveats
+## 12. Day of week
+
+Live configuration, 112 trades.
+
+| Day | n | EV | ±SE | Win rate | Total R |
+|---|---|---|---|---|---|
+| Monday | 23 | +0.657 | 0.303 | 52.2% | +15.12 |
+| Tuesday | 22 | +0.310 | 0.281 | 36.4% | +6.83 |
+| **Wednesday** | 24 | **+0.909** | 0.276 | **66.7%** | +21.80 |
+| Thursday | 19 | +0.386 | 0.325 | 47.4% | +7.33 |
+| **Friday** | 24 | **−0.241** | 0.240 | **20.8%** | **−5.78** |
+| All | 112 | +0.404 | 0.132 | 44.6% | +45.30 |
+
+Tested against the other four days combined:
+
+| Day | Difference | t | Verdict |
+|---|---|---|---|
+| Monday | +0.318 | +0.95 | no |
+| Tuesday | −0.117 | −0.37 | no |
+| Wednesday | +0.642 | +2.05 | significant |
+| Thursday | −0.023 | −0.06 | no |
+| **Friday** | **−0.821** | **−2.91** | **significant** |
+
+**Friday is the only losing day, and it is not marginal** — five winners from 24
+trades, −5.78 R, and it drags the whole sample down.
+
+### Effect of dropping it
+
+| Config | n | Winners | Win rate | EV | ±SE | Pass both | ~Days |
+|---|---|---|---|---|---|---|---|
+| keep all five days | 112 | 50 | 44.6% | +0.404 | 0.132 | 87.0% | 19 |
+| **drop Friday** | 88 | 45 | **51.1%** | **+0.581** | 0.150 | **95.5%** | **15** |
+| drop Friday + Tuesday | 66 | 37 | 56.1% | +0.671 | 0.175 | 96.7% | 12 |
+
+**Better on every axis including speed**, because the trades removed lose rather
+than merely win less. That is the opposite of the 0.25 → 0.50 threshold question
+in §8, where the cut removed winners.
+
+### Why this one is believable
+
+There is a mechanism, not just a number. Friday's Asia session is the last of the
+week: by the time London opens, position-squaring into the weekend dominates. A
+breakout at 00:15 UTC on a Friday has to survive a session driven by people
+flattening rather than committing.
+
+### Why Tuesday stays
+
+Tuesday is the second-weakest day (36.4% win rate, +0.310) and cutting it *also*
+improves every headline number. It stays anyway: `t = −0.37` against the other
+days is nothing, its EV is clearly positive, and at 66 trades the estimate is
+weaker than the improvement it appears to buy. **Cutting Tuesday is fitting the
+calendar, not finding a pattern.**
+
+Note the standard error growing with each cut — 0.132 → 0.150 → 0.175. Every
+removal makes the remaining estimate less certain even as the average improves.
+
+### Caveat
+
+24 Friday trades, ±0.240, so the true value sits somewhere between −0.72 and
++0.24. Five days were tested, so the worst of five landing near two standard
+errors out is partly what chance produces. What tips it: negative expectancy, a
+20.8% win rate, a mechanism, and simultaneous improvement in both speed and pass
+rate. That combination is rare enough to act on.
+
+**Set `InpTradeFri = false`.**
+
+---
+
+## 13. Method and caveats
 
 The Strategy Tester needs about 90 seconds per real-tick pass over 2.6 years, so
 600 configurations would take hours. Instead `BarDump.mq5` recorded 730 857 M1
@@ -574,7 +645,7 @@ out-of-sample data left — forward live results are the only validation remaini
 
 ---
 
-## 13. Roadmap
+## 14. Roadmap
 
 - **`US100.cash` on its own cash open.** The New York result on gold does not
   condemn it: an index's cash open is its primary session, not a mid-session news
