@@ -89,6 +89,9 @@ input double           InpRiskPercent     = 2.0;           // Risk per trade (pe
 input double           InpMaxDailyLossPct = 3.5;           // Stop opening trades once down this much today (0=off)
 input long             InpMagic           = 20260821;      // Magic number
 
+input group                 "Analysis"
+input bool             InpWriteCsv        = true;          // Write one CSV row per trade (Common\\Files)
+
 CTrade   g_trade;
 double   g_point;
 int      g_digits;
@@ -102,6 +105,19 @@ double   g_rangeLow     = 0;
 bool     g_rangeReady   = false;
 bool     g_daySkipped   = false;
 datetime g_lastSignalBar= 0;
+
+//--- CSV trade log. Written to the terminal's Common\Files so the path is
+//--- the same under the tester, live, Windows and Wine.
+int      g_csv          = INVALID_HANDLE;
+ulong    g_openTicket   = 0;      // position we are waiting to see close
+double   g_openRange    = 0;      // its context, captured at entry
+double   g_openSpread   = 0;
+double   g_openRisk     = 0;
+double   g_openEntry    = 0;
+double   g_openSL       = 0;
+bool     g_openIsBuy    = false;
+datetime g_openTime     = 0;
+int      g_openMinsLate = 0;      // minutes from range close to the entry
 
 //+------------------------------------------------------------------+
 int OnInit()
@@ -134,6 +150,17 @@ int OnInit()
    g_trade.SetTypeFillingBySymbol(_Symbol);
    g_trade.SetMarginMode();
 
+   if(InpWriteCsv)
+     {
+      const string name = StringFormat("ORB_%s_%I64d.csv", _Symbol, InpMagic);
+      g_csv = FileOpen(name, FILE_WRITE|FILE_CSV|FILE_ANSI|FILE_COMMON, ',');
+      if(g_csv == INVALID_HANDLE)
+         PrintFormat("could not open %s for writing: %d", name, GetLastError());
+      else
+         FileWrite(g_csv, "entry_time", "range_pts", "spread_pts", "mins_after_range",
+                          "dir", "entry", "sl", "risk_money", "profit_money", "R", "exit");
+     }
+
    // A recompile reloads the EA mid-session and wipes everything above.
    // Rebuild immediately rather than waiting for the next tick, so a
    // reload during the range window cannot lose the range.
@@ -142,9 +169,65 @@ int OnInit()
   }
 
 //+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+  {
+   if(g_csv != INVALID_HANDLE)
+     {
+      FileClose(g_csv);
+      g_csv = INVALID_HANDLE;
+     }
+  }
+
+//+------------------------------------------------------------------+
+//| A tracked position has closed: pull its realised result from the  |
+//| deal history and write the row. Called every tick, but does work  |
+//| only on the tick after a close.                                   |
+//+------------------------------------------------------------------+
+void FlushClosedTrade()
+  {
+   if(g_openTicket == 0)
+      return;
+   if(PositionSelectByTicket(g_openTicket))
+      return;                       // still open
+
+   double profit = 0;
+   string exit   = "";
+   if(HistorySelectByPosition(g_openTicket))
+      for(int i = HistoryDealsTotal() - 1; i >= 0; i--)
+        {
+         const ulong t = HistoryDealGetTicket(i);
+         if(t == 0)
+            continue;
+         profit += HistoryDealGetDouble(t, DEAL_PROFIT)
+                 + HistoryDealGetDouble(t, DEAL_COMMISSION)
+                 + HistoryDealGetDouble(t, DEAL_SWAP);
+         if(HistoryDealGetInteger(t, DEAL_ENTRY) == DEAL_ENTRY_OUT && exit == "")
+            exit = HistoryDealGetString(t, DEAL_COMMENT);
+        }
+
+   if(g_csv != INVALID_HANDLE && g_openRisk > 0)
+      FileWrite(g_csv,
+                TimeToString(g_openTime, TIME_DATE|TIME_MINUTES),
+                DoubleToString(g_openRange, 0),
+                DoubleToString(g_openSpread, 0),
+                IntegerToString(g_openMinsLate),
+                g_openIsBuy ? "buy" : "sell",
+                DoubleToString(g_openEntry, g_digits),
+                DoubleToString(g_openSL, g_digits),
+                DoubleToString(g_openRisk, 2),
+                DoubleToString(profit, 2),
+                DoubleToString(profit / g_openRisk, 3),
+                exit);
+
+   g_openTicket = 0;
+  }
+
+//+------------------------------------------------------------------+
 void OnTick()
   {
    const datetime now = TimeCurrent();
+
+   FlushClosedTrade();
 
    RefreshSession(now);
    if(g_daySkipped)
@@ -355,6 +438,29 @@ void Enter(const ENUM_ORDER_TYPE dir)
 
    const double fill = g_trade.ResultPrice();
    AnchorTakeProfitToFill(fill, isBuy, sl);
+
+   // Capture the context this trade was taken in, so FlushClosedTrade can
+   // pair it with the realised result once the position closes. Without
+   // this the range size is unrecoverable after the run.
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
+     {
+      const ulong t = PositionGetTicket(i);
+      if(t == 0 || !PositionSelectByTicket(t))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol ||
+         PositionGetInteger(POSITION_MAGIC) != InpMagic)
+         continue;
+      g_openTicket   = t;
+      g_openRange    = (g_rangeHigh - g_rangeLow) / g_point;
+      g_openSpread   = (SymbolInfoDouble(_Symbol, SYMBOL_ASK) - SymbolInfoDouble(_Symbol, SYMBOL_BID)) / g_point;
+      g_openRisk     = RiskOf(lots, fill, sl);
+      g_openEntry    = fill;
+      g_openSL       = sl;
+      g_openIsBuy    = isBuy;
+      g_openTime     = TimeCurrent();
+      g_openMinsLate = (int)((TimeCurrent() - g_rangeEnd) / 60);
+      break;
+     }
 
    // Spread is logged as a share of the money at risk, because that is
    // the form the cost actually takes: a fixed spread against a stop
