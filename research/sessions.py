@@ -4,7 +4,8 @@ Answers whether London still carries the widest ranges and heaviest activity,
 which was asserted from priors in the roadmap rather than measured."""
 import csv, datetime as dt, statistics, os
 
-BARS=os.path.expanduser("~/.wine_mt5/drive_c/users/blackbox/AppData/Roaming/MetaQuotes/Terminal/Common/Files/bars_XAUUSD.csv")
+from mt5paths import bars
+BARS = bars("XAUUSD")
 def nth_dow(y,m,dow,nth):
     if nth>0:
         d=dt.date(y,m,1); return d+dt.timedelta(days=(dow-d.weekday()-1)%7+(nth-1)*7)

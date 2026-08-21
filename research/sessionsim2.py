@@ -5,7 +5,8 @@ The earlier fixed-UTC test put London and New York an hour before their real
 opens for roughly five months of every year."""
 import csv, datetime as dt, statistics, math, os, random
 random.seed(1010)
-BARS=os.path.expanduser("~/.wine_mt5/drive_c/users/blackbox/AppData/Roaming/MetaQuotes/Terminal/Common/Files/bars_XAUUSD.csv")
+from mt5paths import bars
+BARS = bars("XAUUSD")
 POINT=0.01; COMM=3.04; CONTRACT=100.0
 SPREAD={2024:21.0,2025:28.0,2026:52.0}
 def nth(y,m,dow,n):

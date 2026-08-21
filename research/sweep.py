@@ -8,7 +8,8 @@ reproduce its per-year EV and win rate before any sweep result is trusted.
 """
 import csv, datetime as dt, statistics, math, sys, json
 
-BARS = "/home/blackbox/.wine_mt5/drive_c/users/blackbox/AppData/Roaming/MetaQuotes/Terminal/Common/Files/bars_XAUUSD.csv"
+from mt5paths import bars
+BARS = bars("XAUUSD")
 POINT = 0.01
 # Median spread per year, measured from the live trade log. Charged once per
 # trade: entry crosses the spread, the exit sits on the other side.

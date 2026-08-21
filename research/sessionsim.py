@@ -1,7 +1,8 @@
 """Run the ORB engine over any session, offline, on recorded bars."""
 import csv, datetime as dt, statistics, math, os, random
 random.seed(909)
-BARS=os.path.expanduser("~/.wine_mt5/drive_c/users/blackbox/AppData/Roaming/MetaQuotes/Terminal/Common/Files/bars_XAUUSD.csv")
+from mt5paths import bars
+BARS = bars("XAUUSD")
 POINT=0.01; COMM=3.04; CONTRACT=100.0
 # spread scales with price level; measured medians on the Asia open were
 # 21/28/52 points for 2024/25/26. Applied to every session -- crude, and it

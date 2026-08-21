@@ -1,7 +1,7 @@
 """Compare MT5 real-tick runs of the rolling range filter at several thresholds."""
 import csv, glob, statistics, math, random, os, json
 random.seed(707)
-D = os.path.expanduser("~/.wine_mt5/drive_c/users/blackbox/AppData/Roaming/MetaQuotes/Terminal/Common/Files")
+from mt5paths import COMMON as D
 def pr(Rs, t, md, paths=25000):
     ok=0; days=[]
     for _ in range(paths):

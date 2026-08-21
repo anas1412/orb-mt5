@@ -206,7 +206,7 @@ assertion passes before writing a line of trading logic.
 
 ### Blocked on the user
 
-- ~~Working demo login~~ — done, FTMO-Demo `1514367467`, trial, 2026-08-21
+- ~~Working demo login~~ — done (FTMO demo; credentials live outside this repo)
 - First symbol and first session to test
 
 Neither blocks steps 1–3.
