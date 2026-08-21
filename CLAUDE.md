@@ -127,6 +127,11 @@ These cost time to rediscover:
   `grep` finds nothing until you `iconv`.
 - **libEGL / pci id warnings on stderr are noise.** Wine talking to the GPU;
   unrelated to the compile.
+- **A command-line compile does not refresh the running terminal.** MT5 caches
+  the expert list in `MQL5/experts.dat`; the tester reads the cache, not the
+  folder, so a freshly compiled EA is missing from the dropdown. Fix with
+  Navigator > right-click > Refresh, or restart the terminal. Compiling with F7
+  inside the GUI MetaEditor notifies the terminal and avoids it.
 - Symlinked sources compile correctly. Verified, not assumed.
 
 ---
