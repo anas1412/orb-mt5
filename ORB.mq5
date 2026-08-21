@@ -353,12 +353,22 @@ void Enter(const ENUM_ORDER_TYPE dir)
    const double fill = g_trade.ResultPrice();
    AnchorTakeProfitToFill(fill, isBuy, sl);
 
+   // Spread is logged as a share of the money at risk, because that is
+   // the form the cost actually takes: a fixed spread against a stop
+   // distance set by the day's range. MT5 keeps no spread column in the
+   // deals table, so without this the drag is unmeasurable after the run.
    const double balance = AccountInfoDouble(ACCOUNT_BALANCE);
-   if(fill > 0 && balance > 0)
-      PrintFormat("%s %.2f lots at %s, stop %s, risking %.2f%% of balance",
+   const double risk    = RiskOf(lots, fill, sl);
+   const double spread  = SymbolInfoDouble(_Symbol, SYMBOL_ASK) - SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   if(fill > 0 && balance > 0 && risk > 0)
+      PrintFormat("%s %.2f lots at %s, stop %s, risk %.2f%% of balance, "
+                  "range %.0f pts, spread %.0f pts = %.1f%% of risk",
                   isBuy ? "buy" : "sell", lots,
                   DoubleToString(fill, g_digits), DoubleToString(sl, g_digits),
-                  100.0 * RiskOf(lots, fill, sl) / balance);
+                  100.0 * risk / balance,
+                  (g_rangeHigh - g_rangeLow) / g_point,
+                  spread / g_point,
+                  100.0 * RiskOf(lots, fill + (isBuy ? spread : -spread), fill) / risk);
   }
 
 //+------------------------------------------------------------------+
