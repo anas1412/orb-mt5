@@ -42,49 +42,51 @@ enum ENUM_LOT_MODE
   };
 
 input group                 "Session"
-input ENUM_SESSION_TZ  InpTimeZone        = TZ_UTC;
-input int              InpStartHour       = 0;
-input int              InpStartMinute     = 0;
-input int              InpRangeMinutes    = 15;
-input ENUM_TIMEFRAMES  InpSignalTF        = PERIOD_M1;
-input int              InpNoEntryAfterMin = 45;    // minutes after range close; 0 = no limit
-input int              InpForceCloseMin   = 360;   // minutes after range close; 0 = off
-input int              InpMaxHoldMinutes  = 60;    // per position, from its own open; 0 = off
+input ENUM_SESSION_TZ  InpTimeZone        = TZ_UTC;        // Session timezone
+input int              InpStartHour       = 0;             // Session start hour (in that zone)
+input int              InpStartMinute     = 0;             // Session start minute
+input int              InpRangeMinutes    = 15;            // Range length (minutes)
+input ENUM_TIMEFRAMES  InpSignalTF        = PERIOD_M1;     // Signal timeframe
+input int              InpNoEntryAfterMin = 45;            // No entry after (min from range close, 0=off)
+input int              InpForceCloseMin   = 360;           // Force close all (min from range close, 0=off)
+input int              InpMaxHoldMinutes  = 60;            // Max hold per position (min from its fill, 0=off)
 
 input group                 "Broker time"
-input int              InpWinterOffset    = 2;     // hours ahead of UTC in winter
-input bool             InpFollowsUSDST    = true;  // US switch dates, else EU
+input int              InpWinterOffset    = 2;             // Broker winter offset (hours ahead of UTC)
+input bool             InpFollowsUSDST    = true;          // Broker uses US DST dates (false = EU)
 
 input group                 "Entry"
-input ENUM_ENTRY_MODE  InpEntryMode       = ENTRY_MARKET_ON_CLOSE;
-input int              InpMaxTradesPerDay = 1;
-input double           InpMaxSpreadPoints = 0;     // 0 = off
-input double           InpMinRangePoints  = 0;     // 0 = off
-input double           InpMaxRangePoints  = 0;     // 0 = off
-input bool             InpTradeMon        = true;
-input bool             InpTradeTue        = true;
-input bool             InpTradeWed        = true;
-input bool             InpTradeThu        = true;
-input bool             InpTradeFri        = true;
+input ENUM_ENTRY_MODE  InpEntryMode       = ENTRY_MARKET_ON_CLOSE;  // Entry mode
+input int              InpMaxTradesPerDay = 1;             // Max trades per day
+input double           InpMaxSpreadPoints = 0;             // Max spread (points, 0=off)
+input double           InpMinRangePoints  = 0;             // Min range size (points, 0=off)
+input double           InpMaxRangePoints  = 0;             // Max range size (points, 0=off)
+input bool             InpTradeMon        = true;          // Trade Monday
+input bool             InpTradeTue        = true;          // Trade Tuesday
+input bool             InpTradeWed        = true;          // Trade Wednesday
+input bool             InpTradeThu        = true;          // Trade Thursday
+input bool             InpTradeFri        = true;          // Trade Friday
 
 input group                 "Stop loss"
-input ENUM_SL_MODE     InpSLMode          = SL_PERCENT_OF_RANGE;
-input double           InpSLPercentOfRange= 50.0;
-input double           InpSLFixedPoints   = 0;
+input ENUM_SL_MODE     InpSLMode          = SL_PERCENT_OF_RANGE;    // SL mode
+input double           InpSLPercentOfRange= 50.0;          // SL percent of range (50=midpoint, 100=far side)
+input double           InpSLFixedPoints   = 0;             // SL fixed distance (points)
+
+input group                 "Stop management"
+input double           InpStopMoveAtR     = 0.5;           // Move stop when trade reaches (R, 0=off)
+input double           InpStopMoveToR     = -0.5;          // Move stop to (R: 0=entry, -0.5=half risk left)
 
 input group                 "Take profit"
-input ENUM_TP_MODE     InpTPMode          = TP_RR;
-input double           InpRR              = 2.0;
-input double           InpTPFixedPoints   = 0;
-input double           InpTPRangeMultiple = 1.0;
-input double           InpStopMoveAtR     = 0.5;   // trigger, in R of open risk; 0 = off
-input double           InpStopMoveToR     = -0.5;  // where the stop goes, in R. 0 = entry, -0.5 = half the risk still on
+input ENUM_TP_MODE     InpTPMode          = TP_RR;         // TP mode
+input double           InpRR              = 2.0;           // Reward:risk multiple
+input double           InpTPFixedPoints   = 0;             // TP fixed distance (points)
+input double           InpTPRangeMultiple = 1.0;           // TP as multiple of range size
 
 input group                 "Risk"
-input ENUM_LOT_MODE    InpLotMode         = LOT_RISK_PERCENT;
-input double           InpLots            = 0.01;
-input double           InpRiskPercent     = 2.0;
-input long             InpMagic           = 20260821;
+input ENUM_LOT_MODE    InpLotMode         = LOT_RISK_PERCENT;       // Lot sizing mode
+input double           InpLots            = 0.01;          // Fixed lot size
+input double           InpRiskPercent     = 2.0;           // Risk per trade (percent of balance)
+input long             InpMagic           = 20260821;      // Magic number
 
 CTrade   g_trade;
 double   g_point;
