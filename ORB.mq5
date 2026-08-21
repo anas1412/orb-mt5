@@ -42,11 +42,11 @@ enum ENUM_LOT_MODE
   };
 
 input group                 "Session"
-input ENUM_SESSION_TZ  InpTimeZone        = TZ_NEWYORK;
-input int              InpStartHour       = 8;
-input int              InpStartMinute     = 20;
-input int              InpRangeMinutes    = 30;
-input ENUM_TIMEFRAMES  InpSignalTF        = PERIOD_M5;
+input ENUM_SESSION_TZ  InpTimeZone        = TZ_UTC;
+input int              InpStartHour       = 0;
+input int              InpStartMinute     = 0;
+input int              InpRangeMinutes    = 15;
+input ENUM_TIMEFRAMES  InpSignalTF        = PERIOD_M1;
 input int              InpNoEntryAfterMin = 240;   // minutes after range close; 0 = no limit
 input int              InpForceCloseMin   = 360;   // minutes after range close; 0 = off
 
