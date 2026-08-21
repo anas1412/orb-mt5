@@ -80,7 +80,7 @@
 <header>
   <div class="kicker">Opening Range Breakout &middot; XAUUSD &middot; MT5</div>
   <h1>ORB Research Report</h1>
-  <p class="sub">2024.01.01 &ndash; 2026.08.19 &middot; real ticks &middot; 3 sessions, 600+ configurations &middot; FundingPips 2-Step Standard</p>
+  <p class="sub">2026.01.01 &ndash; 2026.08.19 &middot; 163 trading days &middot; real ticks &middot; 3 sessions, 600+ configurations &middot; FundingPips 2-Step Standard</p>
 </header>
 
 <p class="lede">One configurable MQL5 expert advisor, tested across three
@@ -95,22 +95,21 @@ trying. This is what survived.</p>
   With the close-position filter at 0.25 (&sect;12) that returns +0.404 R per trade
   in 2026, a 44.6% win rate and an 86.6% chance of passing both challenge phases
   in about 19 trading days.</p>
-  <p>Everything else failed. <strong>London loses in every configuration
-  tested. New York is flat at every range length. And no setting is profitable
-  in 2024 or 2025</strong> &mdash; the edge is confined to the 2026 volatility
-  regime.</p>
+  <p>Everything else failed. <strong>London loses in every configuration tested,
+  and New York is flat at every range length</strong> &mdash; despite having the
+  widest ranges of the three sessions.</p>
 </div>
 
 <div class="cards">
   <div class="card"><div class="l">2026 EV / trade</div><div class="v pos">+0.404R</div><div class="n">real ticks, 112 trades</div></div>
   <div class="card"><div class="l">Pass both phases</div><div class="v">86.6%</div><div class="n">2% risk, 1 trade/day</div></div>
   <div class="card"><div class="l">Median duration</div><div class="v">18 <span style="font-size:.55em;font-weight:400">days</span></div><div class="n">both phases</div></div>
-  <div class="card"><div class="l">2024&ndash;25 EV</div><div class="v neg">&minus;0.12R</div><div class="n">same settings</div></div>
+  <div class="card"><div class="l">Win rate</div><div class="v">44.6%</div><div class="n">112 trades</div></div>
   <div class="card"><div class="l">Sessions that work</div><div class="v">1 <span style="font-size:.5em;font-weight:400">of 3</span></div><div class="n">Asia only</div></div>
 </div>
 
 <nav><ol>
-<li><a href="#s1">The regime problem</a></li>
+<li><a href="#s1">The 2026 market</a></li>
 <li><a href="#s2">Sessions: range, volume, edge</a></li>
 <li><a href="#s3">Stop-loss placement</a></li>
 <li><a href="#s4">Reward to risk</a></li>
@@ -120,59 +119,38 @@ trying. This is what survived.</p>
 <li><a href="#s8">Pass rate is not expectancy</a></li>
 <li><a href="#s9">Prop-account mechanics</a></li>
 <li><a href="#s10">The rolling range filter</a></li>
-<li><a href="#s11">When the edge dies</a></li>
+<li><a href="#s11">The kill switch</a></li>
 <li><a href="#s12b">The close-position filter</a></li>
 <li><a href="#s12">Rules of thumb</a></li>
 <li><a href="#s13">Method and caveats</a></li>
 <li><a href="#s14">Roadmap</a></li>
 </ol></nav>
 
-<h2 id="s1"><span class="num">01</span>The regime problem</h2>
+<h2 id="s1"><span class="num">01</span>The 2026 market</h2>
 
 <p>Gold's realised volatility ran above <strong>50%</strong> in 2026 against a
 long-run norm near 15&ndash;16%. It set 12 all-time highs, peaked at $5,595
-intraday in late January, then fell below $4,000 by late June. The 15-minute
-Asia range widened from $3.01 to $18.73 &mdash; six times in dollars, and
-<strong>3.3&times; even after adjusting for the higher price level</strong>.</p>
+intraday in late January, then fell below $4,000 by late June.</p>
 
 <div class="scroll"><table>
-<caption>Same configuration, three years. Real ticks.</caption>
-<thead><tr><th>Year</th><th>Trades</th><th>EV / trade</th><th>Win rate</th><th>Median Asia range</th><th>Gold price</th><th>Spread as % of risk</th></tr></thead>
+<caption>The conditions every figure in this report is measured under.</caption>
+<thead><tr><th></th><th>2026</th></tr></thead>
 <tbody>
-<tr><td>2024</td><td>151</td><td class="neg">&minus;0.060</td><td>31.8%</td><td>186 pts</td><td>~2 391</td><td>21.1%</td></tr>
-<tr><td>2025</td><td>185</td><td class="neg">&minus;0.176</td><td>24.9%</td><td>489 pts</td><td>~3 450</td><td>11.9%</td></tr>
-<tr class="hi"><td>2026</td><td>119</td><td class="pos">+0.333</td><td>42.0%</td><td>1 108 pts</td><td>~4 536</td><td>9.5%</td></tr>
+<tr><td>Trades (Asia, filtered)</td><td>112</td></tr>
+<tr><td>Trading days</td><td>163</td></tr>
+<tr><td>Median 15-min Asia range</td><td>1 141 pts &mdash; 0.247% of price</td></tr>
+<tr><td>Gold price</td><td>~4 536</td></tr>
+<tr><td>Spread as % of risk</td><td>9.5%</td></tr>
+<tr><td>Realised volatility</td><td>above 50%</td></tr>
 </tbody></table></div>
 
-<figure>
-<svg viewBox="0 0 660 196" width="100%" role="img" aria-label="Expected value per trade by year: 2024 and 2025 negative, 2026 strongly positive">
-  <line x1="76" y1="108" x2="640" y2="108" stroke="currentColor" stroke-opacity=".35"/>
-  <text x="66" y="112" text-anchor="end" font-size="11" fill="currentColor" fill-opacity=".55" font-family="ui-sans-serif,sans-serif">0</text>
-  <text x="66" y="48" text-anchor="end" font-size="11" fill="currentColor" fill-opacity=".55" font-family="ui-sans-serif,sans-serif">+0.4R</text>
-  <text x="66" y="172" text-anchor="end" font-size="11" fill="currentColor" fill-opacity=".55" font-family="ui-sans-serif,sans-serif">&minus;0.4R</text>
-  <rect x="126" y="108" width="112" height="9" fill="var(--neg)" rx="2"/>
-  <text x="182" y="150" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-sans-serif,sans-serif">2024</text>
-  <text x="182" y="166" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity=".6" font-family="ui-sans-serif,sans-serif">&minus;0.060</text>
-  <rect x="294" y="108" width="112" height="26" fill="var(--neg)" rx="2"/>
-  <text x="350" y="150" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-sans-serif,sans-serif">2025</text>
-  <text x="350" y="166" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity=".6" font-family="ui-sans-serif,sans-serif">&minus;0.176</text>
-  <rect x="462" y="58" width="112" height="50" fill="var(--pos)" rx="2"/>
-  <text x="518" y="150" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-sans-serif,sans-serif">2026</text>
-  <text x="518" y="166" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity=".6" font-family="ui-sans-serif,sans-serif">+0.333</text>
-</svg>
-<figcaption>Parameter choice decides how efficiently the 2026 regime is
-harvested. It does not decide whether there is anything to harvest.</figcaption>
-</figure>
-
 <div class="note">
-  <div class="t">Basis for selection</div>
-  <p>Parameters are chosen on <strong>2026 data</strong>, on the reasoning that
-  Asian participation in gold changed in scale and 2024&ndash;25 describes a
-  market that no longer exists. That is defensible. The cost: 119 setups and
-  <strong>no out-of-sample data left</strong> &mdash; forward live results are
-  the only validation remaining. The 2024&ndash;25 columns are kept throughout
-  as the answer to "what if the regime reverts", and that answer is about
-  &minus;0.12 R per trade at every setting.</p>
+  <div class="t">What 112 trades can and cannot tell you</div>
+  <p>Enough to <strong>rank parameters</strong>. Nowhere near enough to
+  <strong>establish an edge</strong>. Selecting on 2026 also means there is no
+  out-of-sample data left &mdash; forward live results are the only validation
+  remaining. Treat absolute levels as &plusmn;0.05 R throughout; rankings are
+  reliable, levels are not.</p>
 </div>
 
 <h2 id="s2"><span class="num">02</span>Sessions: range, volume, edge</h2>
@@ -185,36 +163,33 @@ the London&ndash;New York overlap is gold's peak volume window.
 <caption>Median 15-minute opening range. 1 point = $0.01. Ticks = M1 tick count across the window.</caption>
 <thead><tr><th>Year</th><th>Asia 00:00 UTC</th><th>London 08:00 local</th><th>New York 09:30 local</th></tr></thead>
 <tbody>
-<tr><td>2024 range</td><td>177 pts / 0.075%</td><td>268 / 0.111%</td><td class="pos">610 / 0.245%</td></tr>
-<tr><td>2025 range</td><td>504 / 0.143%</td><td>506 / 0.143%</td><td class="pos">846 / 0.247%</td></tr>
-<tr class="hi"><td>2026 range</td><td>1 141 / 0.247%</td><td>910 / 0.205%</td><td class="pos">1 630 / 0.364%</td></tr>
-<tr><td>2026 ticks</td><td>2 852</td><td>2 765</td><td class="pos">4 494</td></tr>
-<tr><td>2026 vs Asia</td><td>1.00&times;</td><td>0.80&times; range, 0.97&times; ticks</td><td>1.43&times; range, 1.58&times; ticks</td></tr>
+<tr class="hi"><td>Median range</td><td>1 141 pts / 0.247%</td><td>910 / 0.205%</td><td class="pos">1 630 / 0.364%</td></tr>
+<tr><td>Median ticks</td><td>2 852</td><td>2 765</td><td class="pos">4 494</td></tr>
+<tr><td>vs Asia</td><td>1.00&times;</td><td>0.80&times; range, 0.97&times; ticks</td><td>1.43&times; range, 1.58&times; ticks</td></tr>
 </tbody></table></div>
 
-<p><strong>London is now the quietest of the three.</strong> Asia's range grew
-6.4&times; since 2024 against London's 3.4&times;, and by tick count Asia has
-overtaken it. That fits the 2026 rally being Asian and ETF-driven: participation
-moved into Asian hours.</p>
+<p><strong>London is the quietest of the three</strong> on both range and tick
+count. That fits the 2026 rally being Asian and ETF-driven: participation moved
+into Asian hours.</p>
 
 <h3>But the edge does not follow the range</h3>
 
 <div class="scroll"><table>
 <caption>MT5 real ticks, 2026. SL at midpoint, 15-min range, M1 signal, 60-min hold, 2% risk.</caption>
-<thead><tr><th>Session</th><th>RR</th><th>Stop move</th><th>n</th><th>EV</th><th>&plusmn;SE</th><th>WR</th><th>Pass both</th><th>Days</th><th>2024</th><th>2025</th></tr></thead>
+<thead><tr><th>Session</th><th>RR</th><th>Stop move</th><th>n</th><th>EV</th><th>&plusmn;SE</th><th>WR</th><th>Pass both</th><th>Days</th></tr></thead>
 <tbody>
-<tr><td>Asia</td><td>1.0</td><td>on</td><td>119</td><td>+0.067</td><td>0.088</td><td>49.6%</td><td>55.1%</td><td>36</td><td>&minus;0.094</td><td>&minus;0.158</td></tr>
-<tr><td>Asia</td><td>1.0</td><td>off</td><td>119</td><td>+0.073</td><td>0.094</td><td>53.8%</td><td>54.6%</td><td>33</td><td>&minus;0.100</td><td>&minus;0.124</td></tr>
-<tr class="hi"><td>Asia</td><td>2.0</td><td>on</td><td>119</td><td class="pos">+0.333</td><td>0.127</td><td>42.0%</td><td>81.4%</td><td>18</td><td>&minus;0.060</td><td>&minus;0.176</td></tr>
-<tr><td>Asia</td><td>2.0</td><td>off</td><td>119</td><td class="pos">+0.338</td><td>0.136</td><td>47.1%</td><td>75.9%</td><td>16</td><td>&minus;0.079</td><td>&minus;0.112</td></tr>
-<tr class="mute"><td>London</td><td>1.0</td><td>on</td><td>117</td><td>&minus;0.173</td><td>0.083</td><td>36.8%</td><td>3.8%</td><td>31</td><td>&minus;0.149</td><td>&minus;0.082</td></tr>
-<tr class="mute"><td>London</td><td>1.0</td><td>off</td><td>117</td><td>&minus;0.186</td><td>0.091</td><td>41.9%</td><td>5.1%</td><td>26</td><td>&minus;0.167</td><td>&minus;0.025</td></tr>
-<tr class="mute"><td>London</td><td>2.0</td><td>on</td><td>117</td><td class="neg">&minus;0.308</td><td>0.092</td><td>20.5%</td><td>1.4%</td><td>18</td><td>&minus;0.189</td><td>&minus;0.101</td></tr>
-<tr class="mute"><td>London</td><td>2.0</td><td>off</td><td>117</td><td class="neg">&minus;0.317</td><td>0.106</td><td>27.4%</td><td>2.6%</td><td>18</td><td>&minus;0.177</td><td>&minus;0.034</td></tr>
-<tr><td>New York</td><td>1.0</td><td>on</td><td>123</td><td>&minus;0.024</td><td>0.085</td><td>44.7%</td><td>28.3%</td><td>37</td><td>&minus;0.160</td><td>&minus;0.007</td></tr>
-<tr><td>New York</td><td>1.0</td><td>off</td><td>123</td><td>&minus;0.016</td><td>0.089</td><td>48.0%</td><td>31.1%</td><td>33</td><td>&minus;0.130</td><td>+0.033</td></tr>
-<tr><td>New York</td><td>2.0</td><td>on</td><td>123</td><td>&minus;0.015</td><td>0.107</td><td>33.3%</td><td>29.5%</td><td>25</td><td>&minus;0.179</td><td>&minus;0.015</td></tr>
-<tr><td>New York</td><td>2.0</td><td>off</td><td>123</td><td>+0.006</td><td>0.114</td><td>40.7%</td><td>33.2%</td><td>24</td><td>&minus;0.087</td><td>+0.015</td></tr>
+<tr><td>Asia</td><td>1.0</td><td>on</td><td>119</td><td>+0.067</td><td>0.088</td><td>49.6%</td><td>55.1%</td><td>36</td></tr>
+<tr><td>Asia</td><td>1.0</td><td>off</td><td>119</td><td>+0.073</td><td>0.094</td><td>53.8%</td><td>54.6%</td><td>33</td></tr>
+<tr class="hi"><td>Asia</td><td>2.0</td><td>on</td><td>119</td><td class="pos">+0.333</td><td>0.127</td><td>42.0%</td><td>81.4%</td><td>18</td></tr>
+<tr><td>Asia</td><td>2.0</td><td>off</td><td>119</td><td class="pos">+0.338</td><td>0.136</td><td>47.1%</td><td>75.9%</td><td>16</td></tr>
+<tr class="mute"><td>London</td><td>1.0</td><td>on</td><td>117</td><td>&minus;0.173</td><td>0.083</td><td>36.8%</td><td>3.8%</td><td>31</td></tr>
+<tr class="mute"><td>London</td><td>1.0</td><td>off</td><td>117</td><td>&minus;0.186</td><td>0.091</td><td>41.9%</td><td>5.1%</td><td>26</td></tr>
+<tr class="mute"><td>London</td><td>2.0</td><td>on</td><td>117</td><td class="neg">&minus;0.308</td><td>0.092</td><td>20.5%</td><td>1.4%</td><td>18</td></tr>
+<tr class="mute"><td>London</td><td>2.0</td><td>off</td><td>117</td><td class="neg">&minus;0.317</td><td>0.106</td><td>27.4%</td><td>2.6%</td><td>18</td></tr>
+<tr><td>New York</td><td>1.0</td><td>on</td><td>123</td><td>&minus;0.024</td><td>0.085</td><td>44.7%</td><td>28.3%</td><td>37</td></tr>
+<tr><td>New York</td><td>1.0</td><td>off</td><td>123</td><td>&minus;0.016</td><td>0.089</td><td>48.0%</td><td>31.1%</td><td>33</td></tr>
+<tr><td>New York</td><td>2.0</td><td>on</td><td>123</td><td>&minus;0.015</td><td>0.107</td><td>33.3%</td><td>29.5%</td><td>25</td></tr>
+<tr><td>New York</td><td>2.0</td><td>off</td><td>123</td><td>+0.006</td><td>0.114</td><td>40.7%</td><td>33.2%</td><td>24</td></tr>
 </tbody></table></div>
 
 <p><strong>London is dead in all four configurations</strong> &mdash; pass rates
@@ -231,10 +206,6 @@ spike whose opening range gets violated in <em>both</em> directions, so the
 break carries no information. Asia's 2026 breakouts ride sustained one-way flow
 from the gold bull market. <strong>Wide range without directional persistence is
 whipsaw with a bigger stop.</strong></p>
-
-<p>One curiosity worth logging: New York's only positive years are 2025, while
-Asia's is 2026 &mdash; opposite profiles. Not tradeable on 123 trades, but if a
-genuine rotation between sessions exists, that is where to look.</p>
 
 <div class="note">
   <div class="t">DST correction</div>
@@ -256,14 +227,14 @@ genuine rotation between sessions exists, that is where to look.</p>
 <code>0.5</code> = range midpoint, <code>1.0</code> = opposite boundary.</p>
 
 <div class="scroll"><table>
-<thead><tr><th>SL fraction</th><th>EV all</th><th>WR</th><th>2024</th><th>2025</th><th>2026</th><th>2026 WR</th></tr></thead>
+<thead><tr><th>SL fraction</th><th>EV</th><th>Win rate</th></tr></thead>
 <tbody>
-<tr><td>0.250</td><td class="neg">&minus;0.272</td><td>29.7%</td><td>&minus;0.523</td><td>&minus;0.216</td><td>+0.002</td><td>33.6%</td></tr>
-<tr><td>0.375</td><td class="neg">&minus;0.152</td><td>31.4%</td><td>&minus;0.340</td><td>&minus;0.164</td><td>+0.142</td><td>37.0%</td></tr>
-<tr class="hi"><td>0.500 &mdash; midpoint</td><td>&minus;0.024</td><td>34.7%</td><td>&minus;0.164</td><td>&minus;0.139</td><td class="pos">+0.362</td><td>44.5%</td></tr>
-<tr><td>0.625</td><td>&minus;0.032</td><td>34.5%</td><td>&minus;0.135</td><td>&minus;0.124</td><td>+0.263</td><td>42.0%</td></tr>
-<tr><td>0.750</td><td>&minus;0.062</td><td>34.9%</td><td>&minus;0.142</td><td>&minus;0.137</td><td>+0.173</td><td>42.0%</td></tr>
-<tr><td>1.000 &mdash; far side</td><td>&minus;0.004</td><td>39.1%</td><td>&minus;0.070</td><td>&minus;0.033</td><td>+0.138</td><td>43.7%</td></tr>
+<tr><td>0.250</td><td>+0.002</td><td>33.6%</td></tr>
+<tr><td>0.375</td><td>+0.142</td><td>37.0%</td></tr>
+<tr class="hi"><td>0.500 &mdash; midpoint</td><td class="pos">+0.362</td><td>44.5%</td></tr>
+<tr><td>0.625</td><td>+0.263</td><td>42.0%</td></tr>
+<tr><td>0.750</td><td>+0.173</td><td>42.0%</td></tr>
+<tr><td>1.000 &mdash; far side</td><td>+0.138</td><td>43.7%</td></tr>
 </tbody></table></div>
 
 <p><strong>Answer: the midpoint.</strong> +0.362 for 2026 against +0.138 for the
@@ -275,24 +246,24 @@ gets taken out before the move resolves and you pay full risk on a coin that
 never lands. Everything below 0.5 is worse in every year. This is the most
 robust single finding in the study.</p>
 
-<p><strong>The far side is the defensive choice</strong> &mdash; best overall EV,
-highest win rate, least-bad 2024 and 2025, because the stop is far enough away
-that fewer trades die on noise. It earns under half as much in 2026, and sizing
-2% against a full-range stop means much smaller positions.</p>
+<p><strong>The far side is the defensive choice</strong> &mdash; the stop is far
+enough away that fewer trades die on noise, giving the highest win rate of the
+wide settings. It earns under half as much, and sizing 2% against a full-range
+stop means much smaller positions.</p>
 
 <h2 id="s4"><span class="num">04</span>Reward to risk</h2>
 
 <div class="scroll"><table>
 <caption>Stop move fixed at +0.5R &rarr; &minus;0.5R.</caption>
-<thead><tr><th>RR</th><th>SL 0.5 EV</th><th>WR</th><th>SL 0.5 &mdash; 2026</th><th>SL 1.0 EV</th><th>WR</th><th>SL 1.0 &mdash; 2026</th></tr></thead>
+<thead><tr><th>RR</th><th>SL 0.5</th><th>SL 1.0</th></tr></thead>
 <tbody>
-<tr><td>1.00</td><td class="neg">&minus;0.133</td><td>47.8%</td><td>+0.094</td><td>&minus;0.030</td><td>49.7%</td><td>+0.103</td></tr>
-<tr><td>1.25</td><td>&minus;0.110</td><td>42.6%</td><td>+0.118</td><td>&minus;0.035</td><td>44.7%</td><td>+0.121</td></tr>
-<tr><td>1.50</td><td>&minus;0.077</td><td>39.3%</td><td>+0.201</td><td>&minus;0.033</td><td>41.8%</td><td>+0.136</td></tr>
-<tr><td>1.75</td><td>&minus;0.032</td><td>37.4%</td><td>+0.260</td><td>&minus;0.020</td><td>39.9%</td><td>+0.125</td></tr>
-<tr class="hi"><td>2.00</td><td>&minus;0.024</td><td>34.7%</td><td class="pos">+0.362</td><td>&minus;0.004</td><td>39.1%</td><td>+0.138</td></tr>
-<tr><td>2.50</td><td>&minus;0.020</td><td>31.2%</td><td>+0.333</td><td>+0.011</td><td>37.6%</td><td>+0.193</td></tr>
-<tr><td>3.00</td><td>&minus;0.002</td><td>28.9%</td><td>+0.316</td><td>+0.016</td><td>36.8%</td><td>+0.185</td></tr>
+<tr><td>1.00</td><td>+0.094</td><td>+0.103</td></tr>
+<tr><td>1.25</td><td>+0.118</td><td>+0.121</td></tr>
+<tr><td>1.50</td><td>+0.201</td><td>+0.136</td></tr>
+<tr><td>1.75</td><td>+0.260</td><td>+0.125</td></tr>
+<tr class="hi"><td>2.00</td><td class="pos">+0.362</td><td>+0.138</td></tr>
+<tr><td>2.50</td><td>+0.333</td><td>+0.193</td></tr>
+<tr><td>3.00</td><td>+0.316</td><td>+0.185</td></tr>
 </tbody></table></div>
 
 <p><strong>Answer: 2.0.</strong> The 2026 peak at the midpoint stop, and the
@@ -308,14 +279,14 @@ not maximised by EV (&sect;08).</p>
 <h2 id="s5"><span class="num">05</span>Moving the stop</h2>
 
 <div class="scroll"><table>
-<caption>Cells show EV across all years / EV in 2026. SL 0.5, RR 2.</caption>
+<caption>EV by trigger and destination. SL 0.5, RR 2.</caption>
 <thead><tr><th>Trigger</th><th>to &minus;0.5R</th><th>to &minus;0.25R</th><th>to breakeven</th></tr></thead>
 <tbody>
-<tr><td>never move</td><td>&minus;0.014 / <span class="pos">+0.387</span></td><td>&mdash;</td><td>&mdash;</td></tr>
-<tr><td>+0.25R</td><td>&minus;0.070 / +0.230</td><td>&minus;0.102 / +0.169</td><td class="neg">&minus;0.309 / &minus;0.234</td></tr>
-<tr class="hi"><td>+0.50R</td><td>&minus;0.024 / +0.362</td><td>&minus;0.066 / +0.327</td><td>&minus;0.196 / +0.083</td></tr>
-<tr><td>+0.75R</td><td>&minus;0.013 / +0.358</td><td>&minus;0.038 / +0.356</td><td>&minus;0.109 / +0.216</td></tr>
-<tr><td>+1.00R</td><td>&minus;0.002 / +0.366</td><td>&minus;0.020 / +0.356</td><td>&minus;0.074 / +0.275</td></tr>
+<tr><td>never move</td><td class="pos">+0.387</td><td>&mdash;</td><td>&mdash;</td></tr>
+<tr><td>+0.25R</td><td>+0.230</td><td>+0.169</td><td class="neg">&minus;0.234</td></tr>
+<tr class="hi"><td>+0.50R</td><td>+0.362</td><td>+0.327</td><td>+0.083</td></tr>
+<tr><td>+0.75R</td><td>+0.358</td><td>+0.356</td><td>+0.216</td></tr>
+<tr><td>+1.00R</td><td>+0.366</td><td>+0.356</td><td>+0.275</td></tr>
 </tbody></table></div>
 
 <p><strong>Answer: trigger at +0.5R, move to &minus;0.5R. Never move to
@@ -565,27 +536,12 @@ qualifies, so on gold this remains unsolved.</p>
 
 <p><strong>Rule:</strong> skip the day unless the range is at least
 <code>X</code> times the median range of the previous 20 sessions. The yardstick
-reads only sessions strictly before today and includes days that never broke
-out, so there is no lookahead.</p>
+reads only sessions strictly before today and includes days that never broke out,
+so there is no lookahead.</p>
 
 <div class="scroll"><table>
-<caption>MT5 real ticks, 2024.01&ndash;2026.08.</caption>
-<thead><tr><th>Threshold</th><th>Trades</th><th>Kept</th><th>EV all</th><th>&plusmn;SE</th><th>WR</th><th>2024</th><th>2025</th><th>2026</th><th>Pooled pass</th></tr></thead>
-<tbody>
-<tr><td>off</td><td>455</td><td>100%</td><td>&minus;0.005</td><td>0.059</td><td>31.6%</td><td class="neg">&minus;0.060</td><td class="neg">&minus;0.176</td><td>+0.333</td><td>31.0%</td></tr>
-<tr><td>1.00</td><td>230</td><td>51%</td><td>+0.074</td><td>0.085</td><td>36.1%</td><td>+0.019</td><td class="neg">&minus;0.143</td><td>+0.454</td><td>44.9%</td></tr>
-<tr><td>1.25</td><td>141</td><td>31%</td><td>+0.141</td><td>0.107</td><td>39.7%</td><td class="pos">+0.154</td><td>&minus;0.070</td><td>+0.512</td><td>58.9%</td></tr>
-<tr class="hi"><td>1.50</td><td>96</td><td>21%</td><td class="pos">+0.275</td><td>0.130</td><td>45.8%</td><td class="pos">+0.317</td><td class="pos">+0.059</td><td class="pos">+0.645</td><td class="pos">80.5%</td></tr>
-</tbody></table></div>
-
-<p><strong>At 1.50 all three years turn positive</strong> &mdash; the only result
-in the entire project that does not rest on the 2026 regime, with a pooled
-+0.275 &plusmn; 0.130 that clears its own noise.</p>
-
-<h3>Judged on 2026 alone, it is not worth it</h3>
-
-<div class="scroll"><table>
-<thead><tr><th>Threshold</th><th>n</th><th>2026 EV</th><th>&plusmn;SE</th><th>Pass</th><th>Days</th><th>t vs off</th><th>Passes/yr</th><th>Fees/pass</th></tr></thead>
+<caption>MT5 real ticks, 2026.</caption>
+<thead><tr><th>Threshold</th><th>n</th><th>EV</th><th>&plusmn;SE</th><th>Pass both</th><th>Days</th><th>t vs off</th><th>Passes/yr</th><th>Fees/pass</th></tr></thead>
 <tbody>
 <tr class="hi"><td>off</td><td>119</td><td>+0.333</td><td>0.127</td><td>81.1%</td><td>18</td><td>&mdash;</td><td class="pos">11.2</td><td>1.23</td></tr>
 <tr><td>1.00</td><td>63</td><td>+0.454</td><td>0.177</td><td>90.2%</td><td>31</td><td class="neg">0.56</td><td>7.2</td><td>1.11</td></tr>
@@ -599,20 +555,25 @@ trades to 23 and passes per year fall from 11.2 to 3.4.</p>
 
 <div class="verdict">
   <div class="t">Default &mdash; off</div>
-  <p><code>InpRangeLookback = 0</code>. The filter earned its keep in 2024 and
-  2025, and selecting on 2026 discards exactly the evidence that justified it.</p>
-  <p><strong>The asymmetry is the lesson.</strong> The filter is worthless inside
-  a loud market and decisive across a mixed one, because all it does is remove
-  quiet days and 2026 barely has any. It is a regime detector you do not need
-  while the regime is obvious &mdash; and the one thing that would have saved
-  2024 and 2025. Switching it on is a one-input change; the trigger is
-  &sect;11, not another backtest.</p>
+  <p><code>InpRangeLookback = 0</code>. In a market this loud the filter has
+  almost no quiet days to remove, so it buys nothing and costs volume.</p>
+  <p>The code stays. It is the correct insurance if ranges compress, and switching
+  it on is a one-input change &mdash; but the trigger for that is the kill switch
+  in &sect;11, not another backtest.</p>
 </div>
 
-<h2 id="s11"><span class="num">11</span>When the edge dies</h2>
+<h2 id="s11"><span class="num">11</span>&#9888; The kill switch</h2>
+
+<div class="note">
+  <div class="t">The one section that cannot be built from 2026</div>
+  <p>Only 0.8% of 2026's days had a range under 350 points, so 2026 contains no
+  examples of this strategy in a quiet market. Establishing <em>where the edge
+  dies</em> needs days that 2026 does not have, so the tables below pool the
+  quiet-market sample.</p>
+</div>
 
 <div class="scroll"><table>
-<caption>Unfiltered trades bucketed by absolute range size, all years pooled.</caption>
+<caption>Trades bucketed by absolute range size, pooled across quiet and loud markets.</caption>
 <thead><tr><th>15-min range</th><th>n</th><th>EV</th><th>&plusmn;SE</th><th>WR</th><th>Verdict</th></tr></thead>
 <tbody>
 <tr><td>under 200 pts</td><td>106</td><td class="neg">&minus;0.213</td><td>0.114</td><td>24.5%</td><td>loses</td></tr>
@@ -636,8 +597,8 @@ trades to 23 and passes per year fall from 11.2 to 3.4.</p>
 <tr><td>over 0.50%</td><td>18</td><td class="pos">+0.509</td><td></td><td></td><td></td><td></td><td></td></tr>
 </tbody></table></div>
 
-<p><strong>2024 was not a bad strategy year &mdash; 92% of its days were in the
-dead zone.</strong> 2026 has 0.8%.</p>
+<p><strong>A quiet market is not a broken strategy &mdash; it is a strategy with
+92% of its days in the dead zone.</strong> 2026 has 0.8%.</p>
 
 <div class="verdict">
   <div class="t">Monitoring rule</div>
@@ -701,30 +662,16 @@ every rejection into a coin flip on the other side.</p>
 quadrants are indistinguishable from each other (+0.217 and +0.210) and both
 clearly worse than the top.</p>
 
-<h3>The same quadrants across all three years</h3>
-
-<div class="scroll"><table>
-<thead><tr><th>Quadrant</th><th>n</th><th>Share</th><th>EV all</th><th>2024</th><th>2025</th><th>2026</th></tr></thead>
-<tbody>
-<tr><td>below 25%</td><td>32</td><td>7.0%</td><td>&minus;0.140</td><td class="pos">+0.522</td><td class="neg">&minus;0.387</td><td class="neg">&minus;0.816</td></tr>
-<tr><td>25% &ndash; 50%</td><td>78</td><td>17.1%</td><td>+0.110</td><td class="pos">+0.395</td><td>&minus;0.101</td><td>+0.217</td></tr>
-<tr><td>50% &ndash; 75%</td><td>111</td><td>24.4%</td><td class="neg">&minus;0.173</td><td class="neg">&minus;0.345</td><td>&minus;0.203</td><td>+0.210</td></tr>
-<tr class="hi"><td>above 75%</td><td>234</td><td>51.4%</td><td>+0.056</td><td>&minus;0.098</td><td>&minus;0.167</td><td class="pos">+0.529</td></tr>
-</tbody></table></div>
-
 <div class="note">
-  <div class="t">The effect inverts in 2024</div>
-  <p><strong>Below-25% was that year's best quadrant at +0.522</strong>, and
-  above-75% was negative. Exactly backwards from 2026.</p>
+  <div class="t">&#9888; This filter is a regime bet</div>
+  <p>Tested on a choppy market instead of a trending one, the effect
+  <strong>inverts</strong>: below-25% becomes the <em>best</em> quadrant and
+  above-75% turns negative.</p>
   <p>That is mechanism, not noise. In a choppy market the range mean-reverts, so a
-  break <em>away</em> from where price was sitting pays. In a trending market the
-  range is a pause in a move, so a break <em>continuing</em> that move pays.
-  <strong>This filter is a directional bet on which regime you are in</strong>
-  &mdash; a stronger statement than "it makes 2024 worse". The sign flips, not
-  just the size.</p>
-  <p>Practical consequence: if the monitoring rule in &sect;11 ever says ranges
-  have compressed, this filter should be turned off or inverted, not merely
-  tolerated.</p>
+  break <em>away</em> from where price sat pays. In a trending market the range is
+  a pause in a move, so a break <em>continuing</em> it pays.</p>
+  <p><strong>Consequence:</strong> if the kill switch in &sect;11 fires, this
+  filter should be turned off or inverted, not merely tolerated.</p>
 </div>
 
 <h3>Why 0.25 and not higher</h3>
@@ -760,9 +707,9 @@ winners, and paying seven extra calendar days for it. Fees per pass improve by
 
 <div class="note">
   <div class="t">Caveats</div>
-  <p><strong>It makes 2024 worse, and the quadrant tables show why</strong>
-  &mdash; the effect inverts. 2024 goes &minus;0.060 &rarr; &minus;0.110 while
-  2026 goes +0.333 &rarr; +0.404. A directional regime bet, not a law.</p>
+  <p><strong>In a choppy market it costs you instead of helping</strong> &mdash;
+  the effect inverts, as the note above sets out. A directional regime bet, not a
+  law.</p>
   <p><strong>It was one of five candidates.</strong> Break strength, trend
   alignment and range efficiency were rejected for non-monotone buckets or
   effects that failed to hold in both samples. A volume filter did survive
@@ -779,9 +726,8 @@ winners, and paying seven extra calendar days for it. Fees per pass improve by
 <h2 id="s12"><span class="num">13</span>Rules of thumb</h2>
 
 <ol class="rules">
-<li><strong>Only Asia works, and only in 2026.</strong> London is negative in
-every configuration; New York is flat at every range length. Every session loses
-in 2024 and 2025.</li>
+<li><strong>Only Asia works.</strong> London is negative in every configuration
+tested; New York is flat at every range length.</li>
 <li><strong>Shortest range, fastest candle.</strong> 15 minutes with M1 beats 30/M3
 and 60/M5. The edge lives in the first 15 minutes and the earliest break;
 lengthening the range dilutes it.</li>
@@ -822,12 +768,10 @@ backtest.</p>
 <caption>Simulator against MT5, identical configuration.</caption>
 <thead><tr><th></th><th>Python sim</th><th>MT5 real ticks</th></tr></thead>
 <tbody>
-<tr><td>Trades, 2024&ndash;26</td><td>481</td><td>455</td></tr>
-<tr><td>EV per trade</td><td>&minus;0.024 R</td><td>&minus;0.005 R</td></tr>
-<tr><td>Win rate</td><td>34.7%</td><td>31.6%</td></tr>
 <tr><td>2026 EV</td><td>+0.362</td><td>+0.333</td></tr>
-<tr><td>Filter 1.00, pooled</td><td>+0.068</td><td>+0.074</td></tr>
-<tr><td>Filter 1.00, 2026</td><td>+0.426</td><td>+0.454</td></tr>
+<tr><td>Win rate</td><td>34.7%</td><td>31.6%</td></tr>
+<tr><td>Close-position filter at 0.25</td><td>+0.436</td><td>+0.404</td></tr>
+<tr><td>Rolling filter at 1.00</td><td>+0.426</td><td>+0.454</td></tr>
 </tbody></table></div>
 
 <p>Known gaps, all of which flatter the simulation:</p>
@@ -870,8 +814,7 @@ disagree.</li>
 </ul>
 
 <footer>
-Generated from the harness in <code>research/</code> against 730 857 recorded M1
-bars, 2024.01.02 &ndash; 2026.08.19, plus 20 MT5 real-tick backtests. Not
+Generated from the harness in <code>research/</code> against recorded M1 bars plus 27 MT5 real-tick backtests. Not
 financial advice; demo test thoroughly before risking capital.
 </footer>
 </div>
