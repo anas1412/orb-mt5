@@ -685,6 +685,48 @@ every rejection into a coin flip on the other side.</p>
 <tr><td>0.75</td><td>234</td><td>51%</td><td>68</td><td class="pos">+0.529</td><td>0.173</td><td>50.0%</td><td class="pos">92.7%</td><td>26</td><td>1.08</td></tr>
 </tbody></table></div>
 
+<h3>Where the trades actually sit &mdash; quadrant view</h3>
+
+<div class="scroll"><table>
+<caption>2026, grouped by score rather than by cumulative threshold.</caption>
+<thead><tr><th>Quadrant</th><th>n</th><th>Share</th><th>EV</th><th>&plusmn;SE</th><th>Win rate</th><th>Total R</th></tr></thead>
+<tbody>
+<tr><td>below 25%</td><td>7</td><td>5.9%</td><td class="neg">&minus;0.816</td><td>0.098</td><td class="neg">0.0%</td><td class="neg">&minus;5.71</td></tr>
+<tr><td>25% &ndash; 50%</td><td>19</td><td>16.0%</td><td>+0.217</td><td>0.317</td><td>36.8%</td><td>+4.12</td></tr>
+<tr><td>50% &ndash; 75%</td><td>25</td><td>21.0%</td><td>+0.210</td><td>0.260</td><td>36.0%</td><td>+5.24</td></tr>
+<tr class="hi"><td>above 75%</td><td>68</td><td>57.1%</td><td class="pos">+0.529</td><td>0.173</td><td class="pos">50.0%</td><td class="pos">+35.95</td></tr>
+</tbody></table></div>
+
+<p><strong>Seven trades below 25%, and not one of them won.</strong> The middle two
+quadrants are indistinguishable from each other (+0.217 and +0.210) and both
+clearly worse than the top.</p>
+
+<h3>The same quadrants across all three years</h3>
+
+<div class="scroll"><table>
+<thead><tr><th>Quadrant</th><th>n</th><th>Share</th><th>EV all</th><th>2024</th><th>2025</th><th>2026</th></tr></thead>
+<tbody>
+<tr><td>below 25%</td><td>32</td><td>7.0%</td><td>&minus;0.140</td><td class="pos">+0.522</td><td class="neg">&minus;0.387</td><td class="neg">&minus;0.816</td></tr>
+<tr><td>25% &ndash; 50%</td><td>78</td><td>17.1%</td><td>+0.110</td><td class="pos">+0.395</td><td>&minus;0.101</td><td>+0.217</td></tr>
+<tr><td>50% &ndash; 75%</td><td>111</td><td>24.4%</td><td class="neg">&minus;0.173</td><td class="neg">&minus;0.345</td><td>&minus;0.203</td><td>+0.210</td></tr>
+<tr class="hi"><td>above 75%</td><td>234</td><td>51.4%</td><td>+0.056</td><td>&minus;0.098</td><td>&minus;0.167</td><td class="pos">+0.529</td></tr>
+</tbody></table></div>
+
+<div class="note">
+  <div class="t">The effect inverts in 2024</div>
+  <p><strong>Below-25% was that year's best quadrant at +0.522</strong>, and
+  above-75% was negative. Exactly backwards from 2026.</p>
+  <p>That is mechanism, not noise. In a choppy market the range mean-reverts, so a
+  break <em>away</em> from where price was sitting pays. In a trending market the
+  range is a pause in a move, so a break <em>continuing</em> that move pays.
+  <strong>This filter is a directional bet on which regime you are in</strong>
+  &mdash; a stronger statement than "it makes 2024 worse". The sign flips, not
+  just the size.</p>
+  <p>Practical consequence: if the monitoring rule in &sect;11 ever says ranges
+  have compressed, this filter should be turned off or inverted, not merely
+  tolerated.</p>
+</div>
+
 <h3>Why 0.25 and not higher</h3>
 
 <div class="scroll"><table>
@@ -718,10 +760,9 @@ winners, and paying seven extra calendar days for it. Fees per pass improve by
 
 <div class="note">
   <div class="t">Caveats</div>
-  <p><strong>It makes 2024 worse</strong> &mdash; 2024 goes &minus;0.060 &rarr;
-  &minus;0.110 while 2026 goes +0.333 &rarr; +0.404. Continuation breaks pay in a
-  trending regime and may be exactly wrong in a choppy one. A 2026-regime filter,
-  not a law.</p>
+  <p><strong>It makes 2024 worse, and the quadrant tables show why</strong>
+  &mdash; the effect inverts. 2024 goes &minus;0.060 &rarr; &minus;0.110 while
+  2026 goes +0.333 &rarr; +0.404. A directional regime bet, not a law.</p>
   <p><strong>It was one of five candidates.</strong> Break strength, trend
   alignment and range efficiency were rejected for non-monotone buckets or
   effects that failed to hold in both samples. A volume filter did survive

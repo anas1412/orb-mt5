@@ -650,6 +650,43 @@ coin flip on the other side.
 | 0.50 | 345 | 76% | 93 | +0.443 | 0.145 | 46.2% | 1.40 | 89.4% | 21 | 1.12 |
 | 0.75 | 234 | 51% | 68 | +0.529 | 0.173 | 50.0% | 1.43 | 92.7% | 26 | 1.08 |
 
+### Where the trades actually sit — quadrant view
+
+2026, grouped by score rather than by cumulative threshold:
+
+| Quadrant | n | Share | EV | +/-SE | Win rate | Total R |
+|---|---|---|---|---|---|---|
+| **below 25%** | 7 | 5.9% | **-0.816** | 0.098 | **0.0%** | -5.71 |
+| 25% - 50% | 19 | 16.0% | +0.217 | 0.317 | 36.8% | +4.12 |
+| 50% - 75% | 25 | 21.0% | +0.210 | 0.260 | 36.0% | +5.24 |
+| **above 75%** | 68 | 57.1% | **+0.529** | 0.173 | **50.0%** | +35.95 |
+
+**Seven trades below 25%, and not one of them won.** The middle two quadrants are
+indistinguishable from each other (+0.217 and +0.210) and both clearly worse than
+the top.
+
+### The same quadrants across all three years
+
+| Quadrant | n | Share | EV all | 2024 | 2025 | 2026 |
+|---|---|---|---|---|---|---|
+| below 25% | 32 | 7.0% | -0.140 | **+0.522** | -0.387 | **-0.816** |
+| 25% - 50% | 78 | 17.1% | +0.110 | +0.395 | -0.101 | +0.217 |
+| 50% - 75% | 111 | 24.4% | -0.173 | -0.345 | -0.203 | +0.210 |
+| above 75% | 234 | 51.4% | +0.056 | -0.098 | -0.167 | **+0.529** |
+
+**In 2024 the pattern inverts completely.** Below-25% was that year's *best*
+quadrant at +0.522, and above-75% was negative. Exactly backwards from 2026.
+
+That is mechanism, not noise. In a choppy market the range mean-reverts, so a
+break away from where price was sitting pays. In a trending market the range is a
+pause in a move, so a break continuing that move pays. **The filter is a
+directional bet on which of those two regimes you are in** — a stronger statement
+than "it makes 2024 worse". The sign flips, not just the size.
+
+The practical consequence: if the monitoring rule in §11 ever tells you ranges
+have compressed, this filter should be turned off or inverted, not merely
+tolerated.
+
 ### Why 0.25 and not higher
 
 The marginal cut at each step is what decides it:
@@ -685,10 +722,10 @@ that whole stretch, which does not cover it.
 
 ### Caveats
 
-**It makes 2024 worse.** Across all years: 2024 goes -0.060 -> -0.110, 2025
--0.176 -> -0.160, 2026 +0.333 -> +0.404. Continuation breaks pay in a trending
-regime and may be exactly wrong in a choppy one. This is a 2026-regime filter,
-not a law.
+**It makes 2024 worse, and the quadrant table above shows why:** the effect
+inverts. 2024 goes -0.060 -> -0.110, 2025 -0.176 -> -0.160, 2026 +0.333 ->
++0.404. Continuation breaks pay in a trending regime and reversal breaks pay in a
+choppy one, so this is a directional regime bet rather than a law.
 
 **It was one of five candidates.** Break strength, trend alignment (10-day drift)
 and range efficiency were all rejected — non-monotone buckets, or effects that
