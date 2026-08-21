@@ -748,8 +748,23 @@ void ManageOpenPosition()
       if(sl == 0)
          continue;
 
-      const bool   isBuy = (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY);
-      const double risk  = MathAbs(open - sl);
+      const bool isBuy = (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY);
+
+      // R must be measured against the ORIGINAL stop. Using the live stop
+      // shrinks R after the first move, so the trigger re-fires and the
+      // stop ratchets all the way to entry — which is what every run
+      // before this fix was actually doing.
+      //
+      // The target encodes it: its distance is the original risk times RR,
+      // so dividing recovers R without keeping per-ticket state that a
+      // restart would lose.
+      double risk = 0;
+      if(InpTPMode == TP_RR && InpRR > 0 && tp > 0)
+         risk = MathAbs(tp - open) / InpRR;
+      else if(ticket == g_openTicket && g_openSL > 0)
+         risk = MathAbs(open - g_openSL);
+      if(risk <= 0)
+         continue;
       const double price = isBuy ? SymbolInfoDouble(_Symbol, SYMBOL_BID)
                                  : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
       const double moved = isBuy ? price - open : open - price;
