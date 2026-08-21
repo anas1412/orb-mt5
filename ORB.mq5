@@ -61,7 +61,7 @@ input int              InpMaxTradesPerDay = 1;             // Max trades per day
 input double           InpMaxSpreadPoints = 0;             // Max spread (points, 0=off)
 input double           InpMinRangePoints  = 0;             // Min range size (points, 0=off)
 input double           InpMaxRangePoints  = 0;             // Max range size (points, 0=off)
-input int              InpRangeLookback   = 20;            // Rolling filter: sessions to compare against (0=off)
+input int              InpRangeLookback   = 0;             // Rolling filter: sessions to compare against (0=off)
 input double           InpMinRangeRatio   = 1.25;          // Rolling filter: range must be this x the median
 input bool             InpTradeMon        = true;          // Trade Monday
 input bool             InpTradeTue        = true;          // Trade Tuesday

@@ -466,6 +466,40 @@ sessions produce roughly three times the setups of one, which brings 1.25 back
 to about 18 calendar days — the unfiltered speed, at the filtered pass rate.
 Revisit 1.50 once those are running.
 
+### Judged on 2026 alone: not worth it
+
+The decision to select on 2026 changes the answer. MT5 real ticks, 165 trading
+days:
+
+| Threshold | n | 2026 EV | +/-SE | WR | Pass both | Days | vs no filter | t | Passes/yr | Fees/pass |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **off** | 119 | +0.333 | 0.127 | 42.0% | 81.1% | **18** | - | - | **11.2** | 1.23 |
+| 1.00 | 63 | +0.454 | 0.177 | 47.6% | 90.2% | 31 | +0.122 | 0.56 | 7.2 | 1.11 |
+| 1.25 | 35 | +0.512 | 0.229 | 51.4% | 94.5% | 52 | +0.179 | 0.68 | 4.6 | 1.06 |
+| 1.50 | 23 | +0.645 | 0.285 | 56.5% | 97.6% | 72 | +0.313 | 1.00 | 3.4 | 1.02 |
+
+**Not one improvement clears its own noise.** The t-values are 0.56, 0.68 and
+1.00 against a threshold of roughly 2.0. The sample collapses from 119 trades to
+23, and passes per year fall from 11.2 to 3.4.
+
+**The filter earned its keep in 2024 and 2025** — those are the years it turned
+from negative to positive. Selecting on 2026 alone discards precisely the
+evidence that justified it.
+
+**Default set to off** (`InpRangeLookback = 0`).
+
+Keep the code. It is the correct insurance if the regime turns quiet again: at
+threshold 1.50 all three years are positive and pooled pass rate is 80.5%
+against 31%. Turning it on is a one-input change, and the trigger to do so is
+watching realised range compress — not a backtest.
+
+### The interesting asymmetry
+
+The filter is worthless inside a loud market and decisive across a mixed one.
+That is not a contradiction: it removes quiet days, and 2026 barely has any.
+Which makes the filter a **regime detector you do not need while the regime is
+obvious** — and the one thing that would have saved 2024 and 2025.
+
 ### Simulator validation
 
 The offline sweep predicted +0.068 pooled and +0.426 for 2026 at threshold 1.00.
