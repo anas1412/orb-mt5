@@ -7,10 +7,10 @@ bars, 15-minute entry window, 60-minute hold cap, 2% risk, one trade per day.
 table says otherwise. Rules: FundingPips 2-Step Standard — +8% then +5%, 10% max
 total loss, 5% max daily loss, minimum 3 trading days per phase, no time limit.
 
-Two sections deliberately reach outside 2026, and both are marked: §9 (the kill
-switch) and the inversion note in §8. In both, the comparison *is* the finding —
-2026 contains almost no quiet days, so it cannot teach you what a quiet market
-does to this strategy.
+Two sections necessarily reach beyond 2026, and both are marked with ⚠: §9 (the
+kill switch) and the inversion note in §8. In both the comparison *is* the
+finding — 2026 contains almost no quiet days, so it cannot teach you what a quiet
+market does to this strategy.
 
 ---
 
@@ -385,10 +385,11 @@ not cover it.
 | Attempts per pass | 1.23 | **1.15** |
 | Days | 18 | 19 |
 
-### ⚠ This filter is a regime bet — the one place older data matters
+### ⚠ This filter is a regime bet
 
-Tested on 2024, the effect **inverts**: below-25% was that year's *best* quadrant
-at +0.522 and above-75% was negative — exactly backwards from 2026.
+Tested on a choppy market instead of a trending one, the effect **inverts**:
+below-25% becomes the *best* quadrant and above-75% turns negative — exactly
+backwards from what 2026 shows.
 
 That is mechanism, not noise. In a choppy market the range mean-reverts, so a
 break *away* from where price sat pays. In a trending market the range is a pause
