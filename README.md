@@ -21,17 +21,14 @@ XAUUSD, Asia session, MT5 real ticks, 2% risk per trade, one trade per day.
 Full analysis: **[research/report.html](research/report.html)** ·
 **[research/FINDINGS.md](research/FINDINGS.md)**
 
-| Year | Trades | EV / trade | Win rate | Median range |
+| Period | Trades | EV / trade | Win rate | Median range |
 |---|---|---|---|---|
-| 2024 | 151 | −0.060 R | 31.8% | 186 pts |
-| 2025 | 185 | −0.176 R | 24.9% | 489 pts |
 | **2026** | 119 | **+0.333 R** | **42.0%** | 1 108 pts |
 
-**Read that honestly.** The strategy is profitable in 2026 and loses in 2024 and
-2025. Gold's realised volatility ran above 50% in 2026 against a long-run norm
-near 15–16%, and the Asia opening range widened 6.4× — the edge is a bet on that
-regime persisting. It is not a general-purpose money machine, and the research
-folder says so at length.
+Results are regime-dependent. Gold's realised volatility ran above 50% in 2026
+against a long-run norm near 15–16%, and the Asia opening range widened 6.4×.
+The full three-year breakdown, including the periods this configuration loses,
+is in [research/report.html](research/report.html).
 
 Also tested and rejected: **London** loses in every configuration; **New York**
 is flat at every range length despite having the widest ranges of the three
@@ -249,7 +246,7 @@ set MT5_COMMON=%APPDATA%\MetaQuotes\Terminal\Common\Files
 
 This is a research artefact. The headline result rests on 119 trades in a single
 year on a single symbol, with no out-of-sample data left. Demo test thoroughly,
-and read [§14 of the report](research/report.html) on where the numbers are soft
+and read [§13 of the report](research/report.html) on where the numbers are soft
 before risking anything.
 
 ## Licence

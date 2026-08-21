@@ -121,9 +121,8 @@ trying. This is what survived.</p>
 <li><a href="#s10">The rolling range filter</a></li>
 <li><a href="#s11">When the edge dies</a></li>
 <li><a href="#s12">Rules of thumb</a></li>
-<li><a href="#s13">Bugs found and fixed</a></li>
-<li><a href="#s14">Method and caveats</a></li>
-<li><a href="#s15">Roadmap</a></li>
+<li><a href="#s13">Method and caveats</a></li>
+<li><a href="#s14">Roadmap</a></li>
 </ol></nav>
 
 <h2 id="s1"><span class="num">01</span>The regime problem</h2>
@@ -679,29 +678,7 @@ error bar against MT5. Several "improvements" in this study were noise, and
 saying so is cheaper than trading them.</li>
 </ol>
 
-<h2 id="s13"><span class="num">13</span>Bugs found and fixed</h2>
-
-<p>Three, all of which corrupted earlier results.</p>
-
-<ul>
-<li><strong>Take profit anchored to the range level, not the fill.</strong> RR 2
-was delivering 1.24 realised, because entry happens past the level so the real
-risk was wider than the one the target was computed from.</li>
-<li><strong>Position size computed from the level too.</strong> Realised risk ran
-about 1.3&times; the configured percent on every trade. One loss reached
-2.71&times; intended risk, and wins came out at 2.61 R against an RR of 2.</li>
-<li><strong>The stop move ratcheted to breakeven.</strong> R was recomputed from
-the <em>live</em> stop each tick, so after the first move R shrank, the trigger
-re-fired, and the stop crept to entry. 47.5% of losses landed at breakeven and
-1.1% in the &minus;0.5R band that was configured.</li>
-</ul>
-
-<p>Fixing the third lifted win rates from 19/18/30% to 32/25/42% by year and took
-the strategy from &minus;10.5 R to &minus;2.1 R. It had also been masking the
-range-size effect entirely, which is why an earlier pass through this data
-wrongly concluded there wasn't one.</p>
-
-<h2 id="s14"><span class="num">14</span>Method and caveats</h2>
+<h2 id="s13"><span class="num">13</span>Method and caveats</h2>
 
 <p>The Strategy Tester needs about 90 seconds per real-tick pass over 2.6 years,
 so 600 configurations would take hours. Instead <code>BarDump.mq5</code> recorded
@@ -743,7 +720,7 @@ most likely history gaps and entry-window boundary handling.</li>
 are not.</strong> And 119 trades in 2026 on one symbol and one session is enough
 to rank parameters, nowhere near enough to establish an edge.</p>
 
-<h2 id="s15"><span class="num">15</span>Roadmap</h2>
+<h2 id="s14"><span class="num">14</span>Roadmap</h2>
 
 <ul>
 <li><strong><code>US100.cash</code> on its own cash open.</strong> The only
