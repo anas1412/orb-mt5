@@ -47,7 +47,7 @@ input int              InpStartHour       = 0;
 input int              InpStartMinute     = 0;
 input int              InpRangeMinutes    = 15;
 input ENUM_TIMEFRAMES  InpSignalTF        = PERIOD_M1;
-input int              InpNoEntryAfterMin = 240;   // minutes after range close; 0 = no limit
+input int              InpNoEntryAfterMin = 45;    // minutes after range close; 0 = no limit
 input int              InpForceCloseMin   = 360;   // minutes after range close; 0 = off
 
 input group                 "Broker time"
@@ -160,8 +160,6 @@ void OnTick()
       return;
      }
 
-   if(InpNoEntryAfterMin > 0 && now >= g_rangeEnd + InpNoEntryAfterMin * 60)
-      return;
    if(CountTradesToday() >= InpMaxTradesPerDay)
       return;
    if(InpEntryMode == ENTRY_STOP_AT_LEVEL)
@@ -278,6 +276,12 @@ void BuildRange()
 //+------------------------------------------------------------------+
 //| Watch closed signal bars for a break. Bar 0 is still forming and  |
 //| is never consulted.                                              |
+//|                                                                  |
+//| The entry deadline is tested against the bar's own open time, not |
+//| against the current clock. A bar stamped 00:59 only closes at     |
+//| 01:00:00, so a wall-clock cutoff at 01:00 would discard the last  |
+//| eligible bar. With a 15 minute range from 00:00 and a 45 minute   |
+//| deadline, 00:59 is the final bar that can trade and 01:00 is out. |
 //+------------------------------------------------------------------+
 void LookForBreak()
   {
@@ -285,6 +289,8 @@ void LookForBreak()
    if(CopyRates(_Symbol, InpSignalTF, 1, 1, bars) != 1)
       return;
    if(bars[0].time <= g_lastSignalBar || bars[0].time < g_rangeEnd)
+      return;
+   if(InpNoEntryAfterMin > 0 && bars[0].time >= g_rangeEnd + InpNoEntryAfterMin * 60)
       return;
    g_lastSignalBar = bars[0].time;
 
