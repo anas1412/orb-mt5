@@ -77,7 +77,8 @@ input ENUM_TP_MODE     InpTPMode          = TP_RR;
 input double           InpRR              = 2.0;
 input double           InpTPFixedPoints   = 0;
 input double           InpTPRangeMultiple = 1.0;
-input double           InpBreakevenAtR    = 0;     // 0 = off
+input double           InpStopMoveAtR     = 0.5;   // trigger, in R of open risk; 0 = off
+input double           InpStopMoveToR     = -0.5;  // where the stop goes, in R. 0 = entry, -0.5 = half the risk still on
 
 input group                 "Risk"
 input ENUM_LOT_MODE    InpLotMode         = LOT_RISK_PERCENT;
@@ -489,12 +490,18 @@ bool SpreadIsAcceptable()
   }
 
 //+------------------------------------------------------------------+
-//| Move the stop to breakeven once price has travelled BreakevenAtR  |
-//| multiples of the original risk.                                   |
+//| Once price has travelled InpStopMoveAtR multiples of the original |
+//| risk, move the stop to InpStopMoveToR. The destination is signed:  |
+//| 0 is entry, negative leaves part of the risk on the table.        |
+//|                                                                   |
+//|   AtR 0.5, ToR -0.5  ->  at +0.5R the stop halves the loss        |
+//|   AtR 1.0, ToR  0.0  ->  classic breakeven at 1R                  |
+//|                                                                   |
+//| The stop is only ever tightened, never loosened.                  |
 //+------------------------------------------------------------------+
 void ManageOpenPosition()
   {
-   if(InpBreakevenAtR <= 0)
+   if(InpStopMoveAtR <= 0)
       return;
 
    for(int i = PositionsTotal() - 1; i >= 0; i--)
@@ -519,12 +526,19 @@ void ManageOpenPosition()
                                  : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
       const double moved = isBuy ? price - open : open - price;
 
-      if(moved < risk * InpBreakevenAtR)
+      if(moved < risk * InpStopMoveAtR)
          continue;
-      if((isBuy && sl >= open) || (!isBuy && sl <= open))
-         continue;  // already there
 
-      g_trade.PositionModify(ticket, NormalizeDouble(open, g_digits), tp);
+      const double target = isBuy ? open + risk * InpStopMoveToR
+                                  : open - risk * InpStopMoveToR;
+      const double newSL  = NormalizeDouble(target, g_digits);
+
+      if(isBuy ? newSL <= sl : newSL >= sl)
+         continue;  // already at least this tight
+
+      if(!g_trade.PositionModify(ticket, newSL, tp))
+         PrintFormat("could not move stop on #%I64u: %d %s", ticket,
+                     g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
      }
   }
 
