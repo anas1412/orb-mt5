@@ -152,13 +152,26 @@ int OnInit()
 
    if(InpWriteCsv)
      {
-      const string name = StringFormat("ORB_%s_%I64d.csv", _Symbol, InpMagic);
-      g_csv = FileOpen(name, FILE_WRITE|FILE_CSV|FILE_ANSI|FILE_COMMON, ',');
+      // Separate files for tester and live. They share Common\Files, and a
+      // live instance re-initialising mid-backtest would otherwise truncate
+      // the tester's output — which is exactly what happened the first time.
+      const string name = StringFormat("ORB_%s_%I64d%s.csv", _Symbol, InpMagic,
+                                       MQLInfoInteger(MQL_TESTER) ? "_tester" : "_live");
+
+      // Append rather than truncate, so a recompile or a reload does not
+      // discard the run so far.
+      g_csv = FileOpen(name, FILE_READ|FILE_WRITE|FILE_CSV|FILE_ANSI|FILE_COMMON, ',');
       if(g_csv == INVALID_HANDLE)
          PrintFormat("could not open %s for writing: %d", name, GetLastError());
       else
-         FileWrite(g_csv, "entry_time", "range_pts", "spread_pts", "mins_after_range",
-                          "dir", "entry", "sl", "risk_money", "profit_money", "R", "exit");
+        {
+         const bool fresh = (FileSize(g_csv) == 0);
+         FileSeek(g_csv, 0, SEEK_END);
+         if(fresh)
+            FileWrite(g_csv, "entry_time", "range_pts", "spread_pts", "mins_after_range",
+                             "dir", "entry", "sl", "risk_money", "profit_money", "R", "exit");
+         PrintFormat("trade log: %s", name);
+        }
      }
 
    // A recompile reloads the EA mid-session and wipes everything above.
@@ -218,6 +231,8 @@ void FlushClosedTrade()
                 DoubleToString(profit, 2),
                 DoubleToString(profit / g_openRisk, 3),
                 exit);
+   if(g_csv != INVALID_HANDLE)
+      FileFlush(g_csv);
 
    g_openTicket = 0;
   }
