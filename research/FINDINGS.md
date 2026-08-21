@@ -377,6 +377,20 @@ not cover it.
 
 **Chosen: 0.25.** Removes the entire tail and nothing else.
 
+Raising it to 0.50 is a preference, not an improvement: the 0.25–0.50 band holds
+19 trades averaging **+0.20 R**, so cutting them lifts EV per trade to +0.443 by
+removing mediocre winners while total profit falls and the challenge takes two
+days longer. Below 0.25 is different in kind — 0 wins from 7. That part is not a
+trade-off.
+
+A separate test asked whether the same score predicts *direction* before any
+break happens (`research/bias*.py`, 163 sessions, close of 00:14 against the
+close an hour later). It does not, except at the top: a close in the top quarter
+of the range precedes a higher price an hour later 72.9% of the time against a
+54.0% base rate, while every other quadrant is noise and averaging the range
+destroys the signal entirely (r² = 0.001). Nothing there changes the filter, so
+it is recorded in the scripts rather than expanded here.
+
 | | Off | 0.25 |
 |---|---|---|
 | EV | +0.333 | **+0.404** |
