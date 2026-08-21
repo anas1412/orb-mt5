@@ -42,9 +42,15 @@ def load():
                 (t, float(row["open"]), float(row["high"]), float(row["low"]), float(row["close"])))
     return days
 
-def setups(days, range_min=15, window_min=120):
-    """One setup per day: the range, then the first close outside it."""
+def setups(days, range_min=15, window_min=120, want_history=False):
+    """One setup per day: the range, then the first close outside it.
+
+    With want_history, also returns every session's range in date order,
+    including days that never broke out. The rolling filter needs that full
+    series -- restricting the yardstick to days that happened to trade would
+    quietly raise it."""
     out = []
+    hist = []
     for d, bars in sorted(days.items()):
         if d.weekday() > 4: continue
         bars.sort()
@@ -53,6 +59,7 @@ def setups(days, range_min=15, window_min=120):
         if len(rng) < range_min: continue
         hi = max(b[2] for b in rng); lo = min(b[3] for b in rng)
         if hi <= lo: continue
+        hist.append((d, hi - lo))
         start = dt.datetime.combine(d, dt.time(h0, 0))
         w0, w1 = start + dt.timedelta(minutes=range_min), start + dt.timedelta(minutes=range_min+window_min)
         after = [b for b in bars if b[0] >= w0]
@@ -69,7 +76,7 @@ def setups(days, range_min=15, window_min=120):
         mins_late = int((after[i][0] - w0).total_seconds()//60)   # break bar, minutes after range close
         out.append(dict(date=d, hi=hi, lo=lo, is_buy=is_buy, late=mins_late,
                         entry=path[0][1], path=[(b[2], b[3], b[4]) for b in path]))
-    return out
+    return (out, hist) if want_history else out
 
 def run(s, sl_frac, rr, move_at, move_to, hold=60):
     rng = s["hi"] - s["lo"]

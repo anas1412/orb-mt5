@@ -61,6 +61,8 @@ input int              InpMaxTradesPerDay = 1;             // Max trades per day
 input double           InpMaxSpreadPoints = 0;             // Max spread (points, 0=off)
 input double           InpMinRangePoints  = 0;             // Min range size (points, 0=off)
 input double           InpMaxRangePoints  = 0;             // Max range size (points, 0=off)
+input int              InpRangeLookback   = 20;            // Rolling filter: sessions to compare against (0=off)
+input double           InpMinRangeRatio   = 1.25;          // Rolling filter: range must be this x the median
 input bool             InpTradeMon        = true;          // Trade Monday
 input bool             InpTradeTue        = true;          // Trade Tuesday
 input bool             InpTradeWed        = true;          // Trade Wednesday
@@ -367,6 +369,22 @@ void BuildRange()
       return;
      }
 
+   if(InpRangeLookback > 0 && InpMinRangeRatio > 0)
+     {
+      const double ref = MedianPastRange(InpRangeLookback);
+      if(ref > 0)
+        {
+         const double ratio = (g_rangeHigh - g_rangeLow) / ref;
+         if(ratio < InpMinRangeRatio)
+           {
+            g_daySkipped = true;
+            PrintFormat("range %.0f pts is %.2f x the %d-session median %.0f — below %.2f, day skipped",
+                        sizePoints, ratio, InpRangeLookback, ref / g_point, InpMinRangeRatio);
+            return;
+           }
+        }
+     }
+
    g_rangeReady = true;
    PrintFormat("range %s / %s  (%.0f pts, %d bars)",
                DoubleToString(g_rangeHigh, g_digits),
@@ -375,6 +393,63 @@ void BuildRange()
 
    if(InpEntryMode == ENTRY_STOP_AT_LEVEL)
       PlaceStopOrders();
+  }
+
+//+------------------------------------------------------------------+
+//| Median range of the previous `count` sessions.                    |
+//|                                                                   |
+//| Recomputed from history rather than carried in a buffer, so it     |
+//| survives a restart and the tester and live agree. Only sessions    |
+//| strictly before today are used — the yardstick must never see the  |
+//| day it is judging.                                                 |
+//|                                                                   |
+//| Every session counts, including days that never broke out. Taking  |
+//| the median over traded days only would quietly raise the bar.      |
+//+------------------------------------------------------------------+
+double MedianPastRange(const int count)
+  {
+   double vals[];
+   ArrayResize(vals, 0);
+
+   // Walk back far enough to clear weekends and holidays.
+   const int maxBack = count * 2 + 20;
+   for(int back = 1; back <= maxBack && ArraySize(vals) < count; back++)
+     {
+      const datetime probe = g_sessionStart - back * 86400;
+
+      MqlDateTime dt;
+      TimeToStruct(probe, dt);
+      if(dt.day_of_week == 0 || dt.day_of_week == 6)
+         continue;
+
+      const datetime start = SessionStartInBrokerTime(probe, InpTimeZone,
+                                                      InpStartHour, InpStartMinute,
+                                                      InpWinterOffset, InpFollowsUSDST);
+      MqlRates bars[];
+      const int n = CopyRates(_Symbol, PERIOD_M1, start, start + InpRangeMinutes * 60 - 1, bars);
+      if(n < InpRangeMinutes)
+         continue;                       // incomplete session, not a real range
+
+      double hi = bars[0].high, lo = bars[0].low;
+      for(int i = 1; i < n; i++)
+        {
+         hi = MathMax(hi, bars[i].high);
+         lo = MathMin(lo, bars[i].low);
+        }
+      if(hi <= lo)
+         continue;
+
+      const int k = ArraySize(vals);
+      ArrayResize(vals, k + 1);
+      vals[k] = hi - lo;
+     }
+
+   const int n = ArraySize(vals);
+   if(n < count)
+      return 0;                          // not enough history yet: filter stays out of the way
+
+   ArraySort(vals);
+   return (n % 2 == 1) ? vals[n/2] : 0.5 * (vals[n/2 - 1] + vals[n/2]);
   }
 
 //+------------------------------------------------------------------+

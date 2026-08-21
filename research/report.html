@@ -481,7 +481,83 @@ wide half turns 2024 from −0.060 to +0.101 and takes 2026 to +0.462.</p>
   forecast.</strong></p>
 </div>
 
-<h2><span class="num">10</span>Recommendations</h2>
+
+<h2><span class="num">11</span>The rolling range filter &mdash; MT5 verified</h2>
+
+<p><strong>Rule:</strong> skip the day unless the 15-minute range is at least
+<code>X</code> times the median range of the previous 20 sessions. The yardstick
+uses only sessions strictly before today and includes days that never broke out,
+so there is no lookahead &mdash; unlike the within-year ranking in section 09.</p>
+
+<p>Everything below is <strong>MT5, real ticks, 2024.01&ndash;2026.08</strong>, not
+simulation.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Threshold</th><th>Trades</th><th>Kept</th><th>EV all</th><th>&plusmn;SE</th><th>2024</th><th>2025</th><th>2026</th><th>Pooled pass</th><th>2026 pass</th><th>2026 days</th></tr></thead>
+<tbody>
+<tr><td>off</td><td>455</td><td>100%</td><td>&minus;0.005</td><td>0.059</td><td class="neg">&minus;0.060</td><td class="neg">&minus;0.176</td><td>+0.333</td><td>31.0%</td><td>81.2%</td><td>18</td></tr>
+<tr><td>1.00</td><td>230</td><td>51%</td><td>+0.074</td><td>0.085</td><td>+0.019</td><td class="neg">&minus;0.143</td><td>+0.454</td><td>44.9%</td><td>90.1%</td><td>31</td></tr>
+<tr class="hi"><td>1.25</td><td>141</td><td>31%</td><td>+0.141</td><td>0.107</td><td class="pos">+0.154</td><td>&minus;0.070</td><td class="pos">+0.512</td><td>58.9%</td><td>94.5%</td><td>52</td></tr>
+<tr><td>1.50</td><td>96</td><td>21%</td><td class="pos">+0.275</td><td>0.130</td><td class="pos">+0.317</td><td class="pos">+0.059</td><td class="pos">+0.645</td><td class="pos">80.5%</td><td>97.6%</td><td>72</td></tr>
+</tbody></table></div>
+
+<h3>This breaks the regime dependence</h3>
+
+<p>Section 00 states that no configuration out of 546 was profitable in 2024 or
+2025. <strong>The filter at 1.50 is the exception</strong> &mdash; +0.317, +0.059
+and +0.645 across the three years, with a pooled +0.275 &plusmn; 0.130 that clears
+its own noise. It is the first result in the project that does not rest on the
+2026 regime.</p>
+
+<h3>But throughput points the other way</h3>
+
+<div class="scroll"><table>
+<caption>Passes per year, assuming 2026-like conditions</caption>
+<thead><tr><th>Threshold</th><th>Days per challenge</th><th>Pass rate</th><th>Passes per year</th></tr></thead>
+<tbody>
+<tr><td>off</td><td>18</td><td>81.2%</td><td class="pos">11.3</td></tr>
+<tr><td>1.00</td><td>31</td><td>90.1%</td><td>7.3</td></tr>
+<tr><td>1.25</td><td>52</td><td>94.5%</td><td>4.5</td></tr>
+<tr><td>1.50</td><td>72</td><td>97.6%</td><td>3.4</td></tr>
+</tbody></table></div>
+
+<p><strong>No filter wins on calendar speed. The filter wins on fees per pass and
+on surviving a quiet market.</strong> Which matters depends on the binding
+constraint:</p>
+
+<ul>
+<li><strong>Fees are the constraint</strong> &rarr; filter hard. At 1.50 you need
+1.02 attempts per pass against 1.23 with no filter.</li>
+<li><strong>Calendar time is the constraint</strong> &rarr; filter lightly, or not
+at all.</li>
+<li><strong>A pool of accounts run in parallel</strong> &rarr; calendar time per
+account is not the bottleneck, since many run at once. This argues for the higher
+threshold.</li>
+</ul>
+
+<div class="verdict">
+  <div class="t">Decision &mdash; 1.25</div>
+  <p><strong>1.00</strong> leaves 2025 clearly negative (&minus;0.143). Still a
+  regime bet. <strong>1.50</strong> is the only all-years-positive setting, but
+  rests on 96 trades across 2.6 years &mdash; 37 a year &mdash; and 72 days per
+  challenge. <strong>1.25</strong> puts 2024 solidly positive, 2025 near flat,
+  2026 at +0.512, and nearly doubles pooled pass rate against no filter.</p>
+  <p><strong>The time cost is temporary.</strong> The filter's only real drawback
+  is fewer setups, and that is exactly what the London and New York sessions fix.
+  Three filtered sessions produce roughly three times the setups, bringing 1.25
+  back to about 18 calendar days &mdash; unfiltered speed at filtered pass rate.
+  Revisit 1.50 once those are running.</p>
+</div>
+
+<div class="note">
+  <div class="t">Simulator validation</div>
+  <p>The offline sweep predicted +0.068 pooled and +0.426 for 2026 at threshold
+  1.00. MT5 returned <strong>+0.074 and +0.454</strong>. Far closer than the
+  unfiltered validation in section 07 &mdash; which supports the workflow of
+  shortlisting offline and confirming in MT5.</p>
+</div>
+
+<h2><span class="num">12</span>Recommendations</h2>
 
 <ul>
 <li><strong>Keep the current configuration.</strong> Midpoint stop, RR 2.0, stop
@@ -492,9 +568,7 @@ off, or pushing RR to 3, raises expectancy and lowers pass rate. Wrong
 objective.</li>
 <li><strong>Never move the stop to breakeven.</strong> The one change here that
 can flip a profitable configuration to a losing one.</li>
-<li><strong>Build the rolling range filter and re-test.</strong> The only untested
-idea with a significant result behind it, and the difference between a 54%
-business and a 31% coin flip if the regime reverts.</li>
+<li><strong>Rolling range filter set to 1.25</strong> &mdash; MT5 verified. Doubles pooled pass rate and makes 2024 profitable. At 1.50 all three years turn positive, at the cost of speed.</li>
 <li><strong>Keep the 15-minute entry cutoff.</strong> It is a genuine peak &mdash; late breaks are net harmful.</li>
 <li><strong>Run London and New York next</strong>, then NDX100 on New York.
 Pre-commit the acceptance threshold before looking at results.</li>

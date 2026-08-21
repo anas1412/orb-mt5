@@ -405,3 +405,70 @@ live.
 - `BrokerFollowsUSDST` still unverified; run `CheckBrokerOffset`
 - Everything here is one symbol and one session. The regime dependence is a
   gold story and may not transfer.
+
+---
+
+## 10. The rolling range filter — MT5 verified
+
+**Rule:** skip the day unless the 15-minute range is at least `X` times the
+median range of the previous 20 sessions. The yardstick uses only sessions
+strictly before today, and includes days that never broke out, so there is no
+lookahead — unlike the within-year ranking in §9.
+
+All figures below are **MT5, real ticks, 2024.01-2026.08**, not simulation.
+
+| Threshold | Trades | Kept | EV all | +/-SE | WR | 2024 | 2025 | 2026 | Pooled pass | 2026 pass | 2026 days |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| off | 455 | 100% | -0.005 | 0.059 | 31.6% | -0.060 | -0.176 | +0.333 | 31.0% | 81.2% | 18 |
+| 1.00 | 230 | 51% | +0.074 | 0.085 | 36.1% | +0.019 | -0.143 | +0.454 | 44.9% | 90.1% | 31 |
+| **1.25** | **141** | **31%** | **+0.141** | 0.107 | 39.7% | **+0.154** | -0.070 | **+0.512** | **58.9%** | **94.5%** | **52** |
+| 1.50 | 96 | 21% | +0.275 | 0.130 | 45.8% | +0.317 | +0.059 | +0.645 | 80.5% | 97.6% | 72 |
+
+### This breaks the regime dependence
+
+Section "The headline" states that no configuration out of 546 was profitable in
+2024 or 2025. **The filter at 1.50 is the exception**: +0.317, +0.059 and +0.645
+across the three years, with a pooled +0.275 +/- 0.130 that clears its own noise.
+
+It is the first result in the project that does not rest on the 2026 regime.
+
+### But throughput points the other way
+
+Passes per year, assuming 2026-like conditions:
+
+| Threshold | Days per challenge | Pass rate | Passes per year |
+|---|---|---|---|
+| off | 18 | 81.2% | **11.3** |
+| 1.00 | 31 | 90.1% | 7.3 |
+| 1.25 | 52 | 94.5% | 4.5 |
+| 1.50 | 72 | 97.6% | 3.4 |
+
+**No filter wins on calendar speed. The filter wins on fees per pass and on
+surviving a quiet market.** Which matters depends on the binding constraint:
+
+- **Fees are the constraint** -> filter hard. At 1.50 you need 1.02 attempts per
+  pass against 1.23 with no filter.
+- **Calendar time is the constraint** -> filter lightly or not at all.
+- **A pool of accounts run in parallel** -> calendar time per account is not the
+  bottleneck, because many run at once. This argues for the higher threshold.
+
+### Decision: 1.25
+
+- 1.00 leaves 2025 clearly negative (-0.143). Still a regime bet.
+- 1.50 is the only all-years-positive setting, but rests on **96 trades over
+  2.6 years** — 37 a year — and 72 days per challenge.
+- 1.25 puts 2024 solidly positive (+0.154), 2025 near flat (-0.070), 2026 at
+  +0.512, and nearly doubles pooled pass rate against no filter.
+
+**The time cost is temporary.** The filter's only real drawback is fewer setups,
+and that is exactly what the London and New York sessions fix. Three filtered
+sessions produce roughly three times the setups of one, which brings 1.25 back
+to about 18 calendar days — the unfiltered speed, at the filtered pass rate.
+Revisit 1.50 once those are running.
+
+### Simulator validation
+
+The offline sweep predicted +0.068 pooled and +0.426 for 2026 at threshold 1.00.
+MT5 returned **+0.074 and +0.454**. Far closer than the unfiltered validation in
+the Method section, which supports using the sweep to shortlist and MT5 to
+confirm.
