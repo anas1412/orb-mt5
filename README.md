@@ -23,7 +23,7 @@ Full analysis: **[research/report.html](research/report.html)** ·
 
 | Period | Trades | EV / trade | Win rate | Median range |
 |---|---|---|---|---|
-| **2026** | 119 | **+0.333 R** | **42.0%** | 1 108 pts |
+| **2026** | 112 | **+0.404 R** | **44.6%** | 1 108 pts |
 
 Results are regime-dependent. Gold's realised volatility ran above 50% in 2026
 against a long-run norm near 15–16%, and the Asia opening range widened 6.4×.
@@ -160,7 +160,16 @@ Find yours with `CheckBrokerOffset`, or compare a D1 candle's start time to UTC.
 | `InpMinRangePoints`, `InpMaxRangePoints` | `0`, `0` | absolute range filters (0 = off) |
 | `InpRangeLookback` | `0` | rolling filter: sessions to compare against (0 = off) |
 | `InpMinRangeRatio` | `1.25` | rolling filter: range must be this multiple of their median |
+| `InpMinClosePos` | `0.25` | skip reversal breaks — see below (0 = off) |
 | `InpTradeMon` … `InpTradeFri` | `true` | day-of-week filter |
+
+`InpMinClosePos` scores how near price was, when the range closed, to the side it
+then broke — `1.0` means the final range bar closed right against that boundary,
+`0.0` means it closed at the opposite one and had to cross the whole range first.
+The second case is a reversal wearing a breakout's clothes: measured on real
+ticks, the five worst such trades in 119 averaged **−0.94 R**. Cutting everything
+under 0.25 removes 7% of setups and lifts pass rate from 81.6% to 86.6%. Full
+sweep in [§12 of the report](research/report.html).
 
 ### Stops, targets, risk
 

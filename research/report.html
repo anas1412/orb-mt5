@@ -92,8 +92,9 @@ trying. This is what survived.</p>
   <p><strong>One configuration works: Asia, 00:00 UTC, 15-minute range, M1
   confirmation, stop at the range midpoint, 2R target, stop moved to
   &minus;0.5R once the trade reaches +0.5R, 60-minute hold cap, 2% risk.</strong>
-  In 2026 that returns +0.333 R per trade, a 42% win rate and an 81% chance of
-  passing both challenge phases in about 18 trading days.</p>
+  With the close-position filter at 0.25 (&sect;12) that returns +0.404 R per trade
+  in 2026, a 44.6% win rate and an 86.6% chance of passing both challenge phases
+  in about 19 trading days.</p>
   <p>Everything else failed. <strong>London loses in every configuration
   tested. New York is flat at every range length. And no setting is profitable
   in 2024 or 2025</strong> &mdash; the edge is confined to the 2026 volatility
@@ -101,8 +102,8 @@ trying. This is what survived.</p>
 </div>
 
 <div class="cards">
-  <div class="card"><div class="l">2026 EV / trade</div><div class="v pos">+0.333R</div><div class="n">real ticks, 119 trades</div></div>
-  <div class="card"><div class="l">Pass both phases</div><div class="v">81.4%</div><div class="n">2% risk, 1 trade/day</div></div>
+  <div class="card"><div class="l">2026 EV / trade</div><div class="v pos">+0.404R</div><div class="n">real ticks, 112 trades</div></div>
+  <div class="card"><div class="l">Pass both phases</div><div class="v">86.6%</div><div class="n">2% risk, 1 trade/day</div></div>
   <div class="card"><div class="l">Median duration</div><div class="v">18 <span style="font-size:.55em;font-weight:400">days</span></div><div class="n">both phases</div></div>
   <div class="card"><div class="l">2024&ndash;25 EV</div><div class="v neg">&minus;0.12R</div><div class="n">same settings</div></div>
   <div class="card"><div class="l">Sessions that work</div><div class="v">1 <span style="font-size:.5em;font-weight:400">of 3</span></div><div class="n">Asia only</div></div>
@@ -120,6 +121,7 @@ trying. This is what survived.</p>
 <li><a href="#s9">Prop-account mechanics</a></li>
 <li><a href="#s10">The rolling range filter</a></li>
 <li><a href="#s11">When the edge dies</a></li>
+<li><a href="#s12b">The close-position filter</a></li>
 <li><a href="#s12">Rules of thumb</a></li>
 <li><a href="#s13">Method and caveats</a></li>
 <li><a href="#s14">Roadmap</a></li>
@@ -648,7 +650,92 @@ dead zone.</strong> 2026 has 0.8%.</p>
   Asia, not a search tool for new markets.</p>
 </div>
 
-<h2 id="s12"><span class="num">12</span>Rules of thumb</h2>
+
+<h2 id="s12b"><span class="num">12</span>The close-position filter</h2>
+
+<p><strong>Rule:</strong> at the moment the range closes, score how near price was
+to the side it then breaks. Skip the trade if that score is too low.</p>
+
+<div class="scroll"><table>
+<caption>The score, and what it means</caption>
+<thead><tr><th>Score</th><th>Where the final range bar closed</th><th>What the break is</th></tr></thead>
+<tbody>
+<tr><td>1.0</td><td>right against the boundary that broke</td><td class="pos">continuation &mdash; short journey, pressure already there</td></tr>
+<tr><td>0.5</td><td>middle of the range</td><td>neutral</td></tr>
+<tr><td>0.0</td><td>at the <em>opposite</em> boundary</td><td class="neg">reversal &mdash; price crossed the whole range first</td></tr>
+</tbody></table></div>
+
+<p>Same failure mode that makes New York unusable (&sect;02): a range violated in
+both directions carries no information. Rejection ends the day rather than
+waiting for a break the other way &mdash; deliberate, since the opposite break
+scores <code>1 &minus; score</code> by construction, so allowing it would turn
+every rejection into a coin flip on the other side.</p>
+
+<h3>Threshold sweep &mdash; MT5 real ticks, Asia only, 2026</h3>
+
+<div class="scroll"><table>
+<thead><tr><th>Min score</th><th>Trades</th><th>Kept</th><th>n</th><th>EV</th><th>&plusmn;SE</th><th>WR</th><th>Pass both</th><th>Days</th><th>Fees/pass</th></tr></thead>
+<tbody>
+<tr><td>0.00 &mdash; off</td><td>455</td><td>100%</td><td>119</td><td>+0.333</td><td>0.127</td><td>42.0%</td><td>81.6%</td><td>18</td><td>1.23</td></tr>
+<tr><td>0.10</td><td>440</td><td>97%</td><td>114</td><td>+0.388</td><td>0.130</td><td>43.9%</td><td>85.8%</td><td>19</td><td>1.17</td></tr>
+<tr><td>0.20</td><td>432</td><td>95%</td><td>114</td><td>+0.388</td><td>0.130</td><td>43.9%</td><td>85.7%</td><td>19</td><td>1.17</td></tr>
+<tr class="hi"><td>0.25</td><td>423</td><td>93%</td><td>112</td><td class="pos">+0.404</td><td>0.132</td><td>44.6%</td><td>86.6%</td><td>19</td><td>1.15</td></tr>
+<tr><td>0.35</td><td>393</td><td>86%</td><td>106</td><td>+0.420</td><td>0.136</td><td>45.3%</td><td>87.7%</td><td>20</td><td>1.14</td></tr>
+<tr><td>0.50</td><td>345</td><td>76%</td><td>93</td><td>+0.443</td><td>0.145</td><td>46.2%</td><td>89.4%</td><td>21</td><td>1.12</td></tr>
+<tr><td>0.75</td><td>234</td><td>51%</td><td>68</td><td class="pos">+0.529</td><td>0.173</td><td>50.0%</td><td class="pos">92.7%</td><td>26</td><td>1.08</td></tr>
+</tbody></table></div>
+
+<h3>Why 0.25 and not higher</h3>
+
+<div class="scroll"><table>
+<caption>What each step actually removes, 2026.</caption>
+<thead><tr><th>Step</th><th>Trades removed</th><th>Their average</th></tr></thead>
+<tbody>
+<tr><td>0.00 &rarr; 0.10</td><td>5</td><td class="neg">&minus;0.938 R</td></tr>
+<tr><td>0.20 &rarr; 0.25</td><td>2</td><td class="neg">&minus;0.511 R</td></tr>
+<tr><td>0.25 &rarr; 0.35</td><td>6</td><td class="pos">+0.132 R</td></tr>
+<tr><td>0.35 &rarr; 0.50</td><td>13</td><td class="pos">+0.256 R</td></tr>
+<tr><td>0.50 &rarr; 0.75</td><td>25</td><td class="pos">+0.210 R</td></tr>
+</tbody></table></div>
+
+<p><strong>Everything below 0.25 is genuinely bad; everything above it is
+profitable.</strong> Seven trades out of 119 account for the entire benefit, and
+five of them average &minus;0.938 R.</p>
+
+<p>Past 0.25 the pass rate keeps climbing &mdash; 86.6% to 92.7% &mdash; but only
+because you are taking fewer trades. That is buying a smoother ride by deleting
+winners, and paying seven extra calendar days for it. Fees per pass improve by
+0.07 across that whole stretch, which does not cover it.</p>
+
+<div class="verdict">
+  <div class="t">Chosen &mdash; 0.25</div>
+  <p>It removes the entire tail and nothing else.</p>
+  <p>EV +0.333 &rarr; <strong>+0.404</strong>. Win rate 42.0% &rarr;
+  <strong>44.6%</strong>. Pass rate 81.6% &rarr; <strong>86.6%</strong>.
+  Attempts per pass 1.23 &rarr; <strong>1.15</strong>. Cost: one extra day and 7%
+  of setups.</p>
+</div>
+
+<div class="note">
+  <div class="t">Caveats</div>
+  <p><strong>It makes 2024 worse</strong> &mdash; 2024 goes &minus;0.060 &rarr;
+  &minus;0.110 while 2026 goes +0.333 &rarr; +0.404. Continuation breaks pay in a
+  trending regime and may be exactly wrong in a choppy one. A 2026-regime filter,
+  not a law.</p>
+  <p><strong>It was one of five candidates.</strong> Break strength, trend
+  alignment and range efficiency were rejected for non-monotone buckets or
+  effects that failed to hold in both samples. A volume filter did survive
+  (+0.391 against +0.080 for breaks on under 0.8&times; the range's median tick
+  count) but was dropped as impractical to judge in real time. Testing five
+  filters across ~20 buckets guarantees one looks good by chance; what earns this
+  one its place is that the direction holds in both samples and the mechanism
+  states in a sentence.</p>
+  <p><strong>Simulator agreement:</strong> predicted 93% kept, +0.436 EV, 47.3%
+  WR, 89.1% pass at 0.25. MT5 returned 93%, +0.404, 44.6%, 86.6% &mdash;
+  optimistic by the usual ~0.03 R.</p>
+</div>
+
+<h2 id="s12"><span class="num">13</span>Rules of thumb</h2>
 
 <ol class="rules">
 <li><strong>Only Asia works, and only in 2026.</strong> London is negative in
@@ -673,12 +760,13 @@ it by shortening the target is not.</li>
 widest ranges on the board and no edge.</li>
 <li><strong>Speed is nearly free; risk sizing is not.</strong> More trades per day
 barely dents pass rate. Changing risk per trade moves it 15&ndash;30 points.</li>
+<li><strong>Skip reversal breaks.</strong> If the range closed at the far end from the side that broke, price flipped across the whole range first. Five such trades in 119 averaged &minus;0.94 R. Cutting the bottom quarter is nearly free.</li>
 <li><strong>Trust nothing inside &plusmn;0.05 R.</strong> That is the simulator's
 error bar against MT5. Several "improvements" in this study were noise, and
 saying so is cheaper than trading them.</li>
 </ol>
 
-<h2 id="s13"><span class="num">13</span>Method and caveats</h2>
+<h2 id="s13"><span class="num">14</span>Method and caveats</h2>
 
 <p>The Strategy Tester needs about 90 seconds per real-tick pass over 2.6 years,
 so 600 configurations would take hours. Instead <code>BarDump.mq5</code> recorded
@@ -720,7 +808,7 @@ most likely history gaps and entry-window boundary handling.</li>
 are not.</strong> And 119 trades in 2026 on one symbol and one session is enough
 to rank parameters, nowhere near enough to establish an edge.</p>
 
-<h2 id="s14"><span class="num">14</span>Roadmap</h2>
+<h2 id="s14"><span class="num">15</span>Roadmap</h2>
 
 <ul>
 <li><strong><code>US100.cash</code> on its own cash open.</strong> The only

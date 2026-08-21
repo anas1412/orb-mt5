@@ -610,3 +610,101 @@ One caveat on cost: the same per-year spread (21/28/52 points) was applied to
 every session, measured at the Asia open. New York liquidity is deeper, so its
 true spread is tighter — meaning the New York result is, if anything, flattered.
 It still has no edge.
+
+---
+
+## 15. The close-position filter
+
+**Rule:** at the moment the range closes, score how near price was to the side
+it then breaks. Skip the trade if the score is below a threshold.
+
+```
+score = (range_last_close - range_low) / (range_high - range_low)      for an up-break
+score = 1 - that                                                        for a down-break
+```
+
+A score of 1.0 means the final range bar closed right against the boundary that
+then broke — a short journey, pressure already pointing that way. A score of 0.0
+means it closed at the *opposite* boundary and had to traverse the entire range
+before breaking out.
+
+**Mechanism.** A high score is continuation. A low score is a reversal wearing a
+breakout's clothes: price flipped across the whole range first, and those flips
+tend to keep flipping. It is the same failure that makes New York unusable
+(§12) — a range violated in both directions carries no information.
+
+Rejection ends the day rather than waiting for a break the other way. That is
+deliberate: it matches how the filter was measured, and the opposite break would
+mechanically score `1 - score`, so allowing it would turn every rejection into a
+coin flip on the other side.
+
+### Threshold sweep — MT5 real ticks, Asia only, 2026
+
+| Min score | Trades | Kept | n(2026) | EV | +/-SE | WR | sd(R) | Pass both | Days | Fees/pass |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.00 off | 455 | 100% | 119 | +0.333 | 0.127 | 42.0% | 1.39 | 81.6% | **18** | 1.23 |
+| 0.10 | 440 | 97% | 114 | +0.388 | 0.130 | 43.9% | 1.39 | 85.8% | 19 | 1.17 |
+| 0.20 | 432 | 95% | 114 | +0.388 | 0.130 | 43.9% | 1.39 | 85.7% | 19 | 1.17 |
+| **0.25** | **423** | **93%** | **112** | **+0.404** | 0.132 | **44.6%** | 1.40 | **86.6%** | **19** | **1.15** |
+| 0.35 | 393 | 86% | 106 | +0.420 | 0.136 | 45.3% | 1.40 | 87.7% | 20 | 1.14 |
+| 0.50 | 345 | 76% | 93 | +0.443 | 0.145 | 46.2% | 1.40 | 89.4% | 21 | 1.12 |
+| 0.75 | 234 | 51% | 68 | +0.529 | 0.173 | 50.0% | 1.43 | 92.7% | 26 | 1.08 |
+
+### Why 0.25 and not higher
+
+The marginal cut at each step is what decides it:
+
+| Step | Trades removed | Their average |
+|---|---|---|
+| 0.00 -> 0.10 | 5 | **-0.938 R** |
+| 0.20 -> 0.25 | 2 | **-0.511 R** |
+| 0.25 -> 0.35 | 6 | +0.132 R |
+| 0.35 -> 0.50 | 13 | +0.256 R |
+| 0.50 -> 0.75 | 25 | +0.210 R |
+
+**Everything below 0.25 is genuinely bad. Everything above it is
+profitable.** Seven trades in 119 account for the entire benefit, and five of
+them average -0.938 R.
+
+Past 0.25 the pass rate keeps climbing — 86.6% to 92.7% — but only because you
+are taking fewer trades. You are buying a smoother ride by deleting winners, and
+paying seven extra calendar days for it. Fees per pass improve by 0.07 across
+that whole stretch, which does not cover it.
+
+**Chosen: 0.25.** It removes the whole tail and nothing else.
+
+### Effect summary
+
+| | Off | 0.25 |
+|---|---|---|
+| EV per trade | +0.333 | **+0.404** |
+| Win rate | 42.0% | **44.6%** |
+| Pass both phases | 81.6% | **86.6%** |
+| Days per challenge | 18 | 19 |
+| Attempts per pass | 1.23 | **1.15** |
+
+### Caveats
+
+**It makes 2024 worse.** Across all years: 2024 goes -0.060 -> -0.110, 2025
+-0.176 -> -0.160, 2026 +0.333 -> +0.404. Continuation breaks pay in a trending
+regime and may be exactly wrong in a choppy one. This is a 2026-regime filter,
+not a law.
+
+**It was one of five candidates.** Break strength, trend alignment (10-day drift)
+and range efficiency were all rejected — non-monotone buckets, or effects that
+failed to hold in both samples. A volume filter did survive testing (+0.391
+against +0.080 for breaks on under 0.8x the range's median tick count) but was
+dropped as impractical to judge in real time. Testing five filters across roughly
+twenty buckets guarantees one looks good by chance; what earns this one a place
+is that the direction holds in both samples and the mechanism states in a
+sentence.
+
+**Simulator agreement.** The offline sweep predicted 93% kept, +0.436 EV, 47.3%
+WR and 89.1% pass at threshold 0.25. MT5 returned 93%, +0.404, 44.6% and 86.6% —
+optimistic by the usual ~0.03 R.
+
+### Implementation
+
+`InpMinClosePos`, default `0.25`, `0` disables. The score is also written to
+every row of the trade log as `close_pos`, so the threshold can be re-optimised
+from a single backtest without re-running MT5.
