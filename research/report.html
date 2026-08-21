@@ -264,7 +264,83 @@ drawdown barrier can end you before the edge has had time to express itself.
 <strong>Optimise for pass rate, not profit factor.</strong> They select different
 parameters.</p>
 
-<h2><span class="num">05</span>Roadmap</h2>
+
+<h2><span class="num">05</span>Entry cutoff and hold time</h2>
+
+<p>Swept together, because a later cutoff means later entries with less time left
+to reach target. 679 setups scanned with a 120-minute window; SL 0.5, RR 2, stop
+move +0.5R to &minus;0.5R, 2026 data.</p>
+
+<h3>When the break actually happens</h3>
+
+<div class="scroll"><table>
+<thead><tr><th>Minutes after range close</th><th>Setups</th><th>Share</th><th>Cumulative</th></tr></thead>
+<tbody>
+<tr><td>0&ndash;5</td><td>266</td><td>39.2%</td><td>39.2%</td></tr>
+<tr><td>5&ndash;10</td><td>137</td><td>20.2%</td><td>59.4%</td></tr>
+<tr><td>10&ndash;15</td><td>78</td><td>11.5%</td><td>70.9%</td></tr>
+<tr><td>15&ndash;20</td><td>57</td><td>8.4%</td><td>79.3%</td></tr>
+<tr><td>20&ndash;30</td><td>62</td><td>9.1%</td><td>88.4%</td></tr>
+<tr><td>30&ndash;60</td><td>71</td><td>10.4%</td><td>98.8%</td></tr>
+<tr><td>60&ndash;120</td><td>8</td><td>1.2%</td><td>100%</td></tr>
+</tbody></table></div>
+
+<p>Nearly 40% of breaks arrive within five minutes. By minute 15 you have 71% of
+them.</p>
+
+<h3>Entry cutoff</h3>
+
+<div class="scroll"><table>
+<thead><tr><th>Cutoff</th><th>2026 setups</th><th>EV at 90-min hold</th></tr></thead>
+<tbody>
+<tr><td>5 min</td><td>76</td><td>+0.332</td></tr>
+<tr><td>10 min</td><td>106</td><td>+0.367</td></tr>
+<tr class="hi"><td>15 min</td><td>119</td><td class="pos">+0.375</td></tr>
+<tr><td>20 min</td><td>127</td><td>+0.330</td></tr>
+<tr><td>30 min</td><td>142</td><td>+0.255</td></tr>
+<tr><td>45 min</td><td>154</td><td>+0.201</td></tr>
+<tr><td>60 min</td><td>162</td><td class="neg">+0.181</td></tr>
+<tr><td>120 min</td><td>163</td><td>+0.191</td></tr>
+</tbody></table></div>
+
+<p><strong>Answer: 15 minutes.</strong> A real peak, not a plateau edge.</p>
+
+<p><strong>A late breakout is a bad breakout.</strong> The 29% of setups that break
+after minute 15 are net harmful &mdash; including them drags EV from +0.375 down
+to +0.181. A range that takes half an hour to give way is not breaking out, it is
+drifting. Cutting at 15 keeps 71% of the opportunities and all of the edge.</p>
+
+<h3>Hold cap</h3>
+
+<div class="scroll"><table>
+<thead><tr><th>Hold</th><th>2026 EV</th><th>Pass both</th></tr></thead>
+<tbody>
+<tr><td>15 min</td><td class="neg">+0.118</td><td>&mdash;</td></tr>
+<tr><td>30 min</td><td>+0.205</td><td>&mdash;</td></tr>
+<tr><td>45 min</td><td>+0.334</td><td>83.4%</td></tr>
+<tr><td>60 min</td><td>+0.362</td><td>84.2%</td></tr>
+<tr class="hi"><td>90 min</td><td class="pos">+0.375</td><td>85.2%</td></tr>
+<tr><td>120 min</td><td>+0.373</td><td>85.0%</td></tr>
+<tr><td>180 min</td><td>+0.370</td><td>85.0%</td></tr>
+</tbody></table></div>
+
+<p><strong>Answer: 90 minutes is the peak; 60 costs almost nothing</strong> &mdash;
++0.013R and one point of pass rate. Keep 60 if the clean one-hour rule is worth
+more than that.</p>
+
+<p>Do not go below 60. At 45 minutes winners start being truncated, and 15
+minutes destroys the strategy outright (+0.118) because almost nothing reaches a
+2R target that fast.</p>
+
+<div class="note">
+  <div class="t">Correction to the duration estimate</div>
+  <p>Earlier sections quote a median of 13 days to pass both phases. That assumed
+  a setup every trading day. With a 15-minute cutoff only about 72% of days
+  produce one, so the honest figure is <strong>~18 trading days</strong>, roughly
+  3.6 calendar weeks.</p>
+</div>
+
+<h2><span class="num">06</span>Roadmap</h2>
 
 <h3>London and New York on gold</h3>
 
@@ -321,7 +397,7 @@ still takes one trade a day at 2% risk.</p>
   paper fails live.</p>
 </div>
 
-<h2><span class="num">06</span>Method, and where it is soft</h2>
+<h2><span class="num">07</span>Method, and where it is soft</h2>
 
 <p>The Strategy Tester would need hours for 546 combinations on real ticks.
 Instead <code>BarDump.mq5</code> recorded 163 192 M1 bars around the session
@@ -358,7 +434,7 @@ likely history gaps and entry-window boundary handling.</li>
 not.</strong> And 481 setups on one symbol and one session is enough to rank
 parameters, nowhere near enough to establish an edge.</p>
 
-<h2><span class="num">07</span>Bugs found and fixed</h2>
+<h2><span class="num">08</span>Bugs found and fixed</h2>
 
 <p>Three, all of which corrupted earlier results.</p>
 
@@ -380,7 +456,7 @@ the strategy from −10.5R to −2.1R. It had also been masking the range-size
 effect, which is why an earlier pass through this data wrongly concluded there
 wasn't one.</p>
 
-<h2><span class="num">08</span>The range filter</h2>
+<h2><span class="num">09</span>The range filter</h2>
 
 <p>Ranking each trade against its own year's median range, so the price trend
 cannot leak in:</p>
@@ -405,7 +481,7 @@ wide half turns 2024 from −0.060 to +0.101 and takes 2026 to +0.462.</p>
   forecast.</strong></p>
 </div>
 
-<h2><span class="num">09</span>Recommendations</h2>
+<h2><span class="num">10</span>Recommendations</h2>
 
 <ul>
 <li><strong>Keep the current configuration.</strong> Midpoint stop, RR 2.0, stop
@@ -419,6 +495,7 @@ can flip a profitable configuration to a losing one.</li>
 <li><strong>Build the rolling range filter and re-test.</strong> The only untested
 idea with a significant result behind it, and the difference between a 54%
 business and a 31% coin flip if the regime reverts.</li>
+<li><strong>Keep the 15-minute entry cutoff.</strong> It is a genuine peak &mdash; late breaks are net harmful.</li>
 <li><strong>Run London and New York next</strong>, then NDX100 on New York.
 Pre-commit the acceptance threshold before looking at results.</li>
 </ul>

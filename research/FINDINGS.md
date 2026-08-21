@@ -172,6 +172,74 @@ profit factor.** They select different parameters.
 
 ---
 
+## 5. Entry cutoff and hold time
+
+Swept together, because a later cutoff means later entries with less time left
+to reach target. SL 0.5, RR 2, stop move +0.5R to -0.5R, 2026 data, 679 setups
+scanned with a 120-minute window.
+
+### When the break actually happens
+
+| Minutes after range close | Setups | Share |
+|---|---|---|
+| 0-5 | 266 | 39.2% |
+| 5-10 | 137 | 20.2% |
+| 10-15 | 78 | 11.5% |
+| 15-20 | 57 | 8.4% |
+| 20-30 | 62 | 9.1% |
+| 30-60 | 71 | 10.4% |
+| 60-120 | 8 | 1.2% |
+
+Nearly 40% of breaks arrive within five minutes. By minute 15 you have 71% of
+them.
+
+### Entry cutoff
+
+| Cutoff | 2026 setups | EV at 90-min hold |
+|---|---|---|
+| 5 min | 76 | +0.332 |
+| 10 min | 106 | +0.367 |
+| **15 min** | **119** | **+0.375** |
+| 20 min | 127 | +0.330 |
+| 30 min | 142 | +0.255 |
+| 45 min | 154 | +0.201 |
+| 60 min | 162 | +0.181 |
+| 120 min | 163 | +0.191 |
+
+**Answer: 15 minutes.** A real peak, not a plateau edge.
+
+**A late breakout is a bad breakout.** The 29% of setups that break after minute
+15 are net harmful: including them drags EV from +0.375 down to +0.181. A range
+that takes half an hour to give way is not breaking out, it is drifting. Cutting
+at 15 keeps 71% of the opportunities and all of the edge.
+
+### Hold cap
+
+| Hold | 2026 EV | Pass both |
+|---|---|---|
+| 15 min | +0.118 | - |
+| 30 min | +0.205 | - |
+| 45 min | +0.334 | 83.4% |
+| 60 min | +0.362 | 84.2% |
+| **90 min** | **+0.375** | **85.2%** |
+| 120 min | +0.373 | 85.0% |
+| 180 min | +0.370 | 85.0% |
+
+**Answer: 90 minutes is the peak; 60 costs almost nothing** - +0.013R and one
+point of pass rate. Keep 60 if the clean one-hour rule is worth more than that.
+
+Do not go below 60. At 45 minutes winners start being truncated, and 15 minutes
+destroys the strategy outright (+0.118) because almost nothing reaches a 2R
+target that fast.
+
+### Correction to the duration estimate
+
+Earlier sections quote a median of 13 days to pass both phases. That assumed a
+setup every trading day. With a 15-minute cutoff only ~72% of days produce one,
+so the honest figure is **~18 trading days**, about 3.6 calendar weeks.
+
+---
+
 ## Method, and where it is soft
 
 The Strategy Tester would need hours to evaluate 546 combinations on real

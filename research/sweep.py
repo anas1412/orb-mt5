@@ -42,7 +42,7 @@ def load():
                 (t, float(row["open"]), float(row["high"]), float(row["low"]), float(row["close"])))
     return days
 
-def setups(days, range_min=15, window_min=15):
+def setups(days, range_min=15, window_min=120):
     """One setup per day: the range, then the first close outside it."""
     out = []
     for d, bars in sorted(days.items()):
@@ -64,9 +64,10 @@ def setups(days, range_min=15, window_min=15):
         if sig is None: continue
         i, is_buy = sig
         if i + 1 >= len(after): continue
-        path = after[i+1:i+1+61]                    # entry bar plus the hold window
+        path = after[i+1:i+1+241]                   # entry bar plus a long hold window
         if not path: continue
-        out.append(dict(date=d, hi=hi, lo=lo, is_buy=is_buy,
+        mins_late = int((after[i][0] - w0).total_seconds()//60)   # break bar, minutes after range close
+        out.append(dict(date=d, hi=hi, lo=lo, is_buy=is_buy, late=mins_late,
                         entry=path[0][1], path=[(b[2], b[3], b[4]) for b in path]))
     return out
 
@@ -96,9 +97,10 @@ def run(s, sl_frac, rr, move_at, move_to, hold=60):
         last = c
     return (last - e)*sgn/risk
 
-def evaluate(ss, sl_frac, rr, move_at, move_to, hold=60):
+def evaluate(ss, sl_frac, rr, move_at, move_to, hold=60, cutoff=None):
     res = []
     for s in ss:
+        if cutoff is not None and s['late'] >= cutoff: continue
         r = run(s, sl_frac, rr, move_at, move_to, hold)
         if r is None: continue
         rng = s["hi"] - s["lo"]
