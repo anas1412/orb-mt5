@@ -314,34 +314,63 @@ void Enter(const ENUM_ORDER_TYPE dir)
    const bool   isBuy = (dir == ORDER_TYPE_BUY);
    const double level = isBuy ? g_rangeHigh : g_rangeLow;
    const double sl    = StopLossFor(isBuy, level);
-   const double lots  = LotsFor(level, sl);
-   if(lots <= 0)
-      return;
 
    if(InpEntryMode == ENTRY_LIMIT_RETEST)
      {
-      // A pending order fills at its own price, so that price is the
-      // anchor and the target can go on the order itself.
+      // A pending order fills at its own price, so that price is both
+      // the sizing basis and the anchor for the target.
       const double price = NormalizeDouble(level, g_digits);
-      const double tp    = TakeProfitFrom(isBuy, price, sl);
-      const bool   ok    = isBuy ? g_trade.BuyLimit(lots, price, _Symbol, sl, tp)
-                                 : g_trade.SellLimit(lots, price, _Symbol, sl, tp);
-      if(!ok)
+      const double lots  = LotsFor(price, sl);
+      if(lots <= 0)
+         return;
+
+      const double tp = TakeProfitFrom(isBuy, price, sl);
+      if(!(isBuy ? g_trade.BuyLimit(lots, price, _Symbol, sl, tp)
+                 : g_trade.SellLimit(lots, price, _Symbol, sl, tp)))
          PrintFormat("limit order rejected: %d %s", g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
       return;
      }
 
-   // Market entry. The stop is structural, so it ships with the order,
-   // but the target cannot be known until we see the fill — the bar
-   // closed somewhere past the level, and that gap is real risk.
-   const bool ok = isBuy ? g_trade.Buy(lots, _Symbol, 0, sl, 0)
-                         : g_trade.Sell(lots, _Symbol, 0, sl, 0);
-   if(!ok)
+   // Market entry. Size from the price we are about to pay, not from
+   // the range level: the breakout candle closed somewhere past the
+   // level, so the real stop distance is wider and sizing off the level
+   // risks more than the configured percent on every single trade.
+   const double entry = isBuy ? SymbolInfoDouble(_Symbol, SYMBOL_ASK)
+                              : SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   const double lots  = LotsFor(entry, sl);
+   if(lots <= 0)
+      return;
+
+   // The stop is structural, so it ships with the order. The target has
+   // to wait for the fill.
+   if(!(isBuy ? g_trade.Buy(lots, _Symbol, 0, sl, 0)
+              : g_trade.Sell(lots, _Symbol, 0, sl, 0)))
      {
       PrintFormat("market order rejected: %d %s", g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
       return;
      }
-   AnchorTakeProfitToFill(g_trade.ResultPrice(), isBuy, sl);
+
+   const double fill = g_trade.ResultPrice();
+   AnchorTakeProfitToFill(fill, isBuy, sl);
+
+   const double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   if(fill > 0 && balance > 0)
+      PrintFormat("%s %.2f lots at %s, stop %s, risking %.2f%% of balance",
+                  isBuy ? "buy" : "sell", lots,
+                  DoubleToString(fill, g_digits), DoubleToString(sl, g_digits),
+                  100.0 * RiskOf(lots, fill, sl) / balance);
+  }
+
+//+------------------------------------------------------------------+
+//| Money at risk if the stop is hit, for the given size.            |
+//+------------------------------------------------------------------+
+double RiskOf(const double lots, const double entry, const double sl)
+  {
+   const double tickValue = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
+   const double tickSize  = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+   if(tickValue <= 0 || tickSize <= 0)
+      return 0;
+   return MathAbs(entry - sl) / tickSize * tickValue * lots;
   }
 
 //+------------------------------------------------------------------+
@@ -434,6 +463,10 @@ double TakeProfitFrom(const bool isBuy, const double anchor, const double sl)
 //+------------------------------------------------------------------+
 //| Position size. In risk mode, solve for the lot count whose loss   |
 //| at the stop equals the configured share of the balance.          |
+//|                                                                  |
+//| `entry` must be the price the trade actually opens at, not the    |
+//| range level, or realised risk exceeds InpRiskPercent by however   |
+//| far the breakout ran past the level.                             |
 //+------------------------------------------------------------------+
 double LotsFor(const double entry, const double sl)
   {
