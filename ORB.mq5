@@ -86,6 +86,7 @@ input group                 "Risk"
 input ENUM_LOT_MODE    InpLotMode         = LOT_RISK_PERCENT;       // Lot sizing mode
 input double           InpLots            = 0.01;          // Fixed lot size
 input double           InpRiskPercent     = 2.0;           // Risk per trade (percent of balance)
+input double           InpMaxDailyLossPct = 3.5;           // Stop opening trades once down this much today (0=off)
 input long             InpMagic           = 20260821;      // Magic number
 
 CTrade   g_trade;
@@ -310,6 +311,8 @@ void Enter(const ENUM_ORDER_TYPE dir)
   {
    if(!SpreadIsAcceptable())
       return;
+   if(DailyLossExceeded())
+      return;
 
    const bool   isBuy = (dir == ORDER_TYPE_BUY);
    const double level = isBuy ? g_rangeHigh : g_rangeLow;
@@ -369,6 +372,65 @@ void Enter(const ENUM_ORDER_TYPE dir)
                   (g_rangeHigh - g_rangeLow) / g_point,
                   spread / g_point,
                   100.0 * RiskOf(lots, fill + (isBuy ? spread : -spread), fill) / risk);
+  }
+
+//+------------------------------------------------------------------+
+//| Account-wide daily loss guard.                                    |
+//|                                                                   |
+//| A prop firm's daily limit counts every trade on the account, so    |
+//| this sums all deals since broker midnight regardless of magic,     |
+//| plus open floating P&L, and compares against the balance the day   |
+//| started with. Several instances of this EA on different sessions   |
+//| cannot see each other's trades, which is exactly how an account    |
+//| breaches the limit on the third trade of the day.                  |
+//|                                                                   |
+//| It blocks opening new risk. It never closes anything — the limit   |
+//| is about what you put on, and force-closing into a loss locks it   |
+//| in for no benefit.                                                 |
+//+------------------------------------------------------------------+
+bool DailyLossExceeded()
+  {
+   if(InpMaxDailyLossPct <= 0)
+      return false;
+
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   dt.hour = 0;
+   dt.min  = 0;
+   dt.sec  = 0;
+   const datetime dayStart = StructToTime(dt);
+
+   double realized = 0;
+   if(HistorySelect(dayStart, TimeCurrent() + 1))
+      for(int i = HistoryDealsTotal() - 1; i >= 0; i--)
+        {
+         const ulong t = HistoryDealGetTicket(i);
+         if(t == 0)
+            continue;
+         realized += HistoryDealGetDouble(t, DEAL_PROFIT)
+                   + HistoryDealGetDouble(t, DEAL_COMMISSION)
+                   + HistoryDealGetDouble(t, DEAL_SWAP);
+        }
+
+   double floating = 0;
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
+     {
+      const ulong t = PositionGetTicket(i);
+      if(t == 0 || !PositionSelectByTicket(t))
+         continue;
+      floating += PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
+     }
+
+   const double openingBalance = AccountInfoDouble(ACCOUNT_BALANCE) - realized;
+   if(openingBalance <= 0)
+      return false;
+
+   const double lossPct = -100.0 * (realized + floating) / openingBalance;
+   if(lossPct < InpMaxDailyLossPct)
+      return false;
+
+   PrintFormat("down %.2f%% today, limit %.2f%% — no new trades", lossPct, InpMaxDailyLossPct);
+   return true;
   }
 
 //+------------------------------------------------------------------+
