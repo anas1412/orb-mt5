@@ -237,6 +237,13 @@ The `%` / currency button switches between percent of the current balance
 (compounds) and a fixed cash risk (does not). The row label says which you are
 in, so the number can never be ambiguous.
 
+`InpCommissionPerLot` folds the broker's round-turn commission into the risk, so
+"$100 of risk" means $100 of realised loss rather than $100 of price movement
+plus whatever the commission adds. Without it every clean stop reads about
+&minus;1.05 R when the trade did exactly what it was told. Measured $6 per lot
+on FTMO demo gold; check your own contract specification, and leave it at 0 to
+ignore commission entirely.
+
 Lots round to the **nearest** volume step, not down. On gold, $100 of risk with
 a wide stop is about 0.016 lots against a 0.01 step; flooring that threw away up
 to 38% of the intended risk (one 2026 trade sized at 62% of target). Rounding to
