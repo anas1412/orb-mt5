@@ -219,11 +219,28 @@ not silently mis-sized.
 
 ### On-chart panel
 
-A toggle and four editable fields: risk, reward:risk, and the two stop-move
-levels. The unit button beside the risk field switches the sizing mode —
-`%` for percent of the current balance (compounds) or your account currency for
-a fixed cash risk (does not). The label says which you are in, so the field can
-never be ambiguous. The fields are locked unless trading is **off** *and* there is **no open
+| Row | Control |
+|---|---|
+| `TRADING ON / OFF` | master switch, **starts OFF** |
+| Risk per trade | value, plus a `%` / currency button that switches sizing mode |
+| Reward : risk | the target, in R |
+| Session start | `HH:MM` UTC — when the range begins |
+| Range length | minutes the range spans |
+| Break window | minutes after the range close that a break still counts (0 = no limit) |
+| Stop move | `ON` / `OFF` |
+| move at / move to | the two stop-move levels, greyed out while the stop move is off |
+
+The `%` / currency button switches between percent of the current balance
+(compounds) and a fixed cash risk (does not). The row label says which you are
+in, so the number can never be ambiguous.
+
+**Trading starts OFF.** Attaching the EA never opens a position on its own — you
+switch it on deliberately. The one exception is when there is no panel to switch
+it on with (a non-visual backtest, or `InpShowPanel = false`), where the inputs
+govern and trading is enabled; otherwise every backtest would take zero trades.
+
+Changing the session start or the range length applies **from the next session**,
+not retroactively — the panel says so in the journal when you change them. The fields are locked unless trading is **off** *and* there is **no open
 position** — the stop-move logic recovers a trade's original risk from its take
 profit divided by RR, so letting RR change mid-trade would move the stop to the
 wrong price. Locking removes the possibility instead of guarding against it.

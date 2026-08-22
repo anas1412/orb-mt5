@@ -134,13 +134,18 @@ double   g_openClosePos = 0;      // where in the range it closed, 0-1 toward th
 //    MQL5 inputs are read-only at runtime, so anything the panel edits needs a
 //    mutable home. The panel only lets these change while trading is OFF and
 //    flat, so no open position can ever see one of them move underneath it.
-bool             g_tradingOn  = true;
+bool             g_tradingOn  = false;   // safety: nothing trades until you switch it on
 ENUM_LOT_MODE    g_lotMode    = LOT_RISK_PERCENT;
 double           g_riskPercent = 2.0;
 double           g_riskMoney   = 100.0;
 double           g_rr          = 2.0;
 double           g_moveAtR     = 0.5;
 double           g_moveToR     = -0.5;
+bool             g_stopMoveOn  = true;
+int              g_startHour   = 0;
+int              g_startMinute = 0;
+int              g_rangeMinutes = 15;
+int              g_noEntryAfterMin = 15;
 
 #include <Panel.mqh>
 
@@ -213,6 +218,11 @@ int OnInit()
    g_rr          = InpRR;
    g_moveAtR     = InpStopMoveAtR;
    g_moveToR     = InpStopMoveToR;
+   g_stopMoveOn  = (InpStopMoveAtR > 0);
+   g_startHour   = InpStartHour;
+   g_startMinute = InpStartMinute;
+   g_rangeMinutes    = InpRangeMinutes;
+   g_noEntryAfterMin = InpNoEntryAfterMin;
    PanelInit(InpMagic, InpShowPanel);
 
    return INIT_SUCCEEDED;
@@ -306,8 +316,8 @@ string StatusLine(const datetime now)
    if(CountTradesToday() >= InpMaxTradesPerDay)
       return "done for today";
 
-   const datetime deadline = g_rangeEnd + InpNoEntryAfterMin * 60;
-   if(InpNoEntryAfterMin > 0 && now >= deadline)
+   const datetime deadline = g_rangeEnd + g_noEntryAfterMin * 60;
+   if(g_noEntryAfterMin > 0 && now >= deadline)
       return "entry window closed, no trade";
    return StringFormat("%s half -> %s only, until %s", half,
                        half == "top" ? "longs" : "shorts",
@@ -372,13 +382,13 @@ void OnTick()
 void RefreshSession(const datetime now)
   {
    const datetime start = SessionStartInBrokerTime(now, InpTimeZone,
-                                                   InpStartHour, InpStartMinute,
+                                                   g_startHour, g_startMinute,
                                                    InpWinterOffset, InpFollowsUSDST);
    if(start == g_sessionStart)
       return;
 
    g_sessionStart  = start;
-   g_rangeEnd      = start + InpRangeMinutes * 60;
+   g_rangeEnd      = start + g_rangeMinutes * 60;
    g_rangeHigh     = 0;
    g_rangeLow      = 0;
    g_rangeReady    = false;
@@ -513,11 +523,11 @@ double MedianPastRange(const int count)
          continue;
 
       const datetime start = SessionStartInBrokerTime(probe, InpTimeZone,
-                                                      InpStartHour, InpStartMinute,
+                                                      g_startHour, g_startMinute,
                                                       InpWinterOffset, InpFollowsUSDST);
       MqlRates bars[];
-      const int n = CopyRates(_Symbol, PERIOD_M1, start, start + InpRangeMinutes * 60 - 1, bars);
-      if(n < InpRangeMinutes)
+      const int n = CopyRates(_Symbol, PERIOD_M1, start, start + g_rangeMinutes * 60 - 1, bars);
+      if(n < g_rangeMinutes)
          continue;                       // incomplete session, not a real range
 
       double hi = bars[0].high, lo = bars[0].low;
@@ -559,7 +569,7 @@ void LookForBreak()
       return;
    if(bars[0].time <= g_lastSignalBar || bars[0].time < g_rangeEnd)
       return;
-   if(InpNoEntryAfterMin > 0 && bars[0].time >= g_rangeEnd + InpNoEntryAfterMin * 60)
+   if(g_noEntryAfterMin > 0 && bars[0].time >= g_rangeEnd + g_noEntryAfterMin * 60)
       return;
    g_lastSignalBar = bars[0].time;
 
@@ -1012,7 +1022,7 @@ bool SpreadIsAcceptable()
 //+------------------------------------------------------------------+
 void ManageOpenPosition()
   {
-   if(g_moveAtR <= 0)
+   if(!g_stopMoveOn || g_moveAtR <= 0)
       return;
 
    for(int i = PositionsTotal() - 1; i >= 0; i--)

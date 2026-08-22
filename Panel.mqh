@@ -21,7 +21,7 @@
 #define P_PFX  "ORBP_"          // object name prefix
 #define P_X    14               // distance from the chart corner
 #define P_Y    24
-#define P_W    262
+#define P_W    276
 #define P_ROW  26
 
 // The host EA declares g_tradingOn, g_lotMode, g_riskPercent, g_riskMoney,
@@ -31,7 +31,12 @@
 // never reach the trading logic.
 
 //--- field identity. Order drives layout, so adding one is a single line.
-enum ENUM_P_FIELD { P_RISK, P_RR, P_MOVEAT, P_MOVETO, P_FIELDS };
+//--- Row order drives layout. KIND decides whether a row is an edit box or a
+//    button, so adding a setting is one enum entry plus one case per accessor.
+enum ENUM_P_FIELD
+  {
+   P_RISK, P_RR, P_START, P_RANGE, P_WINDOW, P_STOPMOVE, P_MOVEAT, P_MOVETO, P_FIELDS
+  };
 
 string g_pStatus  = "";
 bool   g_pVisible = false;
@@ -62,6 +67,11 @@ void PStoreSave()
    GlobalVariableSet(PStoreKey("rr"),       g_rr);
    GlobalVariableSet(PStoreKey("moveat"),   g_moveAtR);
    GlobalVariableSet(PStoreKey("moveto"),   g_moveToR);
+   GlobalVariableSet(PStoreKey("smove"),    g_stopMoveOn ? 1 : 0);
+   GlobalVariableSet(PStoreKey("sh"),       (double)g_startHour);
+   GlobalVariableSet(PStoreKey("sm"),       (double)g_startMinute);
+   GlobalVariableSet(PStoreKey("rangemin"), (double)g_rangeMinutes);
+   GlobalVariableSet(PStoreKey("window"),   (double)g_noEntryAfterMin);
   }
 
 //| Restore only what was actually stored, so a fresh chart uses the
@@ -77,6 +87,11 @@ void PStoreLoad()
    if(GlobalVariableCheck(PStoreKey("rr")))        g_rr          = GlobalVariableGet(PStoreKey("rr"));
    if(GlobalVariableCheck(PStoreKey("moveat")))    g_moveAtR     = GlobalVariableGet(PStoreKey("moveat"));
    if(GlobalVariableCheck(PStoreKey("moveto")))    g_moveToR     = GlobalVariableGet(PStoreKey("moveto"));
+   if(GlobalVariableCheck(PStoreKey("smove")))     g_stopMoveOn  = GlobalVariableGet(PStoreKey("smove")) > 0.5;
+   if(GlobalVariableCheck(PStoreKey("sh")))        g_startHour   = (int)GlobalVariableGet(PStoreKey("sh"));
+   if(GlobalVariableCheck(PStoreKey("sm")))        g_startMinute = (int)GlobalVariableGet(PStoreKey("sm"));
+   if(GlobalVariableCheck(PStoreKey("rangemin")))  g_rangeMinutes = (int)GlobalVariableGet(PStoreKey("rangemin"));
+   if(GlobalVariableCheck(PStoreKey("window")))    g_noEntryAfterMin = (int)GlobalVariableGet(PStoreKey("window"));
   }
 
 //+------------------------------------------------------------------+
@@ -170,28 +185,39 @@ string PFieldName(const int f)
   {
    switch(f)
      {
-      case P_RISK:   return "risk";
-      case P_RR:     return "rr";
-      case P_MOVEAT: return "moveat";
-      case P_MOVETO: return "moveto";
+      case P_RISK:     return "risk";
+      case P_RR:       return "rr";
+      case P_START:    return "start";
+      case P_RANGE:    return "range";
+      case P_WINDOW:   return "window";
+      case P_STOPMOVE: return "stopmove";
+      case P_MOVEAT:   return "moveat";
+      case P_MOVETO:   return "moveto";
      }
    return "";
   }
+
+//| A row is either an edit box or a plain toggle button.
+bool PFieldIsToggle(const int f) { return f == P_STOPMOVE; }
 
 string PFieldLabel(const int f)
   {
    switch(f)
      {
-      case P_RISK:   return (g_lotMode == LOT_RISK_MONEY) ? "Risk per trade (cash)"
-                                                          : "Risk per trade (compounds)";
-      case P_RR:     return "Reward : risk";
-      case P_MOVEAT: return "Move stop at";
-      case P_MOVETO: return "Move stop to";
+      case P_RISK:     return (g_lotMode == LOT_RISK_MONEY) ? "Risk per trade (cash)"
+                                                            : "Risk per trade (compounds)";
+      case P_RR:       return "Reward : risk";
+      case P_START:    return "Session start";
+      case P_RANGE:    return "Range length";
+      case P_WINDOW:   return "Break window";
+      case P_STOPMOVE: return "Stop move";
+      case P_MOVEAT:   return "   move at";
+      case P_MOVETO:   return "   move to";
      }
    return "";
   }
 
-//| Suffix shown after the value, so the units are never ambiguous.
+//| Suffix after the value, so the units are never ambiguous.
 string PFieldUnit(const int f)
   {
    switch(f)
@@ -199,27 +225,53 @@ string PFieldUnit(const int f)
       case P_RISK:   return (g_lotMode == LOT_RISK_MONEY)
                             ? AccountInfoString(ACCOUNT_CURRENCY) : "%";
       case P_RR:     return "R";
+      case P_START:  return "UTC";
+      case P_RANGE:  return "min";
+      case P_WINDOW: return "min";
       case P_MOVEAT: return "R";
       case P_MOVETO: return "R";
      }
    return "";
   }
 
-double PFieldValue(const int f)
+//| What the box shows.
+string PFieldText(const int f)
   {
    switch(f)
      {
-      case P_RISK:   return (g_lotMode == LOT_RISK_MONEY) ? g_riskMoney : g_riskPercent;
-      case P_RR:     return g_rr;
-      case P_MOVEAT: return g_moveAtR;
-      case P_MOVETO: return g_moveToR;
+      case P_RISK:   return (g_lotMode == LOT_RISK_MONEY)
+                            ? DoubleToString(g_riskMoney, 0) : DoubleToString(g_riskPercent, 2);
+      case P_RR:     return DoubleToString(g_rr, 2);
+      case P_START:  return StringFormat("%02d:%02d", g_startHour, g_startMinute);
+      case P_RANGE:  return IntegerToString(g_rangeMinutes);
+      case P_WINDOW: return IntegerToString(g_noEntryAfterMin);
+      case P_MOVEAT: return DoubleToString(g_moveAtR, 2);
+      case P_MOVETO: return DoubleToString(g_moveToR, 2);
      }
-   return 0;
+   return "";
   }
 
-//| Returns false and explains itself rather than accepting nonsense.
-bool PFieldSet(const int f, const double v)
+//| Parse and apply. Returns false and says why rather than accepting nonsense.
+bool PFieldApply(const int f, const string txt)
   {
+   if(f == P_START)
+     {
+      string p[];
+      if(StringSplit(txt, ':', p) != 2)
+        { PrintFormat("panel: session start %s must look like HH:MM", txt); return false; }
+      const int h = (int)StringToInteger(p[0]), m = (int)StringToInteger(p[1]);
+      if(h < 0 || h > 23 || m < 0 || m > 59)
+        { PrintFormat("panel: %s is not a valid time of day", txt); return false; }
+      g_startHour = h; g_startMinute = m;
+      Print("panel: session start changed - the new range is built on the next session, "
+            "not retroactively");
+      return true;
+     }
+
+   const double v = StringToDouble(txt);
+   if(v == 0 && StringLen(txt) > 0 && StringGetCharacter(txt, 0) != '0')
+     { PrintFormat("panel: %s is not a number", txt); return false; }
+
    switch(f)
      {
       case P_RISK:
@@ -240,17 +292,29 @@ bool PFieldSet(const int f, const double v)
          if(v <= 0 || v > 20)
            { PrintFormat("panel: reward:risk %.2f must be between 0 and 20", v); return false; }
          g_rr = v; return true;
+      case P_RANGE:
+         if(v < 1 || v > 240)
+           { PrintFormat("panel: range length %.0f must be between 1 and 240 minutes", v); return false; }
+         g_rangeMinutes = (int)v;
+         Print("panel: range length changed - applies from the next session");
+         return true;
+      case P_WINDOW:
+         if(v < 0 || v > 240)
+           { PrintFormat("panel: break window %.0f must be between 0 and 240 minutes (0 = no limit)", v); return false; }
+         g_noEntryAfterMin = (int)v; return true;
       case P_MOVEAT:
-         // 0 switches the stop move off entirely, which is a legitimate choice
-         if(v < 0 || v > 10)
-           { PrintFormat("panel: move-at %.2f must be between 0 and 10 (0 = off)", v); return false; }
+         if(v <= 0 || v > 10)
+           { PrintFormat("panel: move-at %.2f must be above 0 and no more than 10 "
+                         "(use the Stop move button to switch it off)", v); return false; }
+         if(g_moveToR >= v)
+           { PrintFormat("panel: move-at %.2f must sit above move-to %.2f", v, g_moveToR); return false; }
          g_moveAtR = v; return true;
       case P_MOVETO:
          if(v < -1.0 || v > 5.0)
            { PrintFormat("panel: move-to %.2f must be between -1 and 5", v); return false; }
-         if(g_moveAtR > 0 && v >= g_moveAtR)
-           { PrintFormat("panel: move-to %.2f must sit below move-at %.2f, or the stop would jump past price",
-                         v, g_moveAtR); return false; }
+         if(v >= g_moveAtR)
+           { PrintFormat("panel: move-to %.2f must sit below move-at %.2f, or the stop "
+                         "would jump past price", v, g_moveAtR); return false; }
          g_moveToR = v; return true;
      }
    return false;
@@ -275,6 +339,10 @@ bool PHasPosition()
 
 bool PEditable() { return !g_tradingOn && !PHasPosition(); }
 
+//| One place decides where the status line lives, so PanelDraw and
+//| PanelSetStatus cannot disagree and make the text jump.
+int PStatusY() { return P_Y + 60 + P_FIELDS * P_ROW; }
+
 //+------------------------------------------------------------------+
 //| Draw. Called on init and whenever anything changes.              |
 //+------------------------------------------------------------------+
@@ -285,7 +353,7 @@ void PanelDraw()
 
    const bool   edit = PEditable();
    const bool   pos  = PHasPosition();
-   const int    h    = 92 + P_FIELDS * P_ROW;
+   const int    h    = 96 + P_FIELDS * P_ROW;
    const color  ink  = C'243,239,231';
    const color  mut  = C'148,140,128';
    const color  acc  = C'201,168,106';
@@ -304,16 +372,26 @@ void PanelDraw()
    for(int f = 0; f < P_FIELDS; f++)
      {
       const string nm = PFieldName(f);
-      PLabel("l_" + nm, P_X + 12, y + 5, PFieldLabel(f), mut, 8);
-      PEdit("e_" + nm, P_X + 138, y, 74, 20,
-            DoubleToString(PFieldValue(f), (f == P_RISK && g_lotMode == LOT_RISK_MONEY) ? 0 : 2),
-            edit);
-      if(f == P_RISK)
-         // the unit doubles as the mode switch: percent compounds, cash does not
-         PButton("mode", P_X + 216, y, 34, 20, PFieldUnit(f),
-                 edit ? C'40,37,31' : C'26,25,22', edit ? acc : mut);
+      // the two move rows are meaningless while the stop move is off
+      const bool dim  = (!g_stopMoveOn && (f == P_MOVEAT || f == P_MOVETO));
+      PLabel("l_" + nm, P_X + 12, y + 5, PFieldLabel(f), dim ? C'90,86,80' : mut, 8);
+
+      if(PFieldIsToggle(f))
+        {
+         PButton("b_" + nm, P_X + 138, y, 74, 20, g_stopMoveOn ? "ON" : "OFF",
+                 g_stopMoveOn ? C'18,60,44' : C'52,24,21',
+                 g_stopMoveOn ? ok : no);
+        }
       else
-         PLabel("u_" + nm, P_X + 218, y + 5, PFieldUnit(f), mut, 8);
+        {
+         PEdit("e_" + nm, P_X + 138, y, 74, 20, PFieldText(f), edit && !dim);
+         if(f == P_RISK)
+            // the unit doubles as the mode switch: percent compounds, cash does not
+            PButton("mode", P_X + 216, y, 40, 20, PFieldUnit(f),
+                    edit ? C'40,37,31' : C'26,25,22', edit ? acc : mut);
+         else
+            PLabel("u_" + nm, P_X + 218, y + 5, PFieldUnit(f), dim ? C'90,86,80' : mut, 8);
+        }
       y += P_ROW;
      }
 
@@ -323,9 +401,9 @@ void PanelDraw()
    if(edit)          { why = "fields unlocked";                    whyc = acc; }
    else if(pos)      { why = "locked: position open";              whyc = no;  }
    else              { why = "locked: switch trading off to edit"; whyc = mut; }
-   PLabel("lock", P_X + 12, y + 4, why, whyc, 8);
+   PLabel("lock", P_X + 12, P_Y + 44 + P_FIELDS * P_ROW, why, whyc, 8);
 
-   PLabel("status", P_X + 12, y + 20, g_pStatus, mut, 8, "Consolas");
+   PLabel("status", P_X + 12, PStatusY(), g_pStatus, mut, 8, "Consolas");
    ChartRedraw();
   }
 
@@ -338,6 +416,14 @@ void PanelInit(const long magic, const bool show)
    // Drawing thousands of objects makes a non-visual backtest crawl and shows
    // nobody anything, so the panel simply does not exist there.
    g_pVisible = show && (!MQLInfoInteger(MQL_TESTER) || MQLInfoInteger(MQL_VISUAL_MODE));
+
+   // Trading starts OFF so that attaching the EA never opens a position on its
+   // own. That is only safe when there is a panel to switch it on: with no
+   // panel -- a non-visual backtest, or InpShowPanel off -- nothing could ever
+   // enable it and every run would take zero trades.
+   if(!g_pVisible)
+      g_tradingOn = true;
+
    PStoreLoad();
    PanelDraw();
   }
@@ -353,7 +439,7 @@ void PanelSetStatus(const string s)
    if(!g_pVisible || s == g_pStatus)
       return;
    g_pStatus = s;
-   PLabel("status", P_X + 12, P_Y + 96 + P_FIELDS * P_ROW - 32, s, C'148,140,128', 8, "Consolas");
+   PLabel("status", P_X + 12, PStatusY(), s, C'148,140,128', 8, "Consolas");
    ChartRedraw();
   }
 
@@ -364,6 +450,24 @@ bool PanelEvent(const int id, const long &lparam, const double &dparam, const st
   {
    if(!g_pVisible)
       return false;
+
+   if(id == CHARTEVENT_OBJECT_CLICK && sparam == P_PFX "b_stopmove")
+     {
+      ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
+      if(!PEditable())
+        {
+         Print("panel: locked - switch trading off and close any position first");
+         PanelDraw();
+         return true;
+        }
+      g_stopMoveOn = !g_stopMoveOn;
+      PrintFormat("panel: stop move %s%s", g_stopMoveOn ? "ON" : "OFF",
+                  g_stopMoveOn ? StringFormat(" (at +%.2fR move to %.2fR)", g_moveAtR, g_moveToR)
+                               : " - the stop stays where it started");
+      PStoreSave();
+      PanelDraw();
+      return true;
+     }
 
    if(id == CHARTEVENT_OBJECT_CLICK && sparam == P_PFX "mode")
      {
@@ -402,7 +506,7 @@ bool PanelEvent(const int id, const long &lparam, const double &dparam, const st
      {
       for(int f = 0; f < P_FIELDS; f++)
         {
-         if(sparam != P_PFX "e_" + PFieldName(f))
+         if(PFieldIsToggle(f) || sparam != P_PFX "e_" + PFieldName(f))
             continue;
          if(!PEditable())
            {
@@ -410,23 +514,13 @@ bool PanelEvent(const int id, const long &lparam, const double &dparam, const st
             PanelDraw();                       // snap the text back
             return true;
            }
-         const string txt = ObjectGetString(0, sparam, OBJPROP_TEXT);
-         const double v   = StringToDouble(txt);
-         // StringToDouble returns 0 for junk, so reject junk explicitly
-         if(v == 0 && StringLen(txt) > 0 && StringGetCharacter(txt, 0) != '0')
+         if(PFieldApply(f, ObjectGetString(0, sparam, OBJPROP_TEXT)))
            {
-            PrintFormat("panel: %s is not a number", txt);
-            PanelDraw();
-            return true;
-           }
-         if(PFieldSet(f, v))
-           {
-            PrintFormat("panel: %s = %s %s", PFieldLabel(f),
-                        DoubleToString(PFieldValue(f), 2), PFieldUnit(f));
+            PrintFormat("panel: %s = %s %s", PFieldLabel(f), PFieldText(f), PFieldUnit(f));
             PStoreSave();
            }
-         PanelDraw();                          // redraw either way
-         return true;
+         PanelDraw();                          // redraw either way, so a rejected
+         return true;                          // edit snaps back to the real value
         }
      }
    return false;
