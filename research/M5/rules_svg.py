@@ -67,8 +67,8 @@ def build():
     # ---- the range box, with its top half marked ----
     a('<rect x="%d" y="%.0f" width="%d" height="%.0f" fill="currentColor" opacity=".05"/>'
       % (X0, Y(1), X(15) - X0, Y(0) - Y(1)))
-    a('<rect x="%d" y="%.0f" width="%d" height="%.0f" fill="var(--pos)" opacity=".2"/>'
-      % (X0, Y(1), X(15) - X0, Y(1) - Y(.5)))
+    a('<rect x="%d" y="%.0f" width="%d" height="%.0f" fill="var(--pos)" opacity=".16"/>'
+      % (X0, Y(1), X(15) - X0, Y(.5) - Y(1)))
     a('<text x="%d" y="%.0f" font-size="11" font-weight="640" fill="var(--pos)" '
       'fill-opacity=".8">TOP HALF</text>' % (X0 + 6, Y(1) + 16))
     for v, wd in ((1, 1.8), (0, 1.8)):

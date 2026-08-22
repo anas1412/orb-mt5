@@ -122,6 +122,26 @@ figcaption{color:var(--mut);font-size:13px;margin-top:12px;max-width:70ch}
 .fig{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
   padding:22px;box-shadow:var(--sh);color:var(--ink)}
 
+/* ---------- gallery filters ---------- */
+.filters{display:flex;flex-direction:column;gap:11px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;
+  box-shadow:var(--sh);margin:22px 0 0}
+.fgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fgroup>b{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);min-width:62px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--ink2);
+  font:inherit;font-size:12.5px;font-weight:550;padding:6px 13px;border-radius:100px;
+  cursor:pointer;transition:.13s;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--acc);color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--bg);font-weight:640}
+.chip.win[aria-pressed=true]{background:var(--pos);border-color:var(--pos)}
+.chip.loss[aria-pressed=true]{background:var(--neg);border-color:var(--neg)}
+.fcount{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums;
+  border-top:1px solid var(--line);padding-top:11px}
+.fcount b{color:var(--ink)}
+.gal .tc[hidden]{display:none}
+.noresult{color:var(--mut);font-size:14px;padding:26px 2px}
+
 /* ---------- lightbox ---------- */
 #lb{position:fixed;inset:0;z-index:99;display:none;background:rgba(8,7,6,.93);
   backdrop-filter:blur(6px);padding:22px;align-items:center;justify-content:center}
@@ -484,7 +504,9 @@ one to open it full size.</p>
   <span><span class="sw" style="background:var(--neg)"></span> loss — stopped out</span>
   <span>▲▼ entry &nbsp;·&nbsp; ✕ exit &nbsp;·&nbsp; shaded box = the 15-minute range</span>
 </div>
+{{FILTERS}}
 <div class="gal">{{GALLERY}}</div>
+<p class="noresult" id="noresult" hidden>No trades match those filters.</p>
 </section>
 
 <footer>
@@ -504,25 +526,72 @@ demo test thoroughly before risking capital.</p>
 </figcaption></figure></div>
 <script>
 (function(){
-  var cards=[].slice.call(document.querySelectorAll('.gal .tc'));
-  if(!cards.length) return;
+  var all=[].slice.call(document.querySelectorAll('.gal .tc'));
+  if(!all.length) return;
+
+  // ---- filters: one Set per group, empty Set means "no restriction" ----
+  var sets={outcome:new Set(),day:new Set(),month:new Set()};
+  var chips=[].slice.call(document.querySelectorAll('.chip'));
+  var count=document.getElementById('fcount'), none=document.getElementById('noresult');
+
+  function shown(){ return all.filter(function(c){ return !c.hidden; }); }
+
+  function apply(){
+    all.forEach(function(c){
+      var ok=['outcome','day','month'].every(function(g){
+        return sets[g].size===0 || sets[g].has(c.dataset[g]);
+      });
+      c.hidden=!ok;
+    });
+    var n=shown().length;
+    count.innerHTML='Showing <b>'+n+'</b> of '+all.length+' trades';
+    if(n){
+      var rs=shown().map(function(c){ return parseFloat(c.dataset.r); });
+      var w=rs.filter(function(v){ return v>0; }).length;
+      var tot=rs.reduce(function(a,b){ return a+b; },0);
+      count.innerHTML+=' &nbsp;·&nbsp; <b>'+w+'</b> W / <b>'+(n-w)+'</b> L'
+        +' &nbsp;·&nbsp; <b>'+(100*w/n).toFixed(1)+'%</b> win rate'
+        +' &nbsp;·&nbsp; <b>'+(tot>=0?'+':'')+tot.toFixed(1)+' R</b>'
+        +' &nbsp;·&nbsp; <b>'+(tot>=0?'+':'')+(tot*2).toFixed(1)+'%</b>';
+    }
+    none.hidden = n>0;
+    chips.forEach(function(b){
+      var g=b.dataset.f, v=b.dataset.v;
+      b.setAttribute('aria-pressed', v==='*' ? sets[g].size===0 : sets[g].has(v));
+    });
+  }
+
+  chips.forEach(function(b){
+    b.addEventListener('click',function(){
+      var g=b.dataset.f, v=b.dataset.v;
+      if(v==='*') sets[g].clear();
+      else if(sets[g].has(v)) sets[g].delete(v);
+      else sets[g].add(v);
+      apply();
+    });
+  });
+  apply();
+
+  var cards=all;
   var lb=document.getElementById('lb'), img=document.getElementById('lbimg'),
       cap=document.getElementById('lbcap'), num=document.getElementById('lbnum'), i=0;
 
   function show(n){
-    i=(n+cards.length)%cards.length;
-    var c=cards[i];
+    var vis=shown();
+    if(!vis.length) return;
+    i=(n+vis.length)%vis.length;
+    var c=vis[i];
     img.src=c.getAttribute('href');
     img.alt=c.querySelector('img').alt;
     cap.innerHTML=c.querySelector('.tm').innerHTML
       .replace(/<i>/g,'<i class="'+(c.classList.contains('win')?'lbwin':'lbloss')+'">');
-    num.textContent=(i+1)+' / '+cards.length+'   \u2190 \u2192 to move, Esc to close';
+    num.textContent=(i+1)+' / '+vis.length+'   \u2190 \u2192 to move, Esc to close';
   }
   function open(n){ show(n); lb.classList.add('on'); document.body.style.overflow='hidden'; }
   function close(){ lb.classList.remove('on'); document.body.style.overflow=''; img.src=''; }
 
-  cards.forEach(function(c,n){
-    c.addEventListener('click',function(e){ e.preventDefault(); open(n); });
+  cards.forEach(function(c){
+    c.addEventListener('click',function(e){ e.preventDefault(); open(shown().indexOf(c)); });
   });
   document.getElementById('lbclose').onclick=close;
   document.getElementById('lbprev').onclick=function(e){ e.stopPropagation(); show(i-1); };

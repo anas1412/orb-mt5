@@ -33,8 +33,9 @@ def panel(px, head, sub, cndl, take, col):
     # the box, with the chosen half tinted
     a('<rect x="%d" y="%.0f" width="%d" height="%.0f" fill="currentColor" opacity=".045"/>'
       % (bx, Y(1), BOX_W, Y(0) - Y(1)))
-    ty, th = (Y(1), Y(1) - Y(.5)) if take == "up" else (Y(.5), Y(.5) - Y(0))
-    a('<rect x="%d" y="%.0f" width="%d" height="%.0f" fill="%s" opacity=".22"/>'
+    # y grows downward, so the height is always the lower y minus the upper one
+    ty, th = (Y(1), Y(.5) - Y(1)) if take == "up" else (Y(.5), Y(0) - Y(.5))
+    a('<rect x="%d" y="%.0f" width="%d" height="%.0f" fill="%s" opacity=".17"/>'
       % (bx, ty, BOX_W, th, col))
     a('<text x="%d" y="%.0f" font-size="11.5" font-weight="640" fill="%s" '
       'fill-opacity=".85">%s HALF</text>'

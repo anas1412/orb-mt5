@@ -127,13 +127,42 @@ def gallery():
     cards=[]
     for t in idx:
         cls="win" if t['R']>0 else "loss"
-        cards.append('<a class="tc %s" href="trades/%s" target="_blank">'
+        d=dt.date.fromisoformat(t['date'])
+        cards.append('<a class="tc %s" href="trades/%s" target="_blank" '
+                     'data-outcome="%s" data-day="%s" data-month="%s" data-r="%.3f">'
                      '<img src="trades/%s" alt="%s %s" loading="lazy">'
                      '<span class="tm"><b>%s</b> %s · %s · closed %s half · <i>%+.2f R</i></span></a>'
-                     %(cls,t['file'],t['file'],t['date'],t['dir'],
-                       dt.date.fromisoformat(t['date']).strftime("%d %b"),t['day'],
+                     %(cls,t['file'],cls,t['day'],d.strftime("%b"),t['R'],
+                       t['file'],t['date'],t['dir'],
+                       d.strftime("%d %b"),t['day'],
                        t['dir'].upper(),"top" if t['dir']=="buy" else "bottom",t['R']))
     return "".join(cards)
+
+def filters():
+    """Chips built from the trades that exist, so no chip can match nothing."""
+    days   = [d for d in ("Mon","Tue","Wed","Thu","Fri") if any(t['day']==d for t in idx)]
+    months = sorted({dt.date.fromisoformat(t['date']).month for t in idx})
+    wins   = len([t for t in idx if t['R']>0])
+    def chip(g,v,label,extra=""):
+        return ('<button type="button" class="chip%s" data-f="%s" data-v="%s" '
+                'aria-pressed="false">%s</button>' % (extra,g,v,label))
+    g=[]
+    g.append('<div class="fgroup"><b>Result</b>'
+             + chip("outcome","*","All %d"%len(idx))
+             + chip("outcome","win","Wins %d"%wins," win")
+             + chip("outcome","loss","Losses %d"%(len(idx)-wins)," loss")
+             + '</div>')
+    g.append('<div class="fgroup"><b>Day</b>' + chip("day","*","All")
+             + "".join(chip("day",d,"%s %d"%(d,len([t for t in idx if t['day']==d])))
+                       for d in days) + '</div>')
+    g.append('<div class="fgroup"><b>Month</b>' + chip("month","*","All")
+             + "".join(chip("month",dt.date(2026,m,1).strftime("%b"),
+                            "%s %d"%(dt.date(2026,m,1).strftime("%b"),
+                                     len([t for t in idx
+                                          if dt.date.fromisoformat(t['date']).month==m])))
+                       for m in months) + '</div>')
+    g.append('<div class="fcount" id="fcount"></div>')
+    return '<div class="filters">' + "".join(g) + '</div>'
 
 wins=H['wins']; losses=H['trades']-wins
 tpl=open("template.html").read()
@@ -167,7 +196,7 @@ html=(tpl
  .replace("{{LSAVEDPCT}}","%+d%%"%d["losses"]["saved_pct"])
  .replace("{{NTARGET}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="target"))
  .replace("{{NSTOP}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="stop"))
- .replace("{{LASTDATE}}",dt.date.fromisoformat(d["coverage"]["last"]).strftime("%d %B %Y")).replace("{{GALLERY}}",gallery())
+ .replace("{{LASTDATE}}",dt.date.fromisoformat(d["coverage"]["last"]).strftime("%d %B %Y")).replace("{{GALLERY}}",gallery()).replace("{{FILTERS}}",filters())
  .replace("{{GENERATED}}","2026-08-22"))
 open(OUT,"w").write(html)
 open(PAGES,"w").write(html)
