@@ -983,7 +983,19 @@ double LotsFor(const double entry, const double sl)
    const double min  = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
    const double max  = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
 
-   lots = MathFloor(lots / step) * step;
+   // Round to the NEAREST step, not down. When a position is only a couple of
+   // steps wide -- $100 of risk on gold with a wide stop is ~0.016 lots against
+   // a 0.01 step -- flooring throws away a large slice of the intended risk.
+   // One 2026 trade landed at 62% of target that way.
+   //
+   // The cap stops the opposite failure: an ideal size below one step would
+   // round UP to a full step and risk far more than asked. In that case fall
+   // back to flooring, which correctly declines the trade.
+   double steps   = lots / step;
+   double rounded = MathRound(steps);
+   if(rounded < 1 || rounded / steps > 1.25)
+      rounded = MathFloor(steps);
+   lots = rounded * step;
    lots = MathMin(lots, max);
 
    if(lots < min)

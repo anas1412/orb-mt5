@@ -237,6 +237,14 @@ The `%` / currency button switches between percent of the current balance
 (compounds) and a fixed cash risk (does not). The row label says which you are
 in, so the number can never be ambiguous.
 
+Lots round to the **nearest** volume step, not down. On gold, $100 of risk with
+a wide stop is about 0.016 lots against a 0.01 step; flooring that threw away up
+to 38% of the intended risk (one 2026 trade sized at 62% of target). Rounding to
+nearest brings the mean realised risk to 100.0% of target with a worst case of
+91.5%, at the cost of 63 of 280 trades landing slightly above it — worst 123%.
+If the ideal size is below one whole step, rounding up would multiply the risk,
+so it falls back to flooring and declines the trade.
+
 **Trading starts OFF.** Attaching the EA never opens a position on its own — you
 switch it on deliberately. The one exception is when there is no panel to switch
 it on with (a non-visual backtest, or `InpShowPanel = false`), where the inputs
