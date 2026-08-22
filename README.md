@@ -160,17 +160,29 @@ Find yours with `CheckBrokerOffset`, or compare a D1 candle's start time to UTC.
 | `InpMinRangePoints`, `InpMaxRangePoints` | `0`, `0` | absolute range filters (0 = off) |
 | `InpRangeLookback` | `0` | rolling filter: sessions to compare against (0 = off) |
 | `InpMinRangeRatio` | `1.25` | rolling filter: range must be this multiple of their median |
-| `InpMinClosePos` | `0.25` | skip reversal breaks — see below (0 = off) |
+| `InpMinClosePos` | **`0.50`** | trade only the half the range closed in — see below (0 = off) |
 | `InpTradeMon` … `InpTradeThu` | `true` | day-of-week filter |
 | `InpTradeFri` | **`false`** | Friday is the only losing day — 20.8% win rate |
 
-`InpMinClosePos` scores how near price was, when the range closed, to the side it
-then broke — `1.0` means the final range bar closed right against that boundary,
-`0.0` means it closed at the opposite one and had to cross the whole range first.
-The second case is a reversal wearing a breakout's clothes: measured on real
-ticks, the five worst such trades in 119 averaged **−0.94 R**. Cutting everything
-under 0.25 removes 7% of setups and lifts pass rate from 81.6% to 86.6%. Full
-sweep in [§12 of the report](research/report.html).
+**`InpMinClosePos` at `0.50` is the half-of-the-range rule:** split the range box
+in half, and trade only in the direction of the half the final range bar closed
+in. Closed in the top half → an up-break is tradeable and a down-break is
+skipped; closed in the bottom half → the mirror image. No arithmetic needed at
+the chart.
+
+Breaking the other half means price crossed the entire range first — a reversal
+wearing a breakout's clothes. On 2026 real ticks, Monday–Thursday:
+
+| Which half broke | n | WR | EV | Total R | |
+|---|---|---|---|---|---|
+| **Broke the half it closed in** | 71 | **53.5%** | **+0.639** | **+45.3** | trade |
+| Broke the opposite half | 23 | 30.4% | +0.049 | +1.1 | skip |
+| Every break, no filter | 94 | 47.9% | +0.494 | +46.5 | — |
+
+Skipping those 23 gives up 1.1 R and buys a 5.6-point higher win rate. Other
+values are supported — the input is a 0–1 position, so `0.25` cuts only the
+worst quarter — but `0.50` is the one you can apply by eye. Full sweep in
+[§8 of the findings](research/FINDINGS.md).
 
 ### Stops, targets, risk
 

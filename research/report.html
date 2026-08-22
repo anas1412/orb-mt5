@@ -92,7 +92,7 @@ trying. This is what survived.</p>
   <p><strong>One configuration works: Asia, 00:00 UTC, 15-minute range, M1
   confirmation, stop at the range midpoint, 2R target, stop moved to
   &minus;0.5R once the trade reaches +0.5R, 60-minute hold cap, 2% risk.</strong>
-  With the close-position filter at 0.25 (&sect;12) that returns +0.404 R per trade
+  With the half-of-the-range rule (&sect;12) that returns +0.443 R per trade
   in 2026, a 44.6% win rate and an 86.6% chance of passing both challenge phases
   in about 19 trading days.</p>
   <p>Everything else failed. <strong>London loses in every configuration tested,
@@ -120,7 +120,7 @@ trying. This is what survived.</p>
 <li><a href="#s9">Prop-account mechanics</a></li>
 <li><a href="#s10">The rolling range filter</a></li>
 <li><a href="#s11">The kill switch</a></li>
-<li><a href="#s12b">The close-position filter</a></li>
+<li><a href="#s12b">The half-of-the-range rule</a></li>
 <li><a href="#s12c">Day of week</a></li>
 <li><a href="#s13b">US100.cash at the NY open</a></li>
 <li><a href="#s12">Rules of thumb</a></li>
@@ -615,23 +615,30 @@ almost every day in the dead zone.</strong> Only 0.8% of 2026's days fall under
 </div>
 
 
-<h2 id="s12b"><span class="num">12</span>The close-position filter</h2>
+<h2 id="s12b"><span class="num">12</span>The half-of-the-range rule</h2>
 
-<p><strong>Rule:</strong> at the moment the range closes, score how near price was
-to the side it then breaks. Skip the trade if that score is too low.</p>
+<p><strong>Rule:</strong> split the range box in half. Whichever half the final
+range bar closed in is the only direction tradeable that session &mdash; top half
+means up-breaks only, bottom half means down-breaks only. That is what
+<code>InpMinClosePos = 0.50</code> computes; the 0&ndash;1 position below is the
+general form, kept because other thresholds were tested.</p>
 
 <div class="scroll"><table>
-<caption>The score, and what it means</caption>
-<thead><tr><th>Score</th><th>Where the final range bar closed</th><th>What the break is</th></tr></thead>
+<caption>2026, Monday&ndash;Thursday, every break the engine saw, split by half.</caption>
+<thead><tr><th>Which half broke</th><th>n</th><th>Wins</th><th>Win rate</th><th>EV</th><th>Total R</th><th></th></tr></thead>
 <tbody>
-<tr><td>1.0</td><td>right against the boundary that broke</td><td class="pos">continuation &mdash; short journey, pressure already there</td></tr>
-<tr><td>0.5</td><td>middle of the range</td><td>neutral</td></tr>
-<tr><td>0.0</td><td>at the <em>opposite</em> boundary</td><td class="neg">reversal &mdash; price crossed the whole range first</td></tr>
+<tr class="hi"><td><b>Broke the half it closed in</b></td><td>71</td><td>38</td><td class="pos">53.5%</td><td class="pos">+0.639</td><td class="pos">+45.3</td><td>trade</td></tr>
+<tr><td>Broke the opposite half</td><td>23</td><td>7</td><td class="neg">30.4%</td><td>+0.049</td><td>+1.1</td><td>skip</td></tr>
+<tr><td>Every break, no filter</td><td>94</td><td>45</td><td>47.9%</td><td>+0.494</td><td>+46.5</td><td>&mdash;</td></tr>
 </tbody></table></div>
+
+<p>The 23 skipped breaks contributed <strong>+1.1 R between them</strong> &mdash;
+all of the variance, none of the profit. The sweep below is the original 0&ndash;1
+study that led to the midpoint; it is the evidence, not the rule.</p>
 
 <figure>
 <svg width="100%" viewBox="0 0 680 470" role="img" xmlns="http://www.w3.org/2000/svg">
-<title>Continuation break versus reversal break</title>
+<title>Breaking the half it closed in, versus the opposite half</title>
 <desc>Two panels showing the same 15-minute range with a high of 4520 and a low of 4500. In both, the final range candle closes at 4518, near the high, which is 0.90 of the way up. On the left price breaks upward, a two-point journey, scoring 0.90 and traded. On the right price breaks downward, crossing the full eighteen points of the range first, scoring 0.10 and skipped.</desc>
 <defs>
   <marker id="cpArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -709,7 +716,7 @@ every rejection into a coin flip on the other side.</p>
 <tr><td>0.75</td><td>234</td><td>51%</td><td>68</td><td class="pos">+0.529</td><td>0.173</td><td>50.0%</td><td class="pos">92.7%</td><td>26</td><td>1.08</td></tr>
 </tbody></table></div>
 
-<h3>Where the trades actually sit &mdash; quadrant view</h3>
+<h3>Evidence trail &mdash; the original quadrant view</h3>
 
 <div class="scroll"><table>
 <caption>2026, grouped by score rather than by cumulative threshold.</caption>
@@ -728,8 +735,8 @@ clearly worse than the top.</p>
 <div class="note">
   <div class="t">&#9888; This filter is a regime bet</div>
   <p>Tested on a choppy market instead of a trending one, the effect
-  <strong>inverts</strong>: below-25% becomes the <em>best</em> quadrant and
-  above-75% turns negative.</p>
+  <strong>inverts</strong>: the bottom of the range becomes the <em>best</em>
+  place to have closed and the top turns negative.</p>
   <p>That is mechanism, not noise. In a choppy market the range mean-reverts, so a
   break <em>away</em> from where price sat pays. In a trending market the range is
   a pause in a move, so a break <em>continuing</em> it pays.</p>
@@ -859,7 +866,7 @@ gold. Different instrument, different cost structure, structurally different
 event.</p>
 
 <div class="scroll"><table>
-<caption>MT5 real ticks, 2026, 09:30 New York local (DST handled by TimeZones.mqh). 15-min range, M1 signal, 60-min hold, stop move +0.5R &rarr; &minus;0.5R, Friday included, close-position filter off, 2% risk.</caption>
+<caption>MT5 real ticks, 2026, 09:30 New York local (DST handled by TimeZones.mqh). 15-min range, M1 signal, 60-min hold, stop move +0.5R &rarr; &minus;0.5R, Friday included, half-of-the-range rule off, 2% risk.</caption>
 <thead><tr><th>Config</th><th>n</th><th>EV</th><th>&plusmn;SE</th><th>WR</th><th>sd(R)</th><th>Total R</th><th>Pass both</th><th>~Days</th></tr></thead>
 <tbody>
 <tr><td>RR 1 &middot; SL 100% far side</td><td>140</td><td>&minus;0.038</td><td>0.062</td><td>50.0%</td><td>0.74</td><td>&minus;5.29</td><td>19.7%</td><td>50</td></tr>
@@ -930,7 +937,7 @@ it by shortening the target is not.</li>
 widest ranges on the board and no edge.</li>
 <li><strong>Speed is nearly free; risk sizing is not.</strong> More trades per day
 barely dents pass rate. Changing risk per trade moves it 15&ndash;30 points.</li>
-<li><strong>Skip reversal breaks.</strong> If the range closed at the far end from the side that broke, price flipped across the whole range first. Five such trades in 119 averaged &minus;0.94 R. Cutting the bottom quarter is nearly free.</li>
+<li><strong>Trade only the half the range closed in.</strong> If the break went into the far half, price crossed the whole range first. In 2026 those went 7&ndash;16 for +0.049 R against 38&ndash;33 and +0.639 R for the correct half.</li>
 <li><strong>Trust nothing inside &plusmn;0.05 R.</strong> That is the simulator's
 error bar against MT5. Several "improvements" in this study were noise, and
 saying so is cheaper than trading them.</li>

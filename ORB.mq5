@@ -18,7 +18,8 @@ enum ENUM_ENTRY_MODE
   {
    ENTRY_MARKET_ON_CLOSE,  // signal bar closes past the level -> market
    ENTRY_STOP_AT_LEVEL,    // stop order resting at the level
-   ENTRY_LIMIT_RETEST      // close past the level -> limit back at it
+   ENTRY_LIMIT_RETEST,     // close past the level -> limit back at it
+   ENTRY_FIRST_CANDLE      // no break: trade the range's own direction at its close
   };
 
 enum ENUM_SL_MODE
@@ -63,7 +64,7 @@ input double           InpMinRangePoints  = 0;             // Min range size (po
 input double           InpMaxRangePoints  = 0;             // Max range size (points, 0=off)
 input int              InpRangeLookback   = 0;             // Rolling filter: sessions to compare against (0=off)
 input double           InpMinRangeRatio   = 1.25;          // Rolling filter: range must be this x the median
-input double           InpMinClosePos     = 0.25;          // Min close position, 0=off (see MinClosePos note)
+input double           InpMinClosePos     = 0.50;          // Trade only the half the range closed in (0.50=midpoint, 0=off)
 input bool             InpTradeMon        = true;          // Trade Monday
 input bool             InpTradeTue        = true;          // Trade Tuesday
 input bool             InpTradeWed        = true;          // Trade Wednesday
@@ -106,7 +107,8 @@ datetime g_rangeEnd     = 0;
 double   g_rangeHigh    = 0;
 double   g_rangeLow     = 0;
 bool     g_rangeReady   = false;
-double   g_rangeLastClose = 0;   // close of the range's final bar, for the close-position filter
+double   g_rangeLastClose = 0;   // close of the range's final bar, for the half-of-the-range rule
+double   g_rangeFirstOpen = 0;   // open of the range's first bar, for ENTRY_FIRST_CANDLE
 bool     g_daySkipped   = false;
 datetime g_lastSignalBar= 0;
 
@@ -122,7 +124,7 @@ double   g_openSL       = 0;
 bool     g_openIsBuy    = false;
 datetime g_openTime     = 0;
 int      g_openMinsLate = 0;      // minutes from range close to the entry
-double   g_openClosePos = 0;      // close-position score of the range
+double   g_openClosePos = 0;      // where in the range it closed, 0-1 toward the traded side
 
 //+------------------------------------------------------------------+
 int OnInit()
@@ -276,6 +278,12 @@ void OnTick()
    if(InpEntryMode == ENTRY_STOP_AT_LEVEL)
       return;  // orders already rest at the levels
 
+   if(InpEntryMode == ENTRY_FIRST_CANDLE)
+     {
+      EnterOnRangeDirection();
+      return;
+     }
+
    LookForBreak();
   }
 
@@ -354,6 +362,7 @@ void BuildRange()
 
    g_rangeHigh      = bars[0].high;
    g_rangeLow       = bars[0].low;
+   g_rangeFirstOpen = bars[0].open;
    g_rangeLastClose = bars[n-1].close;   // ascending order, so n-1 is the final bar
    for(int i = 1; i < n; i++)
      {
@@ -493,21 +502,108 @@ void LookForBreak()
   }
 
 //+------------------------------------------------------------------+
-//| Close-position filter.                                            |
+//| Record the context a trade was taken in, so FlushClosedTrade can  |
+//| pair it with the realised result. Without this the range size is  |
+//| unrecoverable once the run is over.                               |
+//+------------------------------------------------------------------+
+void TrackOpenPosition(const double fill, const bool isBuy,
+                       const double sl, const double lots)
+  {
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
+     {
+      const ulong t = PositionGetTicket(i);
+      if(t == 0 || !PositionSelectByTicket(t))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol ||
+         PositionGetInteger(POSITION_MAGIC) != InpMagic)
+         continue;
+      g_openTicket   = t;
+      g_openRange    = (g_rangeHigh - g_rangeLow) / g_point;
+      g_openSpread   = (SymbolInfoDouble(_Symbol, SYMBOL_ASK) - SymbolInfoDouble(_Symbol, SYMBOL_BID)) / g_point;
+      g_openRisk     = RiskOf(lots, fill, sl);
+      g_openEntry    = fill;
+      g_openSL       = sl;
+      g_openIsBuy    = isBuy;
+      g_openTime     = TimeCurrent();
+      g_openMinsLate = (int)((TimeCurrent() - g_rangeEnd) / 60);
+      const double rr0 = g_rangeHigh - g_rangeLow;
+      const double cp0 = (rr0 > 0) ? (g_rangeLastClose - g_rangeLow) / rr0 : 0.5;
+      g_openClosePos = isBuy ? cp0 : 1.0 - cp0;
+      return;
+     }
+  }
+
+//+------------------------------------------------------------------+
+//| ENTRY_FIRST_CANDLE: no breakout is required.                      |
 //|                                                                   |
-//| Scores how close price was, at the moment the range ended, to the  |
-//| side it then broke. 1.0 means the final range bar closed right at  |
-//| that boundary; 0.0 means it closed at the opposite one and had to  |
-//| traverse the whole range before breaking out.                      |
+//| The range is treated as one candle. If it closed above where it    |
+//| opened, buy at its close; if below, sell. The stop goes at the     |
+//| range extreme behind the trade, so risk is the whole range depth   |
+//| on that side rather than a fraction of it — InpSLPercentOfRange    |
+//| does not apply in this mode.                                       |
 //|                                                                   |
-//| A low score is a reversal wearing a breakout's clothes: measured   |
-//| on 2024-2026 the bottom decile averaged -0.92 R.                   |
+//| This is the published ORB shape (Zarattini & Aziz 2023): momentum  |
+//| continuation of the opening interval, a far target, and a hold to  |
+//| the session close. It only makes sense paired with a large InpRR   |
+//| and an InpForceCloseMin that reaches the cash close, because the   |
+//| edge lives entirely in a small number of very large winners.       |
+//+------------------------------------------------------------------+
+void EnterOnRangeDirection()
+  {
+   if(g_rangeFirstOpen <= 0)
+      return;
+   if(MathAbs(g_rangeLastClose - g_rangeFirstOpen) < g_point)
+      {
+       g_daySkipped = true;          // doji open, no direction to follow
+       return;
+      }
+
+   const bool isBuy = (g_rangeLastClose > g_rangeFirstOpen);
+   if(!SpreadIsAcceptable() || DailyLossExceeded())
+      return;
+
+   const double sl = isBuy ? g_rangeLow : g_rangeHigh;
+   const double e  = isBuy ? SymbolInfoDouble(_Symbol, SYMBOL_ASK)
+                           : SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   if(MathAbs(e - sl) <= 0)
+      return;
+
+   const double lots = LotsFor(e, sl);
+   if(lots <= 0)
+      return;
+
+   if(!(isBuy ? g_trade.Buy(lots, _Symbol, 0, sl, 0)
+              : g_trade.Sell(lots, _Symbol, 0, sl, 0)))
+     {
+      PrintFormat("first-candle order rejected: %d %s",
+                  g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
+      return;
+     }
+
+   const double fill = g_trade.ResultPrice();
+   AnchorTakeProfitToFill(fill, isBuy, sl);
+   TrackOpenPosition(fill, isBuy, sl, lots);
+   g_daySkipped = true;              // one shot per session
+  }
+
+//+------------------------------------------------------------------+
+//| Half-of-the-range rule.                                           |
+//|                                                                   |
+//| At the default 0.50 this is simply: split the range box in half,   |
+//| and trade only in the direction of the half the final range bar    |
+//| closed in. Top half -> up-breaks only. Bottom half -> down-breaks  |
+//| only. The 0-1 position below is the general form, so other         |
+//| thresholds still work, but 0.50 is the rule as traded.             |
+//|                                                                   |
+//| Breaking the other half means price crossed the entire range       |
+//| first - a reversal wearing a breakout's clothes. 2026 Mon-Thu:     |
+//| the correct half went 38-33 for +0.639 R a trade, the opposite     |
+//| half 7-16 for +0.049.                                             |
 //|                                                                   |
 //| Rejection ends the day rather than waiting for a break the other   |
-//| way. That is deliberate - it matches how the filter was measured,  |
-//| and the opposite break would mechanically score 1 minus this one,  |
-//| so allowing it would turn every rejection into a coin flip on the  |
-//| other side.                                                        |
+//| way. That is deliberate - it matches how the rule was measured,    |
+//| and the opposite break is allowed by construction, so permitting   |
+//| it would turn every rejection into a coin flip on the other side.  |
 //+------------------------------------------------------------------+
 bool ClosePositionAllows(const bool isBuy)
   {
@@ -524,8 +620,9 @@ bool ClosePositionAllows(const bool isBuy)
    if(score >= InpMinClosePos)
       return true;
 
-   PrintFormat("range closed %.2f of the way toward the %s side, below %.2f - skipping "
-               "(reversal break)", score, isBuy ? "high" : "low", InpMinClosePos);
+   PrintFormat("range closed in the %s half, but the break is to the %s - skipping "
+               "(wrong half, %.2f < %.2f)", cp >= 0.5 ? "top" : "bottom",
+               isBuy ? "upside" : "downside", score, InpMinClosePos);
    return false;
   }
 
@@ -579,31 +676,7 @@ void Enter(const ENUM_ORDER_TYPE dir)
    const double fill = g_trade.ResultPrice();
    AnchorTakeProfitToFill(fill, isBuy, sl);
 
-   // Capture the context this trade was taken in, so FlushClosedTrade can
-   // pair it with the realised result once the position closes. Without
-   // this the range size is unrecoverable after the run.
-   for(int i = PositionsTotal() - 1; i >= 0; i--)
-     {
-      const ulong t = PositionGetTicket(i);
-      if(t == 0 || !PositionSelectByTicket(t))
-         continue;
-      if(PositionGetString(POSITION_SYMBOL) != _Symbol ||
-         PositionGetInteger(POSITION_MAGIC) != InpMagic)
-         continue;
-      g_openTicket   = t;
-      g_openRange    = (g_rangeHigh - g_rangeLow) / g_point;
-      g_openSpread   = (SymbolInfoDouble(_Symbol, SYMBOL_ASK) - SymbolInfoDouble(_Symbol, SYMBOL_BID)) / g_point;
-      g_openRisk     = RiskOf(lots, fill, sl);
-      g_openEntry    = fill;
-      g_openSL       = sl;
-      g_openIsBuy    = isBuy;
-      g_openTime     = TimeCurrent();
-      g_openMinsLate = (int)((TimeCurrent() - g_rangeEnd) / 60);
-      const double rr0 = g_rangeHigh - g_rangeLow;
-      const double cp0 = (rr0 > 0) ? (g_rangeLastClose - g_rangeLow) / rr0 : 0.5;
-      g_openClosePos = isBuy ? cp0 : 1.0 - cp0;
-      break;
-     }
+   TrackOpenPosition(fill, isBuy, sl, lots);
 
    // Spread is logged as a share of the money at risk, because that is
    // the form the cost actually takes: a fixed spread against a stop

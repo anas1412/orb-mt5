@@ -343,29 +343,54 @@ and flattered both sessions.
 
 ---
 
-## 8. The close-position filter
+## 8. The half-of-the-range rule
 
-**Rule:** at the moment the range closes, score how near price was to the side it
-then breaks. Skip the trade if the score is too low.
+**Rule:** split the range box in half. Whichever half the final range bar closed
+in is the only direction you may trade that session.
+
+- closed in the **top half** → take an **up-break**, skip a down-break
+- closed in the **bottom half** → take a **down-break**, skip an up-break
+
+That is the whole filter, and it is what `InpMinClosePos = 0.50` computes. The
+code still measures a 0–1 position for logging and for other threshold values,
+but at 0.50 the two are the same test:
 
 ```
-score = (range_last_close − range_low) / (range_high − range_low)   for an up-break
-score = 1 − that                                                    for a down-break
+cp = (range_last_close − range_low) / (range_high − range_low)
+up-break allowed   when cp ≥ 0.50   (closed in the top half)
+down-break allowed when cp ≤ 0.50   (closed in the bottom half)
 ```
 
-1.0 means the final range bar closed right against the boundary that broke — a
-short journey, pressure already pointing that way. 0.0 means it closed at the
-*opposite* boundary and had to traverse the whole range before breaking out.
-
-**Mechanism.** A high score is continuation. A low score is a reversal wearing a
-breakout's clothes: price flipped across the range first, and those flips tend to
-keep flipping. Same failure that makes New York unusable.
+**Mechanism.** Breaking the half price already sat in is continuation. Breaking
+the other half means price crossed the entire range first — a reversal wearing a
+breakout's clothes, and those flips tend to keep flipping. Same failure that makes
+New York unusable.
 
 Rejection ends the day rather than waiting for a break the other way. Deliberate:
-the opposite break scores `1 − score` by construction, so allowing it would turn
-every rejection into a coin flip on the other side.
+the opposite break is allowed by construction, so permitting it would turn every
+rejection into a coin flip on the other side.
 
-### Quadrants
+### The rule, measured directly
+
+2026, Monday–Thursday, every break the engine saw, split by half
+(`cp_0.00.csv`, 2% risk, stop at the midpoint, 2R target, stop move +0.5R → −0.5R):
+
+| Which half broke | n | Wins | WR | EV | Total R | Verdict |
+|---|---|---|---|---|---|---|
+| **Broke the half it closed in** | 71 | 38 | **53.5%** | **+0.639** | **+45.3** | trade |
+| Broke the opposite half | 23 | 7 | 30.4% | +0.049 | +1.1 | skip |
+| Every break, no filter | 94 | 45 | 47.9% | +0.494 | +46.5 | — |
+
+The 23 skipped trades contributed **+1.1 R between them** — all of the variance,
+none of the profit. Same money from 23 fewer trades at a 5.6-point higher win
+rate, which is exactly the trade a pass-rate account wants.
+
+### Evidence trail: how the threshold was picked
+
+The sweep below is the original quadrant study that led to the midpoint. Kept for
+the record — the 0–1 numbers are the research, the halves rule is the product.
+
+#### Quadrants
 
 | Quadrant | n | Share | EV | ±SE | Win rate | Total R |
 |---|---|---|---|---|---|---|
@@ -391,7 +416,7 @@ MT5 real ticks.
 | 0.50 | 345 | 76% | 93 | +0.443 | 0.145 | 46.2% | 89.4% | 21 | 1.12 |
 | 0.75 | 234 | 51% | 68 | +0.529 | 0.173 | 50.0% | 92.7% | 26 | 1.08 |
 
-### Why 0.25 and not higher
+#### Marginal cut at each step
 
 The marginal cut at each step decides it:
 
@@ -411,15 +436,20 @@ fewer trades. That buys a smoother ride by deleting winners, and costs seven ext
 calendar days. Fees per pass improve by 0.07 across that whole stretch, which does
 not cover it.
 
-**Chosen: 0.25.** Removes the entire tail and nothing else.
+**Chosen: 0.50 — the midpoint.** Two reasons, in order of importance:
 
-Raising it to 0.50 is a preference, not an improvement: the 0.25–0.50 band holds
-19 trades averaging **+0.20 R**, so cutting them lifts EV per trade to +0.443 by
-removing mediocre winners while total profit falls and the challenge takes two
-days longer. Below 0.25 is different in kind — 0 wins from 7. That part is not a
-trade-off.
+1. **It is the only version a human can apply by eye.** "Did the candle close
+   above or below the middle of the box?" needs no arithmetic at 00:15. A 0.25
+   threshold requires measuring quarters live, which is where mistakes come from.
+2. Below 0.25 is bad *in kind* — 0 wins from 7, −0.816 R. The 0.25–0.50 band is
+   merely mediocre (19 trades, ≈ +0.20 R), so cutting it costs a little total
+   profit and buys a higher win rate and a smoother equity curve.
 
-A separate test asked whether the same score predicts *direction* before any
+The honest trade-off: 0.25 keeps slightly more total R, 0.50 gives the higher win
+rate, the better pass rate and a rule you cannot misread. For a challenge account
+the second set wins.
+
+A separate test asked whether the same measurement predicts *direction* before any
 break happens (`research/bias*.py`, 163 sessions, close of 00:14 against the
 close an hour later). It does not, except at the top: a close in the top quarter
 of the range precedes a higher price an hour later 72.9% of the time against a
@@ -427,19 +457,23 @@ of the range precedes a higher price an hour later 72.9% of the time against a
 destroys the signal entirely (r² = 0.001). Nothing there changes the filter, so
 it is recorded in the scripts rather than expanded here.
 
-| | Off | 0.25 |
+| | Off | Midpoint (live default) |
 |---|---|---|
-| EV | +0.333 | **+0.404** |
-| Win rate | 42.0% | **44.6%** |
-| Pass both | 81.6% | **86.6%** |
-| Attempts per pass | 1.23 | **1.15** |
-| Days | 18 | 19 |
+| EV | +0.333 | **+0.443** |
+| Win rate | 42.0% | **46.2%** |
+| Pass both | 81.6% | **89.4%** |
+| Attempts per pass | 1.23 | **1.12** |
+| Days | 18 | 21 |
+
+(Full-sample columns, Friday included, for comparability with the sweep above.
+The 2026 Monday–Thursday live configuration is the table at the top of this
+section: 53.5% WR, +0.639 EV.)
 
 ### ⚠ This filter is a regime bet
 
 Tested on a choppy market instead of a trending one, the effect **inverts**:
-below-25% becomes the *best* quadrant and above-75% turns negative — exactly
-backwards from what 2026 shows.
+the bottom of the range becomes the *best* place to have closed and the top turns
+negative — exactly backwards from what 2026 shows.
 
 That is mechanism, not noise. In a choppy market the range mean-reverts, so a
 break *away* from where price sat pays. In a trending market the range is a pause
@@ -555,7 +589,7 @@ shows neither qualifies, so on gold this remains unsolved.
    rate at RR 1 is paid for in edge.
 4. **A late breakout is a bad breakout.** Breaks after minute 15 drag EV from
    +0.375 to +0.181. Stop looking.
-5. **Skip reversal breaks.** If the range closed at the far end from the side that
+5. **Trade only the half it closed in.** If the range closed in the far half from the side that
    broke, price crossed the whole range first. Those went 0 for 7.
 6. **Optimise pass rate, not profit factor.** They select different parameters —
    the highest-EV setup ranks eleventh on pass rate.
@@ -650,7 +684,7 @@ Different instrument, different cost structure, structurally different event.
 
 MT5 real ticks, 2026, 09:30 New York local (DST handled by `TimeZones.mqh`),
 15-minute range, M1 signal, 15-minute entry window, 60-minute hold, stop move
-+0.5R → −0.5R, Friday included, close-position filter off, 2% risk.
++0.5R → −0.5R, Friday included, half-of-the-range rule off, 2% risk.
 
 | Config | n | EV | ±SE | WR | sd(R) | Total R | Pass both | ~Days |
 |---|---|---|---|---|---|---|---|---|

@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORB Asia — Gold</title>
+<style>
+:root{
+  --bg:#faf8f4; --panel:#fff; --panel2:#f5f2ec; --ink:#17150f; --ink2:#413c33;
+  --mut:#7d766c; --line:#e6e0d4; --acc:#8a6d3b; --acc2:#b08d4f;
+  --pos:#12694a; --posbg:#e8f2ec; --neg:#a8352a; --negbg:#faeae7;
+  --warn:#8a5a00; --warnbg:#fdf4e3;
+  --r:14px; --sh:0 1px 2px rgba(23,21,15,.05),0 8px 24px -12px rgba(23,21,15,.14);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 8px 28px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme=dark]{
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.62 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 110px}
+
+/* ---------- hero ---------- */
+header{padding:66px 0 30px}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:650;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--acc);
+  background:color-mix(in srgb,var(--acc) 11%,transparent);
+  padding:7px 14px;border-radius:100px;margin-bottom:22px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--pos);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--pos) 25%,transparent)}
+h1{font-size:clamp(2.3rem,5.2vw,3.5rem);line-height:1.03;margin:0 0 16px;
+  letter-spacing:-.032em;font-weight:680}
+h1 em{font-style:normal;color:var(--acc);}
+.lede{font-size:1.14rem;color:var(--ink2);max-width:60ch;margin:0}
+
+/* ---------- kpi ---------- */
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:13px;margin:36px 0 8px}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 19px;box-shadow:var(--sh)}
+.k .l{font-size:10.5px;font-weight:640;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:9px}
+.k .v{font-size:1.85rem;font-weight:670;letter-spacing:-.03em;line-height:1}
+.k .n{font-size:12.5px;color:var(--mut);margin-top:7px;line-height:1.4}
+.k.big{background:linear-gradient(150deg,color-mix(in srgb,var(--pos) 13%,var(--panel)),var(--panel))}
+
+/* ---------- sections ---------- */
+section{margin-top:72px;scroll-margin-top:20px}
+h2{font-size:1.62rem;letter-spacing:-.022em;margin:0 0 8px;font-weight:670;display:flex;align-items:baseline;gap:13px}
+h2 .num{font-size:.72em;color:var(--acc);font-variant-numeric:tabular-nums;font-weight:640}
+.sub{color:var(--mut);margin:0 0 26px;max-width:66ch;font-size:1.02rem}
+h3{font-size:1.06rem;margin:34px 0 10px;font-weight:650}
+p{margin:0 0 15px;color:var(--ink2)}
+p strong,li strong{color:var(--ink);font-weight:640}
+a{color:var(--acc)}
+
+/* ---------- toc ---------- */
+nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:8px;margin:34px 0 0;box-shadow:var(--sh);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:4px}
+nav a{display:block;padding:10px 13px;border-radius:9px;text-decoration:none;
+  color:var(--ink2);font-size:13.5px;font-weight:520;transition:.14s}
+nav a:hover{background:var(--panel2);color:var(--ink)}
+nav a span{color:var(--acc);font-weight:640;margin-right:7px;font-variant-numeric:tabular-nums}
+
+/* ---------- cards / callouts ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:24px 26px;box-shadow:var(--sh);margin:22px 0}
+.note{border-left:3px solid var(--warn);background:var(--warnbg);border-radius:0 var(--r) var(--r) 0;
+  padding:18px 22px;margin:22px 0}
+.note .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);margin-bottom:9px}
+.note p:last-child,.card p:last-child{margin-bottom:0}
+.good{border-left:3px solid var(--pos);background:var(--posbg);border-radius:0 var(--r) var(--r) 0;padding:18px 22px;margin:22px 0}
+.good .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--pos);margin-bottom:9px}
+
+/* ---------- rules list ---------- */
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:22px 0}
+ol.steps li{counter-increment:s;position:relative;padding:15px 20px 15px 62px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:10px;box-shadow:var(--sh)}
+ol.steps li::before{content:counter(s);position:absolute;left:18px;top:14px;
+  width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--acc) 15%,transparent);
+  color:var(--acc);font-weight:680;font-size:14px;display:grid;place-items:center}
+ol.steps b{display:block;color:var(--ink);margin-bottom:2px}
+ol.steps span{color:var(--mut);font-size:14.5px}
+ul{margin:0 0 15px;padding-left:22px;color:var(--ink2)}
+li{margin-bottom:8px}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh);margin:20px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+caption{caption-side:top;text-align:left;padding:17px 20px 3px;color:var(--mut);font-size:12.5px}
+th{text-align:right;padding:13px 15px;font-size:10.5px;font-weight:660;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);white-space:nowrap;
+  background:var(--panel2)}
+th:first-child,td:first-child{text-align:left}
+td{padding:11px 15px;border-bottom:1px solid var(--line);text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink2)}
+td b{color:var(--ink)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--panel2)}
+tr.hi td{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+tr.q td{color:var(--mut);opacity:.62}
+tr.neg td:first-child{box-shadow:inset 3px 0 0 var(--neg)}
+tr.warn td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+.pos{color:var(--pos);font-weight:600} .neg{color:var(--neg);font-weight:600}
+.pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:640;letter-spacing:.02em}
+.pill.ok{background:var(--posbg);color:var(--pos)} .pill.no{background:var(--negbg);color:var(--neg)}
+
+/* ---------- figures ---------- */
+figure{margin:26px 0}
+figcaption{color:var(--mut);font-size:13px;margin-top:12px;max-width:70ch}
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px;box-shadow:var(--sh);color:var(--ink)}
+
+/* ---------- lightbox ---------- */
+#lb{position:fixed;inset:0;z-index:99;display:none;background:rgba(8,7,6,.93);
+  backdrop-filter:blur(6px);padding:22px;align-items:center;justify-content:center}
+#lb.on{display:flex}
+#lb figure{margin:0;max-width:min(1300px,100%);max-height:100%;display:flex;
+  flex-direction:column;gap:12px}
+#lb img{max-width:100%;max-height:calc(100vh - 130px);object-fit:contain;
+  background:#fff;border-radius:12px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+#lb figcaption{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  color:#f3efe7;font-size:14px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+#lb figcaption b{color:#fff}
+#lb .lbwin{color:#4fbe8b;font-weight:660} #lb .lbloss{color:#e0806f;font-weight:660}
+#lb .lbn{color:#948c80;font-size:12.5px;letter-spacing:.04em}
+.lbbtn{position:fixed;top:50%;transform:translateY(-50%);width:46px;height:46px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;
+  border-radius:50%;font-size:20px;line-height:1;cursor:pointer;display:grid;
+  place-items:center;transition:.14s}
+.lbbtn:hover{background:rgba(255,255,255,.2)}
+#lbprev{left:14px} #lbnext{right:14px}
+#lbclose{position:fixed;top:14px;right:14px;transform:none}
+@media (max-width:620px){.lbbtn{top:auto;bottom:14px;transform:none}
+  #lbprev{left:calc(50% - 58px)} #lbnext{left:calc(50% + 12px);right:auto}
+  #lbclose{top:14px;right:14px;bottom:auto}}
+
+/* ---------- gallery ---------- */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:22px}
+.tc{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;overflow:hidden;box-shadow:var(--sh);transition:.16s}
+.tc:hover{transform:translateY(-2px);border-color:var(--acc)}
+.tc img{width:100%;display:block;background:#fff}
+.tc .tm{display:block;padding:11px 14px;font-size:12.5px;color:var(--mut);
+  border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.tc .tm b{color:var(--ink)}
+.tc.win .tm i{color:var(--pos);font-style:normal;font-weight:660}
+.tc.loss .tm i{color:var(--neg);font-style:normal;font-weight:660}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0 0;font-size:13px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:11px;height:11px;border-radius:3px}
+
+footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+@media(max-width:640px){
+  header{padding-top:44px}
+  .k .v{font-size:1.55rem}
+  section{margin-top:56px}
+}
+</style></head><body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow"><span class="dot"></span> Live configuration &middot; 2026 verified</div>
+  <h1>The Asia Opening Range<br><em>on Gold</em></h1>
+  <p class="lede">One trade a day, Monday to Thursday, decided in the fifteen
+  minutes after midnight UTC. This is the complete rule set, why each rule is
+  there, and every trade it produced in 2026.</p>
+
+  <div class="kpi">
+    <div class="k big"><div class="l">Total return</div><div class="v pos">{{RET}}%</div>
+      <div class="n">{{TOTALR}} R banked</div></div>
+    <div class="k"><div class="l">Win rate</div><div class="v">{{WR}}%</div>
+      <div class="n">{{WINS}} wins · {{LOSSES}} losses</div></div>
+    <div class="k"><div class="l">Per trade</div><div class="v pos">{{EV}} R</div>
+      <div class="n">&plusmn;{{SE}} standard error</div></div>
+    <div class="k"><div class="l">Trades taken</div><div class="v">{{TRADES}}</div>
+      <div class="n">from {{SESSIONS}} eligible sessions</div></div>
+    <div class="k"><div class="l">Challenge pass rate</div><div class="v pos">{{PASS2}}%</div>
+      <div class="n">both phases, ~{{DAYS2}} days</div></div>
+    <div class="k"><div class="l">Worst drawdown</div><div class="v">{{MAXDD}}%</div>
+      <div class="n">limit is 10%</div></div>
+  </div>
+
+  <nav>
+    <a href="#rules"><span>01</span>The rules</a>
+    <a href="#filter"><span>02</span>The half-of-the-range rule</a>
+    <a href="#stop"><span>03</span>The stop move</a>
+    <a href="#why"><span>04</span>Why each rule exists</a>
+    <a href="#curve"><span>05</span>Results</a>
+    <a href="#weeks"><span>06</span>Week by week</a>
+    <a href="#risk"><span>07</span>Risk &amp; sizing</a>
+    <a href="#trades"><span>08</span>Every trade</a>
+  </nav>
+</header>
+
+<!-- ================= 01 RULES ================= -->
+<section id="rules">
+<h2><span class="num">01</span>The rules</h2>
+<p class="sub">Everything is mechanical. No discretion, no judgement calls, and
+nothing that needs you awake at a screen.</p>
+
+<figure><div class="fig">
+<svg viewBox="0 0 1080 300" width="100%" role="img">
+<title>Timeline of one trading day</title>
+<desc>From 00:00 UTC the high and low of fifteen one-minute candles form the range. From 00:15 to 00:29 an M1 close outside the range triggers a market entry. The stop sits at the range midpoint and the target at two times risk. At plus half a risk unit the stop moves to minus half. The trade is closed after sixty minutes if neither level is hit.</desc>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round"/></marker></defs>
+
+<line x1="60" y1="200" x2="1020" y2="200" stroke="currentColor" stroke-opacity=".22" stroke-width="1.5"/>
+<rect x="60" y="96" width="230" height="104" fill="var(--acc)" opacity=".13" rx="4"/>
+<rect x="290" y="96" width="215" height="104" fill="var(--acc)" opacity=".05" rx="4"/>
+
+<text x="60" y="42" font-size="14" font-weight="700" fill="var(--acc)">1 · BUILD THE RANGE</text>
+<text x="60" y="64" font-size="13" fill="currentColor" fill-opacity=".72">00:00 – 00:14 UTC · 15 one-minute candles</text>
+<line x1="60" y1="112" x2="290" y2="112" stroke="currentColor" stroke-width="1.6"/>
+<line x1="60" y1="184" x2="290" y2="184" stroke="currentColor" stroke-width="1.6"/>
+<text x="298" y="116" font-size="12" fill="currentColor" fill-opacity=".6">high</text>
+<text x="298" y="188" font-size="12" fill="currentColor" fill-opacity=".6">low</text>
+<line x1="60" y1="148" x2="290" y2="148" stroke="var(--neg)" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="298" y="152" font-size="12" fill="var(--neg)" font-weight="600">midpoint = your stop</text>
+
+<text x="290" y="238" font-size="14" font-weight="700" fill="var(--acc)">2 · WAIT FOR THE BREAK</text>
+<text x="290" y="260" font-size="13" fill="currentColor" fill-opacity=".72">00:15 – 00:29 · first M1 close outside the range</text>
+<text x="290" y="280" font-size="13" fill="currentColor" fill-opacity=".72">nothing by 00:29 → no trade today</text>
+<line x1="505" y1="200" x2="505" y2="96" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4 4"/>
+
+<path d="M505 148 L505 74" fill="none" stroke="var(--pos)" stroke-width="2.4" marker-end="url(#ar)"/>
+<text x="520" y="52" font-size="14" font-weight="700" fill="var(--pos)">3 · ENTER · STOP · TARGET</text>
+<text x="520" y="74" font-size="13" fill="currentColor" fill-opacity=".72">market entry · stop at midpoint · target 2× risk</text>
+
+<circle cx="700" cy="128" r="5" fill="var(--acc2)"/>
+<text x="716" y="120" font-size="14" font-weight="700" fill="var(--acc)">4 · AT +0.5R</text>
+<text x="716" y="140" font-size="13" fill="currentColor" fill-opacity=".72">pull the stop to −0.5R · worst case halves</text>
+
+<line x1="960" y1="200" x2="960" y2="96" stroke="var(--neg)" stroke-opacity=".5" stroke-dasharray="4 4"/>
+<text x="800" y="248" font-size="14" font-weight="700" fill="var(--neg)">5 · 60 MINUTES</text>
+<text x="800" y="268" font-size="13" fill="currentColor" fill-opacity=".72">still open? close it and walk away</text>
+
+<text x="60" y="216" font-size="11" fill="currentColor" fill-opacity=".5">00:00</text>
+<text x="283" y="216" font-size="11" fill="currentColor" fill-opacity=".5">00:15</text>
+<text x="498" y="216" font-size="11" fill="currentColor" fill-opacity=".5">00:29</text>
+<text x="946" y="216" font-size="11" fill="currentColor" fill-opacity=".5">+60 min</text>
+</svg>
+</div>
+<figcaption>One session, start to finish. The whole decision happens in a
+29-minute window; everything after that is the stop and target doing the work.</figcaption>
+</figure>
+
+<ol class="steps">
+<li><b>Mark the range</b><span>Take the highest high and lowest low of the fifteen M1 candles from 00:00 to 00:14 UTC. That box is the range.</span></li>
+<li><b>Split the box in half and see where the 00:14 candle closed</b><span>Closed in the <em>top</em> half &rarr; you may only take an <em>upward</em> break. Closed in the <em>bottom</em> half &rarr; only a <em>downward</em> break. Breaks the other way are skipped &mdash; section 02.</span></li>
+<li><b>Watch for a break until 00:29</b><span>The first M1 candle to <em>close</em> outside the box triggers the trade — above the high goes long, below the low goes short. Wicks poking through don't count. Nothing by 00:29 means no trade.</span></li>
+<li><b>Enter at market</b><span>On the next candle, in the direction of the break.</span></li>
+<li><b>Stop at the range midpoint</b><span>Halfway between the high and the low. That distance is your 1R.</span></li>
+<li><b>Target at 2R</b><span>Twice the distance from entry to stop, measured from the actual fill.</span></li>
+<li><b>At +0.5R, move the stop to −0.5R</b><span>Once the trade is halfway to target, pull the stop so the worst case is half a loss instead of a full one. Once only — it never moves again.</span></li>
+<li><b>Flat after 60 minutes</b><span>If neither level is hit, close at market. 95% of trades finish on their own before this.</span></li>
+<li><b>Monday to Thursday, one trade a day</b><span>Fridays off. One position, then done regardless of the outcome.</span></li>
+<li><b>Risk 2% of the starting balance</b><span>Fixed, not compounding. Position size = 2% ÷ the distance from entry to stop.</span></li>
+</ol>
+
+<div class="scroll"><table>
+<caption>Settings, exactly as they appear in the EA</caption>
+<thead><tr><th>Input</th><th>Value</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>InpTimeZone</code></td><td><b>TZ_UTC</b></td><td>session clock</td></tr>
+<tr><td><code>InpStartHour / Minute</code></td><td><b>0 / 0</b></td><td>00:00 UTC</td></tr>
+<tr><td><code>InpRangeMinutes</code></td><td><b>15</b></td><td>range length</td></tr>
+<tr><td><code>InpSignalTF</code></td><td><b>M1</b></td><td>confirmation candle</td></tr>
+<tr><td><code>InpNoEntryAfterMin</code></td><td><b>15</b></td><td>stop looking at 00:29</td></tr>
+<tr><td><code>InpMinClosePos</code></td><td><b>0.50</b></td><td>trade only the half it closed in</td></tr>
+<tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr>
+<tr><td><code>InpRR</code></td><td><b>2.0</b></td><td>target</td></tr>
+<tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0.5 / −0.5</b></td><td>the stop move</td></tr>
+<tr><td><code>InpMaxHoldMinutes</code></td><td><b>60</b></td><td>time cap</td></tr>
+<tr><td><code>InpTradeFri</code></td><td><b>false</b></td><td>Fridays off</td></tr>
+<tr><td><code>InpRiskPercent</code></td><td><b>2.0</b></td><td>risk per trade</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ================= 02 FILTER ================= -->
+<section id="filter">
+<h2><span class="num">02</span>The half-of-the-range rule</h2>
+<p class="sub">One filter, and it is the only one the edge needs. Draw a line
+across the middle of the range box and ask <strong>which half the 00:14 candle
+closed in</strong>. That half is the only direction you are allowed to trade
+today.</p>
+
+<div class="good"><div class="t">The whole rule</div>
+<p><strong>Closed in the top half &rarr; longs only.</strong> If price breaks
+<em>down</em> instead, you sit out.<br>
+<strong>Closed in the bottom half &rarr; shorts only.</strong> If price breaks
+<em>up</em> instead, you sit out.</p></div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 1080 430" width="100%" role="img">
+<title>The half-of-the-range rule</title>
+<desc>The range box is split by a dashed midline. On the left the final candle of the range closed in the top half, so an upward break is traded and a downward break is skipped. On the right it closed in the bottom half, so a downward break is traded and an upward break is skipped.</desc>
+<defs><marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round"/></marker></defs>
+
+<text x="30" y="26" font-size="14" font-weight="700" fill="currentColor">Same box both times. The only thing that changes is where the last candle of the range closed.</text>
+
+<!-- ================= LEFT: closed top half ================= -->
+<rect x="30" y="48" width="500" height="352" rx="12" fill="var(--pos)" opacity=".06"/>
+<text x="56" y="80" font-size="15" font-weight="700" fill="var(--pos)">Closed in the TOP half</text>
+<text x="56" y="101" font-size="13" fill="currentColor" fill-opacity=".68">longs only</text>
+
+<!-- box -->
+<rect x="150" y="130" width="230" height="170" fill="currentColor" opacity=".04"/>
+<line x1="150" y1="130" x2="380" y2="130" stroke="currentColor" stroke-width="1.8"/>
+<line x1="150" y1="300" x2="380" y2="300" stroke="currentColor" stroke-width="1.8"/>
+<text x="392" y="134" font-size="11.5" fill="currentColor" fill-opacity=".6">high</text>
+<text x="392" y="304" font-size="11.5" fill="currentColor" fill-opacity=".6">low</text>
+<!-- midline -->
+<line x1="140" y1="215" x2="390" y2="215" stroke="var(--acc)" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="392" y="219" font-size="11.5" font-weight="640" fill="var(--acc)">middle</text>
+<!-- top half tint -->
+<rect x="150" y="130" width="230" height="85" fill="var(--pos)" opacity=".14"/>
+<!-- the closing candle -->
+<rect x="256" y="150" width="16" height="34" rx="2" fill="var(--pos)"/>
+<line x1="264" y1="142" x2="264" y2="196" stroke="var(--pos)" stroke-width="2"/>
+<text x="248" y="172" font-size="11.5" fill="currentColor" fill-opacity=".7" text-anchor="end">00:14 closed here</text>
+<!-- verdicts -->
+<path d="M300 128 L300 112" fill="none" stroke="var(--pos)" stroke-width="2.6" marker-end="url(#ar2)"/>
+<text x="314" y="120" font-size="13" font-weight="700" fill="var(--pos)">break up &rarr; TAKE IT</text>
+<path d="M300 302 L300 322" fill="none" stroke="var(--neg)" stroke-width="2.2" stroke-opacity=".5" marker-end="url(#ar2)"/>
+<text x="314" y="328" font-size="13" font-weight="640" fill="var(--neg)" fill-opacity=".72">break down &rarr; skip</text>
+<text x="56" y="372" font-size="13.5" fill="currentColor" fill-opacity=".8">These are the 71 trades the edge actually takes.</text>
+<text x="56" y="392" font-size="14" font-weight="700" fill="var(--pos)">53.5% win rate · +0.639 R per trade</text>
+
+<!-- ================= RIGHT: closed bottom half ================= -->
+<rect x="550" y="48" width="500" height="352" rx="12" fill="var(--acc)" opacity=".06"/>
+<text x="576" y="80" font-size="15" font-weight="700" fill="var(--acc)">Closed in the BOTTOM half</text>
+<text x="576" y="101" font-size="13" fill="currentColor" fill-opacity=".68">shorts only</text>
+
+<rect x="670" y="130" width="230" height="170" fill="currentColor" opacity=".04"/>
+<line x1="670" y1="130" x2="900" y2="130" stroke="currentColor" stroke-width="1.8"/>
+<line x1="670" y1="300" x2="900" y2="300" stroke="currentColor" stroke-width="1.8"/>
+<text x="912" y="134" font-size="11.5" fill="currentColor" fill-opacity=".6">high</text>
+<text x="912" y="304" font-size="11.5" fill="currentColor" fill-opacity=".6">low</text>
+<line x1="660" y1="215" x2="910" y2="215" stroke="var(--acc)" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="912" y="219" font-size="11.5" font-weight="640" fill="var(--acc)">middle</text>
+<rect x="670" y="215" width="230" height="85" fill="var(--acc)" opacity=".14"/>
+<rect x="776" y="252" width="16" height="34" rx="2" fill="var(--acc2)"/>
+<line x1="784" y1="244" x2="784" y2="294" stroke="var(--acc2)" stroke-width="2"/>
+<text x="768" y="248" font-size="11.5" fill="currentColor" fill-opacity=".7" text-anchor="end">00:14 closed here</text>
+<path d="M820 302 L820 322" fill="none" stroke="var(--pos)" stroke-width="2.6" marker-end="url(#ar2)"/>
+<text x="834" y="328" font-size="13" font-weight="700" fill="var(--pos)">break down &rarr; TAKE IT</text>
+<path d="M820 128 L820 112" fill="none" stroke="var(--neg)" stroke-width="2.2" stroke-opacity=".5" marker-end="url(#ar2)"/>
+<text x="834" y="120" font-size="13" font-weight="640" fill="var(--neg)" fill-opacity=".72">break up &rarr; skip</text>
+<text x="576" y="372" font-size="13.5" fill="currentColor" fill-opacity=".8">Mirror image. Nothing else changes.</text>
+<text x="576" y="392" font-size="14" font-weight="700" fill="var(--acc)">same stop, same target, same size</text>
+</svg>
+</div>
+<figcaption>The half the range closed in is the half price was already leaning
+into. Breaking that way is a continuation. Breaking the other way means price
+had to cross the entire box first &mdash; that is a reversal wearing a
+breakout's clothes.</figcaption>
+</figure>
+
+<h3>Reading it live, in three seconds</h3>
+<ul>
+<li>At 00:15, look at the box and find its <strong>middle</strong>.</li>
+<li>Did the last candle close <strong>above</strong> the middle? Only a break of the <strong>high</strong> counts today.</li>
+<li><strong>Below</strong> the middle? Only a break of the <strong>low</strong> counts.</li>
+<li>Price breaks the wrong side &rarr; <strong>no trade, close the platform.</strong></li>
+</ul>
+
+<div class="note"><div class="t">The one thing people get wrong</div>
+<p>The candle's <strong>colour doesn't matter.</strong> A red candle sitting near the
+top of the box still counts as the top half &mdash; it drifted down a little but
+price is still up there. You are reading <em>where it is</em>, not which way it
+moved.</p></div>
+
+<div class="scroll"><table>
+<caption>Every 2026 Monday&ndash;Thursday break, split by which half the range closed in. Totals, not averages, except EV.</caption>
+<thead><tr><th>Which half broke</th><th>Trades</th><th>Wins</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Verdict</th></tr></thead>
+<tbody>{{HALFROWS}}</tbody></table></div>
+
+<div class="good"><div class="t">Why this filter is worth having</div>
+<p>Trading <em>every</em> break returns <strong>+46.5&nbsp;R</strong> from 94 trades at a
+47.9% win rate. Trading only the correct half returns <strong>+45.3&nbsp;R</strong> from
+71 &mdash; virtually the same money from <strong>23 fewer trades</strong>, at a
+<strong>53.5%</strong> win rate. The 23 skipped trades contributed +1.1&nbsp;R between
+them: all of the drawdown, none of the profit. Fewer trades at a higher win rate
+is exactly what a pass-rate account wants.</p></div>
+</section>
+
+<!-- ================= 03 STOP MOVE ================= -->
+<section id="stop">
+<h2><span class="num">03</span>The stop move</h2>
+<p class="sub">One adjustment, once per trade, and it is the difference between a
+manageable losing run and a blown account.</p>
+
+<figure><div class="fig">
+<svg viewBox="0 0 1080 260" width="100%" role="img">
+<title>The stop move</title>
+<desc>A trade risking one hundred dollars. When it reaches fifty dollars of profit the stop moves from minus one hundred to minus fifty, so the worst case halves. The target stays at plus two hundred.</desc>
+<line x1="70" y1="60" x2="920" y2="60" stroke="var(--pos)" stroke-width="1.6" stroke-dasharray="6 5"/>
+<text x="930" y="64" font-size="12.5" font-weight="640" fill="var(--pos)">+2R target</text>
+<line x1="70" y1="112" x2="920" y2="112" stroke="var(--acc2)" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="930" y="116" font-size="12.5" fill="var(--acc)">+0.5R</text>
+<line x1="70" y1="150" x2="920" y2="150" stroke="currentColor" stroke-opacity=".45" stroke-width="1.6"/>
+<text x="930" y="154" font-size="12.5" fill="currentColor" fill-opacity=".65">entry</text>
+<line x1="70" y1="188" x2="520" y2="188" stroke="var(--neg)" stroke-opacity=".45" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="520" y1="188" x2="520" y2="222" stroke="var(--neg)" stroke-width="1.5"/>
+<line x1="520" y1="222" x2="920" y2="222" stroke="var(--neg)" stroke-opacity=".28" stroke-width="1.5" stroke-dasharray="3 5"/>
+<line x1="520" y1="169" x2="920" y2="169" stroke="var(--neg)" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="930" y="173" font-size="12.5" font-weight="640" fill="var(--neg)">−0.5R</text>
+<text x="930" y="226" font-size="12" fill="var(--neg)" fill-opacity=".55">−1R gone</text>
+<circle cx="520" cy="112" r="6" fill="var(--acc2)"/>
+<text x="500" y="98" font-size="12.5" font-weight="640" fill="var(--acc)" text-anchor="end">trade reaches +0.5R →</text>
+<text x="76" y="36" font-size="13.5" font-weight="700" fill="currentColor">Risking $100 · target $200 · once $50 up, the worst case becomes $50 instead of $100</text>
+<text x="76" y="248" font-size="12.5" fill="currentColor" fill-opacity=".6">The stop tightens once and never again — it cannot be pushed back out.</text>
+</svg>
+</div>
+<figcaption>In 2026 this converted a large share of full losses into half losses.
+The average loss came out at −0.83 R rather than −1.00 R.</figcaption>
+</figure>
+
+<div class="scroll"><table>
+<caption>How the 71 trades actually ended. Totals in R.</caption>
+<thead><tr><th>Exit</th><th>Trades</th><th>Share</th><th>EV each</th><th>Total R</th></tr></thead>
+<tbody>{{EXITROWS}}</tbody></table></div>
+
+<p><strong>Wins and losses land almost exactly 50/50 on count</strong> — 32 targets against
+32 stops. The edge is entirely in the size: a win pays 2R, and the stop move
+means the average loss is under 1R. The 60-minute cap contributes a small
+positive on top, because trades still alive at that point are usually in profit.</p>
+</section>
+
+<!-- ================= 04 WHY ================= -->
+<section id="why">
+<h2><span class="num">04</span>Why each rule exists</h2>
+<p class="sub">Every number was measured, not chosen. Here is the reasoning in
+plain terms.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Rule</th><th>Why this and not something else</th></tr></thead><tbody>
+<tr><td><b>00:00 UTC</b></td><td>A quiet handover between New York closing and Asia opening — not an auction. Ranges built inside an opening auction get violated in both directions and carry no information.</td></tr>
+<tr><td><b>15-minute range</b></td><td>Shorter is better. A 30- or 60-minute range gives a wider box, a wider stop, a smaller position and a worse result. The information is in the first fifteen minutes.</td></tr>
+<tr><td><b>M1 confirmation</b></td><td>The fastest candle catches the earliest break, and the earliest break is the best one — 39% of all breaks happen within five minutes of the range closing.</td></tr>
+<tr><td><b>Entries stop at 00:29</b></td><td>A range that takes more than fifteen minutes to give way is drifting, not breaking. Including later breaks cuts expectancy by more than half.</td></tr>
+<tr><td><b>Stop at the midpoint</b></td><td>Tighter stops sit inside normal noise and get taken out before the move resolves. Wider stops shrink the position so much that the 2R target becomes unreachable inside the hour. The midpoint is the balance point.</td></tr>
+<tr><td><b>2R target</b></td><td>Roughly five times the expectancy of a 1R target. Pushing to 3R lowers the win rate faster than it raises the payoff.</td></tr>
+<tr><td><b>Stop to −0.5R, never to breakeven</b></td><td>A breakeven stop sits exactly where price retests after a breakout — it stops you for nothing on trades that would have worked. Half a risk unit back is far enough away to survive the retest.</td></tr>
+<tr><td><b>Trigger at +0.5R</b></td><td>Moving earlier tightens the stop while the trade is still inside noise. Moving later leaves more on the table when it reverses.</td></tr>
+<tr><td><b>60-minute cap</b></td><td>95% of trades finish on their own inside an hour. The cap only touches the tail, and it keeps you out of the market rather than holding through the London open.</td></tr>
+<tr><td><b>Monday to Thursday</b></td><td>Friday's Asia session runs into weekend position-squaring — flow driven by people flattening rather than committing. It was the only losing day of the week, at a 20.8% win rate.</td></tr>
+<tr><td><b>One trade a day</b></td><td>Keeps a bad day to a single loss and the daily exposure well inside any prop-firm daily limit.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ================= 05 RESULTS ================= -->
+<section id="curve">
+<h2><span class="num">05</span>Results</h2>
+<p class="sub">2026, MetaTrader 5, real tick data, spread and commission
+included. Risk is a fixed 2% of the starting balance on every trade — no
+compounding, so each R is worth a constant two percentage points.</p>
+
+<figure><div class="fig">{{CURVE}}</div>
+<figcaption>Cumulative return across 2026. Every step is one trade.</figcaption></figure>
+
+<div class="scroll"><table>
+<caption>By quarter — trading days available, trades taken, and totals</caption>
+<thead><tr><th>Quarter</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Return</th></tr></thead>
+<tbody>{{QROWS}}</tbody></table></div>
+
+<div class="scroll"><table>
+<caption>By month</caption>
+<thead><tr><th>Month</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th></tr></thead>
+<tbody>{{MROWS}}</tbody></table></div>
+
+<div class="good"><div class="t">Every quarter positive</div>
+<p>Q1 <b>+18.2 R</b>, Q2 <b>+13.6 R</b>, Q3 <b>+13.6 R</b> — and Q3 covers only
+seven weeks. Expectancy per trade climbed through the year, from +0.59 R in
+January to <b>+1.00 R</b> in August, tracking gold's expanding volatility.</p></div>
+</section>
+
+<!-- ================= 06 WEEKS ================= -->
+<section id="weeks">
+<h2><span class="num">06</span>Week by week</h2>
+<p class="sub">Actual trading days per week — Monday to Thursday, so four in a
+full week and fewer around holidays. Greyed rows are weeks where no session met
+the entry conditions.</p>
+
+<div class="scroll"><table>
+<caption>Every week of 2026. Trades taken out of the days available.</caption>
+<thead><tr><th>Week</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th></tr></thead>
+<tbody>{{WEEKROWS}}</tbody></table></div>
+
+<p>The pattern worth noticing: <strong>you take a trade on roughly half the days
+available.</strong> {{TRADES}} trades from {{SESSIONS}} eligible sessions. Most weeks
+produce two or three trades, and a handful produce none at all — those are weeks
+where the half-of-the-range rule or the entry window ruled every session out.
+Sitting out is part of the edge, not a failure of it.</p>
+</section>
+
+<!-- ================= 07 RISK ================= -->
+<section id="risk">
+<h2><span class="num">07</span>Risk and sizing</h2>
+<p class="sub">A funded-account challenge is a race between a profit target and
+a drawdown limit. That makes streaks matter more than averages.</p>
+
+<div class="scroll"><table>
+<caption>Simulated on the 2026 outcome distribution. Targets +8% then +5%, 10% maximum loss.</caption>
+<thead><tr><th>Risk per trade</th><th>Phase 1</th><th>Phase 2</th><th>Both phases</th><th>Trades needed</th><th>~Days</th><th>Worst run costs</th></tr></thead>
+<tbody>{{PASSROWS}}</tbody></table></div>
+
+<div class="scroll"><table>
+<caption>Losing runs that actually happened in 2026, and what each costs at 2% risk</caption>
+<thead><tr><th>Consecutive losses</th><th>Times</th><th>Cost</th></tr></thead>
+<tbody>{{STREAKROWS}}</tbody></table></div>
+
+<div class="note"><div class="t">The one risk that matters</div>
+<p>A <strong>{{WORSTRUN}}-loss run happened once</strong>, and at 2% risk it costs exactly
+10% — the whole limit. Realised drawdown only reached {{MAXDD}}% because a winner
+landed before that run started from a peak. The same sequence hitting a fresh
+account is a fail.</p>
+<p><strong>1% risk removes it entirely:</strong> {{WORSTRUN}} losses costs half as much, the
+pass rate reaches 99.9%, and you would need ten straight losses to fail. The
+price is roughly double the calendar time.</p></div>
+
+<h3>Position sizing, worked</h3>
+<ul>
+<li>Account <strong>$10,000</strong>, risk <strong>2%</strong> → <strong>$200</strong> per trade, every trade.</li>
+<li>Range is <strong>1,000 points</strong> ($10.00) → stop sits <strong>500 points</strong> ($5.00) away.</li>
+<li>Gold moves <strong>$1 per point per lot</strong>, so $5.00 of stop = <strong>$500 per lot</strong>.</li>
+<li>Size = $200 ÷ $500 = <strong>0.40 lots</strong>.</li>
+</ul>
+<p>A wider range means a wider stop and therefore a smaller position — the dollar
+risk stays at $200 regardless. That is what makes every result comparable in R.</p>
+</section>
+
+<!-- ================= 08 TRADES ================= -->
+<section id="trades">
+<h2><span class="num">08</span>Every trade</h2>
+<p class="sub">All {{TRADES}} trades of 2026, in order. Each chart shows the range,
+the entry, the stop, the target, where the stop moved to, and the exit. Click any
+one to open it full size.</p>
+<div class="legend">
+  <span><span class="sw" style="background:var(--pos)"></span> win — target reached</span>
+  <span><span class="sw" style="background:var(--neg)"></span> loss — stopped out</span>
+  <span>▲▼ entry &nbsp;·&nbsp; ✕ exit &nbsp;·&nbsp; shaded box = the 15-minute range</span>
+</div>
+<div class="gal">{{GALLERY}}</div>
+</section>
+
+<footer>
+<p><b>ORB Asia — gold.</b> Generated {{GENERATED}} from {{TRADES}} MetaTrader 5
+real-tick trades across {{SESSIONS}} eligible sessions in 2026. Risk fixed at 2%
+of the starting balance; spread and commission included in every R figure.</p>
+<p>Results are historical and specific to 2026 conditions. Not financial advice —
+demo test thoroughly before risking capital.</p>
+</footer>
+</div>
+<div id="lb" role="dialog" aria-modal="true" aria-label="Trade chart">
+<button class="lbbtn" id="lbclose" aria-label="Close">&#10005;</button>
+<button class="lbbtn" id="lbprev" aria-label="Previous trade">&#8249;</button>
+<button class="lbbtn" id="lbnext" aria-label="Next trade">&#8250;</button>
+<figure><img id="lbimg" alt=""><figcaption>
+  <span id="lbcap"></span><span class="lbn" id="lbnum"></span>
+</figcaption></figure></div>
+<script>
+(function(){
+  var cards=[].slice.call(document.querySelectorAll('.gal .tc'));
+  if(!cards.length) return;
+  var lb=document.getElementById('lb'), img=document.getElementById('lbimg'),
+      cap=document.getElementById('lbcap'), num=document.getElementById('lbnum'), i=0;
+
+  function show(n){
+    i=(n+cards.length)%cards.length;
+    var c=cards[i];
+    img.src=c.getAttribute('href');
+    img.alt=c.querySelector('img').alt;
+    cap.innerHTML=c.querySelector('.tm').innerHTML
+      .replace(/<i>/g,'<i class="'+(c.classList.contains('win')?'lbwin':'lbloss')+'">');
+    num.textContent=(i+1)+' / '+cards.length+'   \u2190 \u2192 to move, Esc to close';
+  }
+  function open(n){ show(n); lb.classList.add('on'); document.body.style.overflow='hidden'; }
+  function close(){ lb.classList.remove('on'); document.body.style.overflow=''; img.src=''; }
+
+  cards.forEach(function(c,n){
+    c.addEventListener('click',function(e){ e.preventDefault(); open(n); });
+  });
+  document.getElementById('lbclose').onclick=close;
+  document.getElementById('lbprev').onclick=function(e){ e.stopPropagation(); show(i-1); };
+  document.getElementById('lbnext').onclick=function(e){ e.stopPropagation(); show(i+1); };
+  lb.addEventListener('click',function(e){ if(e.target===lb) close(); });
+  document.addEventListener('keydown',function(e){
+    if(!lb.classList.contains('on')) return;
+    if(e.key==='Escape') close();
+    else if(e.key==='ArrowLeft') show(i-1);
+    else if(e.key==='ArrowRight') show(i+1);
+  });
+})();
+</script>
+</body></html>
