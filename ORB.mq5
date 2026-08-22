@@ -39,8 +39,11 @@ enum ENUM_TP_MODE
 enum ENUM_LOT_MODE
   {
    LOT_FIXED,
-   LOT_RISK_PERCENT
+   LOT_RISK_PERCENT,
+   LOT_RISK_MONEY        // fixed cash risk -- does not compound
   };
+
+input bool             InpShowPanel       = true;          // Show the on-chart control panel
 
 input group                 "Session"
 input ENUM_SESSION_TZ  InpTimeZone        = TZ_UTC;        // Session timezone
@@ -90,6 +93,7 @@ input group                 "Risk"
 input ENUM_LOT_MODE    InpLotMode         = LOT_RISK_PERCENT;       // Lot sizing mode
 input double           InpLots            = 0.01;          // Fixed lot size
 input double           InpRiskPercent     = 2.0;           // Risk per trade (percent of balance)
+input double           InpRiskMoney       = 100.0;         // Risk per trade (account currency, LOT_RISK_MONEY)
 input double           InpMaxDailyLossPct = 3.5;           // Stop opening trades once down this much today (0=off)
 input long             InpMagic           = 20260821;      // Magic number
 
@@ -125,6 +129,20 @@ bool     g_openIsBuy    = false;
 datetime g_openTime     = 0;
 int      g_openMinsLate = 0;      // minutes from range close to the entry
 double   g_openClosePos = 0;      // where in the range it closed, 0-1 toward the traded side
+
+//--- Live settings. Seeded from the inputs in OnInit, then owned by the panel.
+//    MQL5 inputs are read-only at runtime, so anything the panel edits needs a
+//    mutable home. The panel only lets these change while trading is OFF and
+//    flat, so no open position can ever see one of them move underneath it.
+bool             g_tradingOn  = true;
+ENUM_LOT_MODE    g_lotMode    = LOT_RISK_PERCENT;
+double           g_riskPercent = 2.0;
+double           g_riskMoney   = 100.0;
+double           g_rr          = 2.0;
+double           g_moveAtR     = 0.5;
+double           g_moveToR     = -0.5;
+
+#include <Panel.mqh>
 
 //+------------------------------------------------------------------+
 int OnInit()
@@ -186,12 +204,33 @@ int OnInit()
    // Rebuild immediately rather than waiting for the next tick, so a
    // reload during the range window cannot lose the range.
    RefreshSession(TimeCurrent());
+
+   // Seed the live settings from the inputs. PanelInit may then replace them
+   // with whatever was last set on this chart.
+   g_lotMode     = InpLotMode;
+   g_riskPercent = InpRiskPercent;
+   g_riskMoney   = InpRiskMoney;
+   g_rr          = InpRR;
+   g_moveAtR     = InpStopMoveAtR;
+   g_moveToR     = InpStopMoveToR;
+   PanelInit(InpMagic, InpShowPanel);
+
    return INIT_SUCCEEDED;
+  }
+
+//+------------------------------------------------------------------+
+//| Panel clicks and edits. The panel owns its own objects, so this   |
+//| just forwards.                                                    |
+//+------------------------------------------------------------------+
+void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam)
+  {
+   PanelEvent(id, lparam, dparam, sparam);
   }
 
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
+   PanelDeinit();
    if(g_csv != INVALID_HANDLE)
      {
       FileClose(g_csv);
@@ -247,11 +286,41 @@ void FlushClosedTrade()
   }
 
 //+------------------------------------------------------------------+
+//| One line describing what the EA currently thinks, for the panel. |
+//+------------------------------------------------------------------+
+string StatusLine(const datetime now)
+  {
+   if(g_daySkipped)
+      return "day skipped";
+   if(!g_rangeReady)
+      return (now < g_rangeEnd)
+             ? StringFormat("range building, closes %s", TimeToString(g_rangeEnd, TIME_MINUTES))
+             : "waiting for the range";
+
+   const double rng = g_rangeHigh - g_rangeLow;
+   const string half = (rng > 0 && g_rangeLastClose > 0)
+                       ? (((g_rangeLastClose - g_rangeLow) / rng >= 0.5) ? "top" : "bottom")
+                       : "?";
+   if(PHasPosition())
+      return StringFormat("in a %s, %s half", g_openIsBuy ? "long" : "short", half);
+   if(CountTradesToday() >= InpMaxTradesPerDay)
+      return "done for today";
+
+   const datetime deadline = g_rangeEnd + InpNoEntryAfterMin * 60;
+   if(InpNoEntryAfterMin > 0 && now >= deadline)
+      return "entry window closed, no trade";
+   return StringFormat("%s half -> %s only, until %s", half,
+                       half == "top" ? "longs" : "shorts",
+                       TimeToString(deadline, TIME_MINUTES));
+  }
+
+//+------------------------------------------------------------------+
 void OnTick()
   {
    const datetime now = TimeCurrent();
 
    FlushClosedTrade();
+   PanelSetStatus(StatusLine(now));
 
    RefreshSession(now);
    if(g_daySkipped)
@@ -272,6 +341,12 @@ void OnTick()
          BuildRange();
       return;
      }
+
+   // Trading off blocks NEW entries only. Everything above this line -- the
+   // stop move, the time cap, the force close -- keeps running, so switching
+   // off never abandons a live position without management.
+   if(!g_tradingOn)
+      return;
 
    if(CountTradesToday() >= InpMaxTradesPerDay)
       return;
@@ -845,7 +920,7 @@ double TakeProfitFrom(const bool isBuy, const double anchor, const double sl)
       case TP_NONE:           return 0;
       case TP_FIXED_POINTS:   distance = InpTPFixedPoints * g_point;                     break;
       case TP_RANGE_MULTIPLE: distance = (g_rangeHigh - g_rangeLow) * InpTPRangeMultiple; break;
-      case TP_RR:             distance = MathAbs(anchor - sl) * InpRR;                   break;
+      case TP_RR:             distance = MathAbs(anchor - sl) * g_rr;                    break;
      }
    if(distance <= 0)
       return 0;
@@ -866,7 +941,8 @@ double LotsFor(const double entry, const double sl)
   {
    double lots = InpLots;
 
-   if(InpLotMode == LOT_RISK_PERCENT)
+
+   if(g_lotMode == LOT_RISK_PERCENT || g_lotMode == LOT_RISK_MONEY)
      {
       if(sl == 0)
         {
@@ -880,7 +956,13 @@ double LotsFor(const double entry, const double sl)
          Print("symbol has no tick value — no trade");
          return 0;
         }
-      const double riskAmount = AccountInfoDouble(ACCOUNT_BALANCE) * InpRiskPercent / 100.0;
+      // LOT_RISK_PERCENT compounds: as the balance grows so does the cash at
+      // risk. LOT_RISK_MONEY does not, which is what every backtest in
+      // research/ assumes -- 2% of the STARTING balance, flat. On a 5 000
+      // account that is 100 a trade whether you are up or down.
+      const double riskAmount = (g_lotMode == LOT_RISK_MONEY)
+                                ? g_riskMoney
+                                : AccountInfoDouble(ACCOUNT_BALANCE) * g_riskPercent / 100.0;
       const double lossPerLot = MathAbs(entry - sl) / tickSize * tickValue;
       if(lossPerLot <= 0)
          return 0;
@@ -930,7 +1012,7 @@ bool SpreadIsAcceptable()
 //+------------------------------------------------------------------+
 void ManageOpenPosition()
   {
-   if(InpStopMoveAtR <= 0)
+   if(g_moveAtR <= 0)
       return;
 
    for(int i = PositionsTotal() - 1; i >= 0; i--)
@@ -960,8 +1042,8 @@ void ManageOpenPosition()
       // so dividing recovers R without keeping per-ticket state that a
       // restart would lose.
       double risk = 0;
-      if(InpTPMode == TP_RR && InpRR > 0 && tp > 0)
-         risk = MathAbs(tp - open) / InpRR;
+      if(InpTPMode == TP_RR && g_rr > 0 && tp > 0)
+         risk = MathAbs(tp - open) / g_rr;
       else if(ticket == g_openTicket && g_openSL > 0)
          risk = MathAbs(open - g_openSL);
       if(risk <= 0)
@@ -970,11 +1052,11 @@ void ManageOpenPosition()
                                  : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
       const double moved = isBuy ? price - open : open - price;
 
-      if(moved < risk * InpStopMoveAtR)
+      if(moved < risk * g_moveAtR)
          continue;
 
-      const double target = isBuy ? open + risk * InpStopMoveToR
-                                  : open - risk * InpStopMoveToR;
+      const double target = isBuy ? open + risk * g_moveToR
+                                  : open - risk * g_moveToR;
       const double newSL  = NormalizeDouble(target, g_digits);
 
       if(isBuy ? newSL <= sl : newSL >= sl)

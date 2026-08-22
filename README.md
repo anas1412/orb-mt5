@@ -194,8 +194,43 @@ worst quarter — but `0.50` is the one you can apply by eye. Full sweep in
 | `InpStopMoveToR` | `-0.5` | where it goes, signed: 0 = entry, −0.5 = half the risk still on |
 | `InpTPMode` | RR | RR / fixed points / multiple of range / none |
 | `InpRR` | `2.0` | reward-to-risk multiple |
-| `InpLotMode` | risk percent | fixed lots / percent of balance |
-| `InpRiskPercent` | `2.0` | risk per trade |
+| `InpLotMode` | risk percent | fixed lots / percent of balance / **fixed cash** |
+| `InpRiskPercent` | `2.0` | risk per trade, percent of the *current* balance — this compounds |
+| `InpRiskMoney` | `100.0` | risk per trade in account currency, used when `InpLotMode = LOT_RISK_MONEY` |
+| `InpShowPanel` | `true` | on-chart control panel (off in non-visual backtests regardless) |
+
+### Which sizing mode to use
+
+`LOT_RISK_PERCENT` takes 2% of the **current** balance, so the cash at risk grows
+as the account grows. Every backtest in `research/` assumes the opposite: a flat
+2% of the **starting** balance, never compounded. `LOT_RISK_MONEY` is what
+reproduces those numbers live — on a 5 000 account, 100 a trade whether you are
+up or down.
+
+Verified on a fresh 5 000 account, 2026 only: 72 trades, risk 61.54–99.96 a
+trade (lot rounding only ever rounds *down*), +47.1 R = **+4 708 = +94.2%** —
+identical to the report.
+
+One thing to know: a fixed cash risk with a *narrow* stop demands a *large*
+position. A 2-point gold stop at 100 risk is about half a lot, roughly 2 400 of
+margin at 1:100. Fine on a funded 5 000, but a drawn-down account can have an
+order rejected with `10019 not enough money` — the trade is skipped and logged,
+not silently mis-sized.
+
+### On-chart panel
+
+A toggle and four editable fields: risk, reward:risk, and the two stop-move
+levels. The fields are locked unless trading is **off** *and* there is **no open
+position** — the stop-move logic recovers a trade's original risk from its take
+profit divided by RR, so letting RR change mid-trade would move the stop to the
+wrong price. Locking removes the possibility instead of guarding against it.
+
+Switching trading off stops **new entries only**. The stop move, the time cap and
+the force close keep running, so an open position is never abandoned.
+
+Settings persist per chart in terminal globals, so a recompile does not reset
+them. The panel never loads or saves in the tester, so a live toggle cannot leak
+into a backtest.
 | `InpMaxDailyLossPct` | `3.5` | stop opening trades once the **account** is down this much today (0 = off) |
 | `InpMagic` | `20260821` | give each chart its own value when running several instances |
 | `InpWriteCsv` | `true` | write the per-trade research log |

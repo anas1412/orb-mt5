@@ -38,6 +38,7 @@ verified working under Wine, so there is no copy step and no `docker cp`.
 └── strategy/               <- this repo
     ├── CLAUDE.md
     ├── TimeZones.mqh       broker time <-> UTC <-> session time
+    ├── Panel.mqh           on-chart control panel (toggle + editable settings)
     ├── TestTimeZones.mq5   asserts the time model
     ├── CheckBrokerOffset.mq5  measures the two broker inputs
     └── ORB.mq5             the EA (not written yet)
@@ -47,6 +48,7 @@ Symlinked to:
 
 ```
 <MT5>/MQL5/Include/TimeZones.mqh
+<MT5>/MQL5/Include/Panel.mqh
 <MT5>/MQL5/Scripts/TestTimeZones.mq5
 <MT5>/MQL5/Experts/ORB.mq5
 ```
