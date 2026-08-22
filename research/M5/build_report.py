@@ -1,4 +1,5 @@
 """Generate ~/orb/ORB-asia-report.html from report_data.json + trade_index.json."""
+import rules_svg, halves_svg
 import json, os, datetime as dt
 d=json.load(open("report_data.json"))
 idx=json.load(open("trade_index.json"))
@@ -102,7 +103,7 @@ def streak_rows():
     return "".join(out)
 
 def half_rows():
-    hv=json.load(open("halves.json"))
+    hv=d["halves"]
     spec=[("Broke the half it closed in","same","ok","TRADE"),
           ("Broke the opposite half","opp","no","SKIP")]
     out=[]
@@ -150,7 +151,23 @@ html=(tpl
  .replace("{{WEEKROWS}}",weeks_rows()).replace("{{QROWS}}",q_rows())
  .replace("{{MROWS}}",m_rows()).replace("{{EXITROWS}}",exit_rows())
  .replace("{{PASSROWS}}",pass_rows()).replace("{{STREAKROWS}}",streak_rows())
- .replace("{{HALFROWS}}",half_rows()).replace("{{GALLERY}}",gallery())
+ .replace("{{HALFROWS}}",half_rows())
+ .replace("{{RULESSVG}}",rules_svg.build())
+ .replace("{{HALVESSVG}}",halves_svg.build(d["halves"]))
+ .replace("{{ALLR}}","%+.1f"%d["halves"]["all"]["total"])
+ .replace("{{ALLN}}","%d"%d["halves"]["all"]["n"])
+ .replace("{{ALLWR}}","%.1f%%"%d["halves"]["all"]["wr"])
+ .replace("{{OPPN}}","%d"%d["halves"]["opp"]["n"])
+ .replace("{{OPPR}}","%+.1f"%d["halves"]["opp"]["total"])
+ .replace("{{LN}}","%d"%d["losses"]["n"])
+ .replace("{{LHALVED}}","%d"%d["losses"]["halved"])
+ .replace("{{LAVG}}","%+.2f"%d["losses"]["avg"])
+ .replace("{{LAVGABS}}","%.2f"%abs(d["losses"]["avg"]))
+ .replace("{{LSAVED}}","%+.1f"%d["losses"]["saved"])
+ .replace("{{LSAVEDPCT}}","%+d%%"%d["losses"]["saved_pct"])
+ .replace("{{NTARGET}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="target"))
+ .replace("{{NSTOP}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="stop"))
+ .replace("{{LASTDATE}}",dt.date.fromisoformat(d["coverage"]["last"]).strftime("%d %B %Y")).replace("{{GALLERY}}",gallery())
  .replace("{{GENERATED}}","2026-08-22"))
 open(OUT,"w").write(html)
 open(PAGES,"w").write(html)

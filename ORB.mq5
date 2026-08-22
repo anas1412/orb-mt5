@@ -597,7 +597,7 @@ void EnterOnRangeDirection()
 //|                                                                   |
 //| Breaking the other half means price crossed the entire range       |
 //| first - a reversal wearing a breakout's clothes. 2026 Mon-Thu:     |
-//| the correct half went 38-33 for +0.639 R a trade, the opposite     |
+//| the correct half went 38-34 for +0.615 R a trade, the opposite     |
 //| half 7-16 for +0.049.                                             |
 //|                                                                   |
 //| Rejection ends the day rather than waiting for a break the other   |

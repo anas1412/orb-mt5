@@ -173,13 +173,13 @@ the chart.
 Breaking the other half means price crossed the entire range first — a reversal
 wearing a breakout's clothes. On 2026 real ticks, Monday–Thursday:
 
-| Which half broke | n | WR | EV | Total R | |
-|---|---|---|---|---|---|
-| **Broke the half it closed in** | 71 | **53.5%** | **+0.639** | **+45.3** | trade |
-| Broke the opposite half | 23 | 30.4% | +0.049 | +1.1 | skip |
-| Every break, no filter | 94 | 47.9% | +0.494 | +46.5 | — |
+| Which half broke | n | WR | EV | Total R | Total % | |
+|---|---|---|---|---|---|---|
+| **Broke the half it closed in** | 72 | **52.8%** | **+0.615** | **+44.3** | **+88.6%** | trade |
+| Broke the opposite half | 23 | 30.4% | +0.049 | +1.1 | +2.2% | skip |
+| Every break, no filter | 95 | 47.4% | +0.478 | +45.4 | +90.9% | — |
 
-Skipping those 23 gives up 1.1 R and buys a 5.6-point higher win rate. Other
+Skipping those 23 gives up 1.1 R and buys a 5.4-point higher win rate. Other
 values are supported — the input is a 0–1 position, so `0.25` cuts only the
 worst quarter — but `0.50` is the one you can apply by eye. Full sweep in
 [§8 of the findings](research/FINDINGS.md).

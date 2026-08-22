@@ -171,7 +171,7 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
 <div class="wrap">
 
 <header>
-  <div class="eyebrow"><span class="dot"></span> Live configuration &middot; 2026 verified</div>
+  <div class="eyebrow"><span class="dot"></span> Live configuration &middot; 2026 data through {{LASTDATE}}</div>
   <h1>The Asia Opening Range<br><em>on Gold</em></h1>
   <p class="lede">One trade a day, Monday to Thursday, decided in the fifteen
   minutes after midnight UTC. This is the complete rule set, why each rule is
@@ -211,51 +211,9 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
 nothing that needs you awake at a screen.</p>
 
 <figure><div class="fig">
-<svg viewBox="0 0 1080 300" width="100%" role="img">
-<title>Timeline of one trading day</title>
-<desc>From 00:00 UTC the high and low of fifteen one-minute candles form the range. From 00:15 to 00:29 an M1 close outside the range triggers a market entry. The stop sits at the range midpoint and the target at two times risk. At plus half a risk unit the stop moves to minus half. The trade is closed after sixty minutes if neither level is hit.</desc>
-<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round"/></marker></defs>
-
-<line x1="60" y1="200" x2="1020" y2="200" stroke="currentColor" stroke-opacity=".22" stroke-width="1.5"/>
-<rect x="60" y="96" width="230" height="104" fill="var(--acc)" opacity=".13" rx="4"/>
-<rect x="290" y="96" width="215" height="104" fill="var(--acc)" opacity=".05" rx="4"/>
-
-<text x="60" y="42" font-size="14" font-weight="700" fill="var(--acc)">1 · BUILD THE RANGE</text>
-<text x="60" y="64" font-size="13" fill="currentColor" fill-opacity=".72">00:00 – 00:14 UTC · 15 one-minute candles</text>
-<line x1="60" y1="112" x2="290" y2="112" stroke="currentColor" stroke-width="1.6"/>
-<line x1="60" y1="184" x2="290" y2="184" stroke="currentColor" stroke-width="1.6"/>
-<text x="298" y="116" font-size="12" fill="currentColor" fill-opacity=".6">high</text>
-<text x="298" y="188" font-size="12" fill="currentColor" fill-opacity=".6">low</text>
-<line x1="60" y1="148" x2="290" y2="148" stroke="var(--neg)" stroke-width="1.4" stroke-dasharray="5 4"/>
-<text x="298" y="152" font-size="12" fill="var(--neg)" font-weight="600">midpoint = your stop</text>
-
-<text x="290" y="238" font-size="14" font-weight="700" fill="var(--acc)">2 · WAIT FOR THE BREAK</text>
-<text x="290" y="260" font-size="13" fill="currentColor" fill-opacity=".72">00:15 – 00:29 · first M1 close outside the range</text>
-<text x="290" y="280" font-size="13" fill="currentColor" fill-opacity=".72">nothing by 00:29 → no trade today</text>
-<line x1="505" y1="200" x2="505" y2="96" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4 4"/>
-
-<path d="M505 148 L505 74" fill="none" stroke="var(--pos)" stroke-width="2.4" marker-end="url(#ar)"/>
-<text x="520" y="52" font-size="14" font-weight="700" fill="var(--pos)">3 · ENTER · STOP · TARGET</text>
-<text x="520" y="74" font-size="13" fill="currentColor" fill-opacity=".72">market entry · stop at midpoint · target 2× risk</text>
-
-<circle cx="700" cy="128" r="5" fill="var(--acc2)"/>
-<text x="716" y="120" font-size="14" font-weight="700" fill="var(--acc)">4 · AT +0.5R</text>
-<text x="716" y="140" font-size="13" fill="currentColor" fill-opacity=".72">pull the stop to −0.5R · worst case halves</text>
-
-<line x1="960" y1="200" x2="960" y2="96" stroke="var(--neg)" stroke-opacity=".5" stroke-dasharray="4 4"/>
-<text x="800" y="248" font-size="14" font-weight="700" fill="var(--neg)">5 · 60 MINUTES</text>
-<text x="800" y="268" font-size="13" fill="currentColor" fill-opacity=".72">still open? close it and walk away</text>
-
-<text x="60" y="216" font-size="11" fill="currentColor" fill-opacity=".5">00:00</text>
-<text x="283" y="216" font-size="11" fill="currentColor" fill-opacity=".5">00:15</text>
-<text x="498" y="216" font-size="11" fill="currentColor" fill-opacity=".5">00:29</text>
-<text x="946" y="216" font-size="11" fill="currentColor" fill-opacity=".5">+60 min</text>
-</svg>
+{{RULESSVG}}
 </div>
-<figcaption>One session, start to finish. The whole decision happens in a
-29-minute window; everything after that is the stop and target doing the work.</figcaption>
-</figure>
+<figcaption>One session end to end, on two straight scales: 10&nbsp;px a minute across, 50&nbsp;px an R up. Drawn with the fill at the range high; in practice it lands a few points beyond and the target is measured from the actual fill.</figcaption></figure>
 
 <ol class="steps">
 <li><b>Mark the range</b><span>Take the highest high and lowest low of the fifteen M1 candles from 00:00 to 00:14 UTC. That box is the range.</span></li>
@@ -303,71 +261,9 @@ today.</p>
 <em>up</em> instead, you sit out.</p></div>
 
 <figure><div class="fig">
-<svg viewBox="0 0 1080 430" width="100%" role="img">
-<title>The half-of-the-range rule</title>
-<desc>The range box is split by a dashed midline. On the left the final candle of the range closed in the top half, so an upward break is traded and a downward break is skipped. On the right it closed in the bottom half, so a downward break is traded and an upward break is skipped.</desc>
-<defs><marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round"/></marker></defs>
-
-<text x="30" y="26" font-size="14" font-weight="700" fill="currentColor">Same box both times. The only thing that changes is where the last candle of the range closed.</text>
-
-<!-- ================= LEFT: closed top half ================= -->
-<rect x="30" y="48" width="500" height="352" rx="12" fill="var(--pos)" opacity=".06"/>
-<text x="56" y="80" font-size="15" font-weight="700" fill="var(--pos)">Closed in the TOP half</text>
-<text x="56" y="101" font-size="13" fill="currentColor" fill-opacity=".68">longs only</text>
-
-<!-- box -->
-<rect x="150" y="130" width="230" height="170" fill="currentColor" opacity=".04"/>
-<line x1="150" y1="130" x2="380" y2="130" stroke="currentColor" stroke-width="1.8"/>
-<line x1="150" y1="300" x2="380" y2="300" stroke="currentColor" stroke-width="1.8"/>
-<text x="392" y="134" font-size="11.5" fill="currentColor" fill-opacity=".6">high</text>
-<text x="392" y="304" font-size="11.5" fill="currentColor" fill-opacity=".6">low</text>
-<!-- midline -->
-<line x1="140" y1="215" x2="390" y2="215" stroke="var(--acc)" stroke-width="2" stroke-dasharray="7 5"/>
-<text x="392" y="219" font-size="11.5" font-weight="640" fill="var(--acc)">middle</text>
-<!-- top half tint -->
-<rect x="150" y="130" width="230" height="85" fill="var(--pos)" opacity=".14"/>
-<!-- the closing candle -->
-<rect x="256" y="150" width="16" height="34" rx="2" fill="var(--pos)"/>
-<line x1="264" y1="142" x2="264" y2="196" stroke="var(--pos)" stroke-width="2"/>
-<text x="248" y="172" font-size="11.5" fill="currentColor" fill-opacity=".7" text-anchor="end">00:14 closed here</text>
-<!-- verdicts -->
-<path d="M300 128 L300 112" fill="none" stroke="var(--pos)" stroke-width="2.6" marker-end="url(#ar2)"/>
-<text x="314" y="120" font-size="13" font-weight="700" fill="var(--pos)">break up &rarr; TAKE IT</text>
-<path d="M300 302 L300 322" fill="none" stroke="var(--neg)" stroke-width="2.2" stroke-opacity=".5" marker-end="url(#ar2)"/>
-<text x="314" y="328" font-size="13" font-weight="640" fill="var(--neg)" fill-opacity=".72">break down &rarr; skip</text>
-<text x="56" y="372" font-size="13.5" fill="currentColor" fill-opacity=".8">These are the 71 trades the edge actually takes.</text>
-<text x="56" y="392" font-size="14" font-weight="700" fill="var(--pos)">53.5% win rate · +0.639 R per trade</text>
-
-<!-- ================= RIGHT: closed bottom half ================= -->
-<rect x="550" y="48" width="500" height="352" rx="12" fill="var(--acc)" opacity=".06"/>
-<text x="576" y="80" font-size="15" font-weight="700" fill="var(--acc)">Closed in the BOTTOM half</text>
-<text x="576" y="101" font-size="13" fill="currentColor" fill-opacity=".68">shorts only</text>
-
-<rect x="670" y="130" width="230" height="170" fill="currentColor" opacity=".04"/>
-<line x1="670" y1="130" x2="900" y2="130" stroke="currentColor" stroke-width="1.8"/>
-<line x1="670" y1="300" x2="900" y2="300" stroke="currentColor" stroke-width="1.8"/>
-<text x="912" y="134" font-size="11.5" fill="currentColor" fill-opacity=".6">high</text>
-<text x="912" y="304" font-size="11.5" fill="currentColor" fill-opacity=".6">low</text>
-<line x1="660" y1="215" x2="910" y2="215" stroke="var(--acc)" stroke-width="2" stroke-dasharray="7 5"/>
-<text x="912" y="219" font-size="11.5" font-weight="640" fill="var(--acc)">middle</text>
-<rect x="670" y="215" width="230" height="85" fill="var(--acc)" opacity=".14"/>
-<rect x="776" y="252" width="16" height="34" rx="2" fill="var(--acc2)"/>
-<line x1="784" y1="244" x2="784" y2="294" stroke="var(--acc2)" stroke-width="2"/>
-<text x="768" y="248" font-size="11.5" fill="currentColor" fill-opacity=".7" text-anchor="end">00:14 closed here</text>
-<path d="M820 302 L820 322" fill="none" stroke="var(--pos)" stroke-width="2.6" marker-end="url(#ar2)"/>
-<text x="834" y="328" font-size="13" font-weight="700" fill="var(--pos)">break down &rarr; TAKE IT</text>
-<path d="M820 128 L820 112" fill="none" stroke="var(--neg)" stroke-width="2.2" stroke-opacity=".5" marker-end="url(#ar2)"/>
-<text x="834" y="120" font-size="13" font-weight="640" fill="var(--neg)" fill-opacity=".72">break up &rarr; skip</text>
-<text x="576" y="372" font-size="13.5" fill="currentColor" fill-opacity=".8">Mirror image. Nothing else changes.</text>
-<text x="576" y="392" font-size="14" font-weight="700" fill="var(--acc)">same stop, same target, same size</text>
-</svg>
+{{HALVESSVG}}
 </div>
-<figcaption>The half the range closed in is the half price was already leaning
-into. Breaking that way is a continuation. Breaking the other way means price
-had to cross the entire box first &mdash; that is a reversal wearing a
-breakout's clothes.</figcaption>
-</figure>
+<figcaption>The half the range closed in is the half price was already leaning into. Breaking that way continues the move; breaking the other way means price crossed the whole box first.</figcaption></figure>
 
 <h3>Reading it live, in three seconds</h3>
 <ul>
@@ -389,10 +285,10 @@ moved.</p></div>
 <tbody>{{HALFROWS}}</tbody></table></div>
 
 <div class="good"><div class="t">Why this filter is worth having</div>
-<p>Trading <em>every</em> break returns <strong>+46.5&nbsp;R</strong> from 94 trades at a
-47.9% win rate. Trading only the correct half returns <strong>+45.3&nbsp;R</strong> from
-71 &mdash; virtually the same money from <strong>23 fewer trades</strong>, at a
-<strong>53.5%</strong> win rate. The 23 skipped trades contributed +1.1&nbsp;R between
+<p>Trading <em>every</em> break returns <strong>{{ALLR}}&nbsp;R</strong> from {{ALLN}} trades at a
+{{ALLWR}} win rate. Trading only the correct half returns <strong>{{TOTALR}}&nbsp;R</strong> from
+{{TRADES}} &mdash; virtually the same money from <strong>{{OPPN}} fewer trades</strong>, at a
+<strong>{{WR}}</strong> win rate. The {{OPPN}} skipped trades contributed {{OPPR}}&nbsp;R between
 them: all of the drawdown, none of the profit. Fewer trades at a higher win rate
 is exactly what a pass-rate account wants.</p></div>
 </section>
@@ -460,18 +356,18 @@ is exactly what a pass-rate account wants.</p></div>
 </figure>
 
 <ul>
-<li><strong>14 of the 33 losses were halved.</strong></li>
-<li>Average loss <strong>&minus;0.82 R</strong>, not &minus;1.00 R.</li>
-<li>Saved <strong>6.1 R</strong> &mdash; 12% of the account.</li>
+<li><strong>{{LHALVED}} of the {{LN}} losses were halved.</strong></li>
+<li>Average loss <strong>{{LAVG}} R</strong>, not &minus;1.00 R.</li>
+<li>Saved <strong>{{LSAVED}} R</strong> &mdash; {{LSAVEDPCT}} of the account.</li>
 </ul>
 
 <div class="scroll"><table>
-<caption>How the 71 trades ended</caption>
+<caption>How the {{TRADES}} trades ended</caption>
 <thead><tr><th>Exit</th><th>Trades</th><th>Share</th><th>EV each</th><th>Total R</th><th>Total %</th></tr></thead>
 <tbody>{{EXITROWS}}</tbody></table></div>
 
-<p>Even on count &mdash; 32 targets, 32 stops. The edge is <strong>size</strong>:
-a win pays 2R, a loss costs 0.82R.</p>
+<p>Nearly even on count &mdash; {{NTARGET}} targets, {{NSTOP}} stops. The edge is
+<strong>size</strong>: a win pays 2R, a loss costs {{LAVGABS}}R.</p>
 </section>
 
 <!-- ================= 04 WHY ================= -->

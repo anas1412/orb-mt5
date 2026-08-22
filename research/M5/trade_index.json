@@ -779,5 +779,16 @@
   "range_pts": 1335,
   "held": 39,
   "file": "2026-08-19_long_loss.png"
+ },
+ {
+  "n": 72,
+  "date": "2026-08-20",
+  "day": "Thu",
+  "dir": "buy",
+  "R": -1.026,
+  "score": 0.688,
+  "range_pts": 849,
+  "held": 3,
+  "file": "2026-08-20_long_loss.png"
  }
 ]

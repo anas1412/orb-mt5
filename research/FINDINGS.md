@@ -3,7 +3,7 @@
 Asia opening range on XAUUSD. Session 00:00 UTC, 15-minute range, M1 signal
 bars, 15-minute entry window, 60-minute hold cap, 2% risk, one trade per day.
 
-**All figures are 2026** (2026.01.01 – 2026.08.19, 163 trading days) unless a
+**All figures are 2026** (2026.01.02 – 2026.08.21, 165 trading days) unless a
 table says otherwise. Rules: FundingPips 2-Step Standard — +8% then +5%, 10% max
 total loss, 5% max daily loss, minimum 3 trading days per phase, no time limit.
 
@@ -373,16 +373,16 @@ rejection into a coin flip on the other side.
 ### The rule, measured directly
 
 2026, Monday–Thursday, every break the engine saw, split by half
-(`cp_0.00.csv`, 2% risk, stop at the midpoint, 2R target, stop move +0.5R → −0.5R):
+(`live_cp0.00.csv`, 2% risk, stop at the midpoint, 2R target, stop move +0.5R → −0.5R):
 
-| Which half broke | n | Wins | WR | EV | Total R | Verdict |
-|---|---|---|---|---|---|---|
-| **Broke the half it closed in** | 71 | 38 | **53.5%** | **+0.639** | **+45.3** | trade |
-| Broke the opposite half | 23 | 7 | 30.4% | +0.049 | +1.1 | skip |
-| Every break, no filter | 94 | 45 | 47.9% | +0.494 | +46.5 | — |
+| Which half broke | n | Wins | WR | EV | Total R | Total % | Verdict |
+|---|---|---|---|---|---|---|---|
+| **Broke the half it closed in** | 72 | 38 | **52.8%** | **+0.615** | **+44.3** | **+88.6%** | trade |
+| Broke the opposite half | 23 | 7 | 30.4% | +0.049 | +1.1 | +2.2% | skip |
+| Every break, no filter | 95 | 45 | 47.4% | +0.478 | +45.4 | +90.9% | — |
 
 The 23 skipped trades contributed **+1.1 R between them** — all of the variance,
-none of the profit. Same money from 23 fewer trades at a 5.6-point higher win
+none of the profit. Same money from 23 fewer trades at a 5.4-point higher win
 rate, which is exactly the trade a pass-rate account wants.
 
 ### Evidence trail: how the threshold was picked
@@ -467,7 +467,7 @@ it is recorded in the scripts rather than expanded here.
 
 (Full-sample columns, Friday included, for comparability with the sweep above.
 The 2026 Monday–Thursday live configuration is the table at the top of this
-section: 53.5% WR, +0.639 EV.)
+section: 52.8% WR, +0.615 EV.)
 
 ### ⚠ This filter is a regime bet
 

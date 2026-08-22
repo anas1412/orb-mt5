@@ -19,6 +19,8 @@ for row in csv.DictReader(open(barsfile("XAUUSD"))):
     if t.year!=2026: continue
     bars.setdefault(t.date(),{})[t.hour*60+t.minute]=(
         float(row["open"]),float(row["high"]),float(row["low"]),float(row["close"]))
+out_cover=None
+alldates=sorted(bars)
 sessions=set()
 for d,b in bars.items():
     if d.weekday()>3: continue
@@ -133,15 +135,42 @@ def pr(risk,paths=40000):
     return dict(risk=risk,p1=round(p1,1),p2=round(p2,1),both=round(p1*p2/100.0,1),
                 trades=int(m1+m2), days=int(round((m1+m2)/freq)))
 out['pass']=[pr(x) for x in (1.0,1.5,2.0,3.0)]
+
+# the half-of-the-range rule, measured against the same config with the filter off
+def halves():
+    v=[]
+    for r in csv.DictReader(open(os.path.join(D,"live_cp0.00.csv"))):
+        if r['entry_time'][:4]!='2026': continue
+        v.append((float(r['close_pos']), float(r['R'])))
+    def st(x):
+        n=len(x); w=len([y for y in x if y>0])
+        return dict(n=n,wins=w,wr=round(100.0*w/n,1),ev=round(sum(x)/n,3),
+                    total=round(sum(x),1),ret=round(RISK*sum(x),1))
+    return dict(same=st([r for c,r in v if c>=0.50]),
+                opp =st([r for c,r in v if c< 0.50]),
+                all =st([r for c,r in v]))
+out['halves']=halves()
+
+# what the underlying price data covers, stated in the report
+L=[x for x in R if x<=0]
+out['losses']=dict(n=len(L), halved=len([x for x in L if x>-0.75]),
+                   avg=round(sum(L)/len(L),2),
+                   saved=round(sum(L)+len(L),1), saved_pct=round(RISK*(sum(L)+len(L))))
+out['coverage']=dict(first=str(min(alldates)), last=str(max(alldates)),
+                     dates=len(alldates))
 # close-position quadrants
 out['quadrants']=[dict(band="above 75%",n=68,ev=0.529,wr=50.0),
                   dict(band="50 - 75%",n=25,ev=0.210,wr=36.0),
                   dict(band="25 - 50%",n=19,ev=0.217,wr=36.8),
                   dict(band="below 25%",n=7,ev=-0.816,wr=0.0)]
 json.dump(out,open("report_data.json","w"),indent=1)
+json.dump(out['halves'],open("halves.json","w"),indent=1)
 h=out['headline']
 print("trades %d of %d sessions | WR %.1f%% | EV %+.3f | total %+.1f R = %+.0f%%"
       % (h['trades'],h['sessions'],h['wr'],h['ev'],h['total'],h['ret']))
 print("weeks %d | quarters %d | worst DD %.1f%% | worst loss run %d"
       % (len(out['weeks']),len(out['quarters']),out['maxdd'],out['streaks']['worst_loss']))
+c=out['coverage']; print("data covers %s .. %s (%d trading dates)"%(c['first'],c['last'],c['dates']))
+hv=out['halves']; print("halves: same %d (%.1f%% WR, %+.3f EV) | opposite %d (%.1f%% WR, %+.3f EV)"
+      %(hv['same']['n'],hv['same']['wr'],hv['same']['ev'],hv['opp']['n'],hv['opp']['wr'],hv['opp']['ev']))
 for p in out['pass']: print("  risk %.1f%% -> pass %.1f%%, %d trades, ~%d days" % (p['risk'],p['both'],p['trades'],p['days']))

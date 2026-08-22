@@ -22,7 +22,11 @@ datetime g_last = 0;
 int OnInit()
   {
    const string name = StringFormat("bars_%s.csv", _Symbol);
-   g_csv = FileOpen(name, FILE_READ|FILE_WRITE|FILE_CSV|FILE_ANSI|FILE_COMMON, ',');
+   // FILE_SHARE_* matters: the tester initialises the EA twice (a validation
+   // pass and the real one) and without sharing the second FileOpen fails
+   // with 5004, which aborts the whole run in OnInit.
+   g_csv = FileOpen(name, FILE_READ|FILE_WRITE|FILE_CSV|FILE_ANSI|FILE_COMMON|
+                          FILE_SHARE_READ|FILE_SHARE_WRITE, ',');
    if(g_csv == INVALID_HANDLE)
      {
       PrintFormat("cannot open %s: %d", name, GetLastError());
