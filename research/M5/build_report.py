@@ -2,6 +2,7 @@
 import json, os, datetime as dt
 d=json.load(open("report_data.json"))
 idx=json.load(open("trade_index.json"))
+RISK=2.0   # % of the initial balance per trade, no compounding
 H=d['headline']
 OUT   = os.path.expanduser("~/orb/ORB-asia-report.html")   # local deliverable
 PAGES = os.path.expanduser("~/orb/strategy/index.html")        # GitHub Pages entry point
@@ -43,20 +44,21 @@ def weeks_rows():
         s=dt.date.fromisoformat(w['start'])
         lab="%s&nbsp;&ndash;&nbsp;%s"%(s.strftime("%d %b"),(s+dt.timedelta(days=3)).strftime("%d %b"))
         if w['trades']==0:
-            out.append('<tr class="q"><td>%s</td><td>%d</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>'
+            out.append('<tr class="q"><td>%s</td><td>%d</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>'
                        %(lab,w['sessions'])); continue
         cls="pos" if w['total']>0 else ("neg" if w['total']<0 else "")
         out.append('<tr><td>%s</td><td>%d</td><td><b>%d</b></td><td>%d / %d</td><td>%.0f%%</td>'
-                   '<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td></tr>'
+                   '<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td>'
+                   '<td class="%s"><b>%+.1f%%</b></td></tr>'
                    %(lab,w['sessions'],w['trades'],w['wins'],w['trades']-w['wins'],w['wr'],
-                     cls,w['ev'],cls,w['total']))
+                     cls,w['ev'],cls,w['total'],cls,w['ret']))
     return "".join(out)
 
 def q_rows():
     out=[]
     for q in d['quarters']:
         out.append('<tr><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d / %d</td><td>%.1f%%</td>'
-                   '<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td><td class="pos">%+.0f%%</td></tr>'
+                   '<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td><td class="pos"><b>%+.1f%%</b></td></tr>'
                    %(q['q'],q['days'],q['trades'],q['wins'],q['losses'],q['wr'],q['ev'],q['total'],q['ret']))
     return "".join(out)
 
@@ -64,8 +66,10 @@ def m_rows():
     out=[]
     for m in d['months']:
         out.append('<tr><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d / %d</td><td>%.1f%%</td>'
-                   '<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td></tr>'
-                   %(m['month'],m['days'],m['trades'],m['wins'],m['losses'],m['wr'],m['ev'],m['total']))
+                   '<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td>'
+                   '<td class="pos"><b>%+.1f%%</b></td></tr>'
+                   %(m['month'],m['days'],m['trades'],m['wins'],m['losses'],m['wr'],m['ev'],
+                     m['total'],m['ret']))
     return "".join(out)
 
 def exit_rows():
@@ -74,8 +78,9 @@ def exit_rows():
     for e in d['exits']:
         cls="pos" if e['total']>0 else "neg"
         out.append('<tr><td>%s</td><td><b>%d</b></td><td>%.1f%%</td><td class="%s">%+.2f R</td>'
-                   '<td class="%s"><b>%+.1f R</b></td></tr>'
-                   %(NAME[e['kind']],e['n'],e['share'],cls,e['avg'],cls,e['total']))
+                   '<td class="%s"><b>%+.1f R</b></td><td class="%s"><b>%+.1f%%</b></td></tr>'
+                   %(NAME[e['kind']],e['n'],e['share'],cls,e['avg'],cls,e['total'],
+                     cls,e['total']*RISK))
     return "".join(out)
 
 def pass_rows():
@@ -104,15 +109,17 @@ def half_rows():
     for label,key,pill,verdict in spec:
         q=hv[key]
         out.append('<tr class="%s"><td><b>%s</b></td><td>%d</td><td>%d</td><td>%.1f%%</td>'
-                   '<td class="%s">%+.3f</td><td class="%s">%+.1f R</td>'
+                   '<td class="%s">%+.3f</td><td class="%s">%+.1f R</td><td class="%s">%+.1f%%</td>'
                    '<td><span class="pill %s">%s</span></td></tr>'
                    %("hi" if key=="same" else "q", label, q['n'], q['wins'], q['wr'],
                      "pos" if q['ev']>0 else "neg", q['ev'],
-                     "pos" if q['total']>0 else "neg", q['total'], pill, verdict))
+                     "pos" if q['total']>0 else "neg", q['total'],
+                     "pos" if q['total']>0 else "neg", q['total']*RISK, pill, verdict))
     a=hv['all']
     out.append('<tr><td><b>Every break, no filter</b></td><td>%d</td><td>%d</td><td>%.1f%%</td>'
-               '<td class="pos">%+.3f</td><td class="pos">%+.1f R</td><td></td></tr>'
-               %(a['n'],a['wins'],a['wr'],a['ev'],a['total']))
+               '<td class="pos">%+.3f</td><td class="pos">%+.1f R</td>'
+               '<td class="pos">%+.1f%%</td><td></td></tr>'
+               %(a['n'],a['wins'],a['wr'],a['ev'],a['total'],a['total']*RISK))
     return "".join(out)
 
 def gallery():

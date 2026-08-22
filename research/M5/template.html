@@ -384,8 +384,8 @@ price is still up there. You are reading <em>where it is</em>, not which way it
 moved.</p></div>
 
 <div class="scroll"><table>
-<caption>Every 2026 Monday&ndash;Thursday break, split by which half the range closed in. Totals, not averages, except EV.</caption>
-<thead><tr><th>Which half broke</th><th>Trades</th><th>Wins</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Verdict</th></tr></thead>
+<caption>Every 2026 Monday&ndash;Thursday break, split by which half the range closed in. Totals, not averages, except EV. Total % is the account move at 2% risk per trade.</caption>
+<thead><tr><th>Which half broke</th><th>Trades</th><th>Wins</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Total %</th><th>Verdict</th></tr></thead>
 <tbody>{{HALFROWS}}</tbody></table></div>
 
 <div class="good"><div class="t">Why this filter is worth having</div>
@@ -400,44 +400,78 @@ is exactly what a pass-rate account wants.</p></div>
 <!-- ================= 03 STOP MOVE ================= -->
 <section id="stop">
 <h2><span class="num">03</span>The stop move</h2>
-<p class="sub">One adjustment, once per trade, and it is the difference between a
-manageable losing run and a blown account.</p>
+<p class="sub">Once per trade, and only in one direction.</p>
 
 <figure><div class="fig">
-<svg viewBox="0 0 1080 260" width="100%" role="img">
-<title>The stop move</title>
-<desc>A trade risking one hundred dollars. When it reaches fifty dollars of profit the stop moves from minus one hundred to minus fifty, so the worst case halves. The target stays at plus two hundred.</desc>
-<line x1="70" y1="60" x2="920" y2="60" stroke="var(--pos)" stroke-width="1.6" stroke-dasharray="6 5"/>
-<text x="930" y="64" font-size="12.5" font-weight="640" fill="var(--pos)">+2R target</text>
-<line x1="70" y1="112" x2="920" y2="112" stroke="var(--acc2)" stroke-width="1.4" stroke-dasharray="5 4"/>
-<text x="930" y="116" font-size="12.5" fill="var(--acc)">+0.5R</text>
-<line x1="70" y1="150" x2="920" y2="150" stroke="currentColor" stroke-opacity=".45" stroke-width="1.6"/>
-<text x="930" y="154" font-size="12.5" fill="currentColor" fill-opacity=".65">entry</text>
-<line x1="70" y1="188" x2="520" y2="188" stroke="var(--neg)" stroke-opacity=".45" stroke-width="1.5" stroke-dasharray="5 4"/>
-<line x1="520" y1="188" x2="520" y2="222" stroke="var(--neg)" stroke-width="1.5"/>
-<line x1="520" y1="222" x2="920" y2="222" stroke="var(--neg)" stroke-opacity=".28" stroke-width="1.5" stroke-dasharray="3 5"/>
-<line x1="520" y1="169" x2="920" y2="169" stroke="var(--neg)" stroke-width="2" stroke-dasharray="5 4"/>
-<text x="930" y="173" font-size="12.5" font-weight="640" fill="var(--neg)">−0.5R</text>
-<text x="930" y="226" font-size="12" fill="var(--neg)" fill-opacity=".55">−1R gone</text>
-<circle cx="520" cy="112" r="6" fill="var(--acc2)"/>
-<text x="500" y="98" font-size="12.5" font-weight="640" fill="var(--acc)" text-anchor="end">trade reaches +0.5R →</text>
-<text x="76" y="36" font-size="13.5" font-weight="700" fill="currentColor">Risking $100 · target $200 · once $50 up, the worst case becomes $50 instead of $100</text>
-<text x="76" y="248" font-size="12.5" fill="currentColor" fill-opacity=".6">The stop tightens once and never again — it cannot be pushed back out.</text>
+<svg viewBox="0 0 1080 380" width="100%" role="img">
+<title>The stop move, drawn to scale</title>
+<desc>Price levels drawn to scale from entry: plus two R at the top, plus half R, entry, minus half R, minus one R at the bottom. A price line leaves entry, rises to plus half R, and at that moment the stop jumps from minus one R up to minus half R. From there the line either carries on to the plus two R target or falls back to the new stop for half a loss. The band between minus half R and minus one R is greyed out because it can no longer be reached.</desc>
+<defs><marker id="ar3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round"/></marker></defs>
+
+<text x="40" y="26" font-size="14.5" font-weight="700" fill="currentColor">Risk $100. Once you are $50 up, the most you can lose is $50.</text>
+
+<!-- levels: 1R = 80px, entry at y=220 -->
+<line x1="90" y1="60"  x2="1000" y2="60"  stroke="var(--pos)" stroke-width="1.6" stroke-dasharray="7 5"/>
+<line x1="90" y1="180" x2="1000" y2="180" stroke="var(--acc2)" stroke-width="1.4" stroke-dasharray="6 4"/>
+<line x1="90" y1="220" x2="1000" y2="220" stroke="currentColor" stroke-opacity=".4" stroke-width="1.6"/>
+<text x="80" y="64"  font-size="13" font-weight="640" fill="var(--pos)" text-anchor="end">+2R</text>
+<text x="80" y="184" font-size="13" font-weight="640" fill="var(--acc)" text-anchor="end">+0.5R</text>
+<text x="80" y="224" font-size="13" fill="currentColor" fill-opacity=".65" text-anchor="end">entry</text>
+<text x="80" y="264" font-size="13" font-weight="640" fill="var(--neg)" text-anchor="end">&minus;0.5R</text>
+<text x="80" y="304" font-size="13" fill="var(--neg)" fill-opacity=".55" text-anchor="end">&minus;1R</text>
+
+<!-- the old stop: real until the move, dead after it -->
+<line x1="90" y1="300" x2="430" y2="300" stroke="var(--neg)" stroke-width="2" stroke-dasharray="9 5"/>
+<line x1="430" y1="300" x2="1000" y2="300" stroke="var(--neg)" stroke-opacity=".3" stroke-width="1.5" stroke-dasharray="3 6"/>
+<!-- the new stop: only exists after the move -->
+<line x1="430" y1="260" x2="1000" y2="260" stroke="var(--neg)" stroke-width="2.2" stroke-dasharray="9 5"/>
+<!-- dead zone -->
+<rect x="430" y="260" width="570" height="40" fill="var(--neg)" opacity=".08"/>
+<text x="700" y="286" font-size="12" fill="var(--neg)" fill-opacity=".6">no longer reachable</text>
+
+<!-- the stop jumping up -->
+<path d="M462 296 L462 266" fill="none" stroke="var(--neg)" stroke-width="3" marker-end="url(#ar3)"/>
+
+<!-- price, before the trigger -->
+<path d="M110 220 L170 212 L215 196 L265 205 L320 186 L370 190 L430 180"
+      fill="none" stroke="currentColor" stroke-opacity=".75" stroke-width="2.6" stroke-linejoin="round"/>
+<!-- the trigger -->
+<line x1="430" y1="180" x2="430" y2="256" stroke="var(--acc)" stroke-width="1.3" stroke-dasharray="3 4" stroke-opacity=".7"/>
+<circle cx="430" cy="180" r="7" fill="var(--acc2)"/>
+<text x="444" y="162" font-size="13.5" font-weight="700" fill="var(--acc)">stop moves here</text>
+
+<!-- branch A: keeps going -->
+<path d="M430 180 L490 168 L545 178 L600 140 L660 152 L720 110 L790 96 L860 60"
+      fill="none" stroke="var(--pos)" stroke-width="2.8" stroke-linejoin="round"/>
+<circle cx="860" cy="60" r="7" fill="var(--pos)"/>
+<text x="874" y="46" font-size="13.5" font-weight="700" fill="var(--pos)">win</text>
+
+<!-- branch B: falls back -->
+<path d="M430 180 L480 196 L530 188 L590 224 L650 240 L700 232 L750 260"
+      fill="none" stroke="var(--neg)" stroke-width="2.8" stroke-linejoin="round" stroke-opacity=".85"/>
+<circle cx="750" cy="260" r="7" fill="var(--neg)"/>
+<text x="764" y="244" font-size="13.5" font-weight="700" fill="var(--neg)">half loss</text>
+
+<text x="40" y="352" font-size="12.5" fill="currentColor" fill-opacity=".6">It moves once. It never moves back out.</text>
 </svg>
 </div>
-<figcaption>In 2026 this converted a large share of full losses into half losses.
-The average loss came out at −0.83 R rather than −1.00 R.</figcaption>
+<figcaption>To scale &mdash; 1R is the same height everywhere.</figcaption>
 </figure>
 
+<ul>
+<li><strong>14 of the 33 losses were halved.</strong></li>
+<li>Average loss <strong>&minus;0.82 R</strong>, not &minus;1.00 R.</li>
+<li>Saved <strong>6.1 R</strong> &mdash; 12% of the account.</li>
+</ul>
+
 <div class="scroll"><table>
-<caption>How the 71 trades actually ended. Totals in R.</caption>
-<thead><tr><th>Exit</th><th>Trades</th><th>Share</th><th>EV each</th><th>Total R</th></tr></thead>
+<caption>How the 71 trades ended</caption>
+<thead><tr><th>Exit</th><th>Trades</th><th>Share</th><th>EV each</th><th>Total R</th><th>Total %</th></tr></thead>
 <tbody>{{EXITROWS}}</tbody></table></div>
 
-<p><strong>Wins and losses land almost exactly 50/50 on count</strong> — 32 targets against
-32 stops. The edge is entirely in the size: a win pays 2R, and the stop move
-means the average loss is under 1R. The 60-minute cap contributes a small
-positive on top, because trades still alive at that point are usually in profit.</p>
+<p>Even on count &mdash; 32 targets, 32 stops. The edge is <strong>size</strong>:
+a win pays 2R, a loss costs 0.82R.</p>
 </section>
 
 <!-- ================= 04 WHY ================= -->
@@ -474,12 +508,12 @@ compounding, so each R is worth a constant two percentage points.</p>
 
 <div class="scroll"><table>
 <caption>By quarter — trading days available, trades taken, and totals</caption>
-<thead><tr><th>Quarter</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Return</th></tr></thead>
+<thead><tr><th>Quarter</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
 <tbody>{{QROWS}}</tbody></table></div>
 
 <div class="scroll"><table>
 <caption>By month</caption>
-<thead><tr><th>Month</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th></tr></thead>
+<thead><tr><th>Month</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
 <tbody>{{MROWS}}</tbody></table></div>
 
 <div class="good"><div class="t">Every quarter positive</div>
@@ -497,7 +531,7 @@ the entry conditions.</p>
 
 <div class="scroll"><table>
 <caption>Every week of 2026. Trades taken out of the days available.</caption>
-<thead><tr><th>Week</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th></tr></thead>
+<thead><tr><th>Week</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
 <tbody>{{WEEKROWS}}</tbody></table></div>
 
 <p>The pattern worth noticing: <strong>you take a trade on roughly half the days
