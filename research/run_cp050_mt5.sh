@@ -12,7 +12,7 @@ sed -i 's|^Symbol=.*|Symbol=XAUUSD|' "$INI"
 sed -i 's|^ToDate=.*|ToDate=2026.08.22|' "$INI"
 si InpTimeZone 0; si InpStartHour 0; si InpStartMinute 0
 si InpRangeMinutes 15; si InpSignalTF 1; si InpEntryMode 0
-si InpNoEntryAfterMin 15; si InpMaxHoldMinutes 60; si InpForceCloseMin 360
+si InpNoEntryAfterMin 15; si InpMaxHoldMinutes 90; si InpForceCloseMin 360
 si InpSLPercentOfRange 50; si InpRR 2.0
 si InpStopMoveAtR 0.5; si InpStopMoveToR -0.5
 si InpRangeLookback 0; si InpRiskPercent 2.0

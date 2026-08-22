@@ -5,6 +5,8 @@ import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from mt5paths import COMMON as D, bars as barsfile
+
+HOLD = 90   # InpMaxHoldMinutes -- must match the run that produced the CSV
 OUT=os.path.expanduser("~/orb/trades"); os.makedirs(OUT,exist_ok=True)
 INK="#141310"; MUT="#8a837a"; POS="#12694a"; NEG="#a8352a"; ACC="#8a6d3b"; GRID="#ece7dd"
 def nth(y,m,dow,n):
@@ -53,9 +55,9 @@ for i,tr in enumerate(rows,1):
     em = tr['t'].hour*60+tr['t'].minute - st
 
     # walk forward to find the real exit so the chart ends where the trade did
-    moved=False; cur=sl; exit_m=em+60; exit_p=None
+    moved=False; cur=sl; exit_m=em+HOLD; exit_p=None
     sgn=1 if buy else -1
-    for m in range(st+em, st+em+61):
+    for m in range(st+em, st+em+HOLD+1):
         if m not in b: break
         o,h,l,c=b[m]
         adv = l if buy else h; fav = h if buy else l

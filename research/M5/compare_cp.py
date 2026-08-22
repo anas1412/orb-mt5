@@ -2,7 +2,7 @@
 
 Live configuration: gold Asia 00:00 UTC, 15-min range, M1 signal, entry window
 to 00:29, SL at the range midpoint, 2R target, stop moved to -0.5R at +0.5R,
-60-minute hold, Friday off, 2% risk."""
+90-minute hold, Friday off, 2% risk."""
 import csv, os, statistics, math, random, datetime as dt
 from mt5paths import COMMON as D
 random.seed(31337)

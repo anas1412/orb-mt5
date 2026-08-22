@@ -1,7 +1,7 @@
 # ORB parameter study — 2026
 
 Asia opening range on XAUUSD. Session 00:00 UTC, 15-minute range, M1 signal
-bars, 15-minute entry window, 60-minute hold cap, 2% risk, one trade per day.
+bars, 15-minute entry window, 90-minute hold cap, 2% risk, one trade per day.
 
 **All figures are 2026** (2026.01.02 – 2026.08.21, 165 trading days) unless a
 table says otherwise. Rules: FundingPips 2-Step Standard — +8% then +5%, 10% max
@@ -26,7 +26,7 @@ market does to this strategy.
 | Target | 2.0 R |
 | Stop move | at +0.5R, to −0.5R |
 | Close-position filter | 0.25 |
-| Max hold | 60 minutes |
+| Max hold | 90 minutes |
 | Days traded | Monday to Thursday (Friday off, §12) |
 | Risk | 2% |
 
@@ -85,7 +85,7 @@ the best stop is the *far side*, not the midpoint:
 
 At RR 1 price need only travel one stop-width, so a wide stop buys a wide target
 noise can still reach — 61.4% win rate, the highest in the study. At RR 2 it needs
-two stop-widths, so a wide stop puts the target out of reach inside 60 minutes.
+two stop-widths, so a wide stop puts the target out of reach inside the hold cap.
 
 RR 1 is still the wrong choice: 2.5× less edge and 17 more days per challenge for
 9 points of win rate. It is the clearest illustration of §5 — win rate only pays
@@ -258,15 +258,37 @@ of the opportunities and all of the edge.
 | 15 min | +0.118 | — | most |
 | 30 min | +0.205 | — | many |
 | 45 min | +0.334 | 83.4% | 12 (10%) |
-| **60 min** | **+0.362** | **84.2%** | 7 (6%) |
-| 90 min | +0.375 | 85.2% | 4 (3%) |
+| 60 min | +0.362 | 84.2% | 7 (6%) |
+| **90 min** | **+0.375** | **85.2%** | **4 (3%)** |
 | 120 min | +0.373 | 85.0% | 4 (3%) |
 | 180 min | +0.370 | 85.0% | 2 (2%) |
 
-**95% of trades finish inside 60 minutes on their own**, so the cap barely acts.
-Going 60 → 90 gains +0.013R from **two trades out of 119** — smaller than the
-±0.05R error bar, so noise. 60 is the rounder rule. Do not go below it: 45 cuts
-12 trades averaging +1.09 R.
+**Chosen: 90 minutes.** Re-tested on the 2026 live configuration (72 trades,
+Monday–Thursday, midpoint stop, 2R target, stop move on):
+
+| | 60 min | 90 min |
+|---|---|---|
+| Win rate | 52.8% | **54.2%** |
+| EV | +0.615 | **+0.654** |
+| Total R | +44.3 | **+47.1** |
+| Total % | +88.6% | **+94.2%** |
+| Pass both | 95.7% | **96.5%** |
+| Worst drawdown | 7.2% | **6.3%** |
+| Longest losing run | 5 | **3** |
+
+Every measure improves, including the two that decide a challenge. The mechanism
+is specific: of the **7 trades the 60-minute cap cut short**, three were within a
+hair of the target and reached it once given the time (25 Mar +1.57 → +1.99,
+28 Jul +1.52 → +2.00, 12 Aug +1.57 → +2.00 — that last one was 0.57 points, or
+0.08 R, from the target in the final minute before the cap fired). One flipped
+from a loss to a win (26 May −0.41 → +0.70). One gave back 0.20 R. **None turned
+into a loss**, and four still hit the cap, just later and higher.
+
+**But be honest about the sample:** only **9 of 72 trades change at all** and the
+paired t-statistic is **1.98**, just under the significance bar. This is a
+mechanism argument with the numbers pointing the same way, not a proven edge. Do
+not go below 60: 45 cuts 12 trades averaging +1.09 R. Above 90 it decays — 120
+gives back a third of the gain.
 
 Note the shape: fast trades lose (−0.19R in the first 15 minutes), slow trades
 win (+1.13R at 30–45). A trade going nowhere quickly is a bad trade — but the cap

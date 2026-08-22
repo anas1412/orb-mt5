@@ -12,7 +12,7 @@ Runs identically on **Windows** and on **Linux under Wine**. The backtests in
 00:00 UTC ─── mark the 15-minute range ─── 00:15 ─── watch for an M1 close
               outside it, up to 00:29 ─── enter at market ─── stop at the range
               midpoint, target 2R ─── at +0.5R pull the stop to −0.5R ───
-              close after 60 minutes if neither level is hit
+              close after 90 minutes if neither level is hit
 ```
 
 ## Results in one table
@@ -134,7 +134,7 @@ That file is what the analysis scripts consume.
 | `InpSignalTF` | `PERIOD_M1` | confirmation candle |
 | `InpNoEntryAfterMin` | `15` | stop looking this many minutes after the range closes |
 | `InpForceCloseMin` | `360` | flatten everything this long after the range closes (backstop) |
-| `InpMaxHoldMinutes` | `60` | per-position cap, measured from its own fill |
+| `InpMaxHoldMinutes` | **`90`** | per-position cap, measured from its own fill |
 
 `InpTimeZone` answers *"which clock does this session follow?"*, not *"where is
 this asset from"*. Tokyo never observes DST, so `Tokyo 09:00` and `UTC 00:00` are

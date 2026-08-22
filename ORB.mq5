@@ -50,7 +50,7 @@ input int              InpRangeMinutes    = 15;            // Range length (minu
 input ENUM_TIMEFRAMES  InpSignalTF        = PERIOD_M1;     // Signal timeframe
 input int              InpNoEntryAfterMin = 15;            // No entry after (min from range close, 0=off)
 input int              InpForceCloseMin   = 360;           // Force close all (min from range close, 0=off)
-input int              InpMaxHoldMinutes  = 60;            // Max hold per position (min from its fill, 0=off)
+input int              InpMaxHoldMinutes  = 90;            // Max hold per position (min from its fill, 0=off)
 
 input group                 "Broker time"
 input int              InpWinterOffset    = 2;             // Broker winter offset (hours ahead of UTC)

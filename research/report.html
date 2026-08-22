@@ -91,7 +91,7 @@ trying. This is what survived.</p>
   <div class="t">Verdict</div>
   <p><strong>One configuration works: Asia, 00:00 UTC, 15-minute range, M1
   confirmation, stop at the range midpoint, 2R target, stop moved to
-  &minus;0.5R once the trade reaches +0.5R, 60-minute hold cap, 2% risk.</strong>
+  &minus;0.5R once the trade reaches +0.5R, 90-minute hold cap, 2% risk.</strong>
   With the half-of-the-range rule (&sect;12) that returns +0.443 R per trade
   in 2026, a 44.6% win rate and an 86.6% chance of passing both challenge phases
   in about 19 trading days.</p>
@@ -398,13 +398,13 @@ edge.</p>
 <tr><td>15 min</td><td class="neg">+0.118</td><td>&mdash;</td><td>most</td></tr>
 <tr><td>30 min</td><td>+0.205</td><td>&mdash;</td><td>many</td></tr>
 <tr><td>45 min</td><td>+0.334</td><td>83.4%</td><td>12 (10%)</td></tr>
-<tr class="hi"><td>60 min</td><td>+0.362</td><td>84.2%</td><td>7 (6%)</td></tr>
-<tr><td>90 min</td><td>+0.375</td><td>85.2%</td><td>4 (3%)</td></tr>
+<tr><td>60 min</td><td>+0.362</td><td>84.2%</td><td>7 (6%)</td></tr>
+<tr class="hi"><td>90 min</td><td>+0.375</td><td>85.2%</td><td>4 (3%)</td></tr>
 <tr><td>120 min</td><td>+0.373</td><td>85.0%</td><td>4 (3%)</td></tr>
 <tr><td>180 min</td><td>+0.370</td><td>85.0%</td><td>2 (2%)</td></tr>
 </tbody></table></div>
 
-<p><strong>95% of trades finish inside 60 minutes on their own</strong>, so the
+<p><strong>95% of trades finish inside an hour on their own</strong>, so the
 cap barely does anything. Going 60 &rarr; 90 gains +0.013 R from
 <strong>two trades out of 119</strong> &mdash; smaller than the &plusmn;0.05 R
 error bar, so it is noise, not a finding. 60 is the rounder rule. Do not go

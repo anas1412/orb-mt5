@@ -26,7 +26,7 @@
   "date": "2026-01-08",
   "day": "Thu",
   "dir": "buy",
-  "R": -1.036,
+  "R": -1.037,
   "score": 0.935,
   "range_pts": 336,
   "held": 2,
@@ -59,10 +59,10 @@
   "date": "2026-01-14",
   "day": "Wed",
   "dir": "buy",
-  "R": 0.889,
+  "R": 1.315,
   "score": 0.766,
   "range_pts": 1078,
-  "held": 60,
+  "held": 90,
   "file": "2026-01-14_long_win.png"
  },
  {
@@ -235,10 +235,10 @@
   "date": "2026-03-11",
   "day": "Wed",
   "dir": "buy",
-  "R": 1.404,
+  "R": 1.206,
   "score": 0.514,
   "range_pts": 1143,
-  "held": 60,
+  "held": 90,
   "file": "2026-03-11_long_win.png"
  },
  {
@@ -290,10 +290,10 @@
   "date": "2026-03-25",
   "day": "Wed",
   "dir": "buy",
-  "R": 1.572,
+  "R": 1.994,
   "score": 0.74,
   "range_pts": 1752,
-  "held": 60,
+  "held": 63,
   "file": "2026-03-25_long_win.png"
  },
  {
@@ -301,10 +301,10 @@
   "date": "2026-03-26",
   "day": "Thu",
   "dir": "buy",
-  "R": 0.031,
+  "R": 0.126,
   "score": 0.996,
   "range_pts": 2961,
-  "held": 60,
+  "held": 90,
   "file": "2026-03-26_long_win.png"
  },
  {
@@ -477,7 +477,7 @@
   "date": "2026-05-19",
   "day": "Tue",
   "dir": "sell",
-  "R": 1.993,
+  "R": 1.994,
   "score": 0.845,
   "range_pts": 1237,
   "held": 35,
@@ -510,11 +510,11 @@
   "date": "2026-05-26",
   "day": "Tue",
   "dir": "sell",
-  "R": -0.407,
+  "R": 0.698,
   "score": 0.675,
   "range_pts": 1130,
-  "held": 60,
-  "file": "2026-05-26_short_loss.png"
+  "held": 90,
+  "file": "2026-05-26_short_win.png"
  },
  {
   "n": 48,
@@ -697,10 +697,10 @@
   "date": "2026-07-28",
   "day": "Tue",
   "dir": "sell",
-  "R": 1.515,
+  "R": 1.999,
   "score": 0.579,
   "range_pts": 1208,
-  "held": 60,
+  "held": 61,
   "file": "2026-07-28_short_win.png"
  },
  {
@@ -741,10 +741,10 @@
   "date": "2026-08-12",
   "day": "Wed",
   "dir": "buy",
-  "R": 1.567,
+  "R": 2.001,
   "score": 0.913,
   "range_pts": 1292,
-  "held": 60,
+  "held": 88,
   "file": "2026-08-12_long_win.png"
  },
  {

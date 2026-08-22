@@ -4,6 +4,7 @@ import json, os, datetime as dt
 d=json.load(open("report_data.json"))
 idx=json.load(open("trade_index.json"))
 RISK=2.0   # % of the initial balance per trade, no compounding
+HOLD=90    # InpMaxHoldMinutes, must match the run that produced report_data.json
 H=d['headline']
 OUT   = os.path.expanduser("~/orb/ORB-asia-report.html")   # local deliverable
 PAGES = os.path.expanduser("~/orb/strategy/index.html")        # GitHub Pages entry point
@@ -74,7 +75,7 @@ def m_rows():
     return "".join(out)
 
 def exit_rows():
-    NAME={'target':'Target hit  (+2R)','stop':'Stopped out','time cap':'60-minute cap'}
+    NAME={'target':'Target hit  (+2R)','stop':'Stopped out','time cap':'%d-minute cap'%HOLD}
     out=[]
     for e in d['exits']:
         cls="pos" if e['total']>0 else "neg"
@@ -196,6 +197,8 @@ html=(tpl
  .replace("{{LSAVEDPCT}}","%+d%%"%d["losses"]["saved_pct"])
  .replace("{{NTARGET}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="target"))
  .replace("{{NSTOP}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="stop"))
+ .replace("{{SELFPCT}}","%.0f%%"%(100.0*(H["trades"]-next(e["n"] for e in d["exits"] if e["kind"]=="time cap"))/H["trades"]))
+ .replace("{{HOLD}}","%d"%HOLD)
  .replace("{{LASTDATE}}",dt.date.fromisoformat(d["coverage"]["last"]).strftime("%d %B %Y")).replace("{{GALLERY}}",gallery()).replace("{{FILTERS}}",filters())
  .replace("{{GENERATED}}","2026-08-22"))
 open(OUT,"w").write(html)

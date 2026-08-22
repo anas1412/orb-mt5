@@ -243,7 +243,7 @@ nothing that needs you awake at a screen.</p>
 <li><b>Stop at the range midpoint</b><span>Halfway between the high and the low. That distance is your 1R.</span></li>
 <li><b>Target at 2R</b><span>Twice the distance from entry to stop, measured from the actual fill.</span></li>
 <li><b>At +0.5R, move the stop to −0.5R</b><span>Once the trade is halfway to target, pull the stop so the worst case is half a loss instead of a full one. Once only — it never moves again.</span></li>
-<li><b>Flat after 60 minutes</b><span>If neither level is hit, close at market. 95% of trades finish on their own before this.</span></li>
+<li><b>Flat after 90 minutes</b><span>If neither level is hit, close at market. {{SELFPCT}} of trades finish on their own before this.</span></li>
 <li><b>Monday to Thursday, one trade a day</b><span>Fridays off. One position, then done regardless of the outcome.</span></li>
 <li><b>Risk 2% of the starting balance</b><span>Fixed, not compounding. Position size = 2% ÷ the distance from entry to stop.</span></li>
 </ol>
@@ -260,7 +260,7 @@ nothing that needs you awake at a screen.</p>
 <tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr>
 <tr><td><code>InpRR</code></td><td><b>2.0</b></td><td>target</td></tr>
 <tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0.5 / −0.5</b></td><td>the stop move</td></tr>
-<tr><td><code>InpMaxHoldMinutes</code></td><td><b>60</b></td><td>time cap</td></tr>
+<tr><td><code>InpMaxHoldMinutes</code></td><td><b>90</b></td><td>time cap</td></tr>
 <tr><td><code>InpTradeFri</code></td><td><b>false</b></td><td>Fridays off</td></tr>
 <tr><td><code>InpRiskPercent</code></td><td><b>2.0</b></td><td>risk per trade</td></tr>
 </tbody></table></div>
@@ -406,7 +406,7 @@ plain terms.</p>
 <tr><td><b>2R target</b></td><td>Roughly five times the expectancy of a 1R target. Pushing to 3R lowers the win rate faster than it raises the payoff.</td></tr>
 <tr><td><b>Stop to −0.5R, never to breakeven</b></td><td>A breakeven stop sits exactly where price retests after a breakout — it stops you for nothing on trades that would have worked. Half a risk unit back is far enough away to survive the retest.</td></tr>
 <tr><td><b>Trigger at +0.5R</b></td><td>Moving earlier tightens the stop while the trade is still inside noise. Moving later leaves more on the table when it reverses.</td></tr>
-<tr><td><b>60-minute cap</b></td><td>95% of trades finish on their own inside an hour. The cap only touches the tail, and it keeps you out of the market rather than holding through the London open.</td></tr>
+<tr><td><b>90-minute cap</b></td><td>{{SELFPCT}} of trades finish on their own before it. The cap only touches the tail, and it keeps you out of the market rather than holding through the London open. At 60 minutes it was cutting three trades off within a hair of their target.</td></tr>
 <tr><td><b>Monday to Thursday</b></td><td>Friday's Asia session runs into weekend position-squaring — flow driven by people flattening rather than committing. It was the only losing day of the week, at a 20.8% win rate.</td></tr>
 <tr><td><b>One trade a day</b></td><td>Keeps a bad day to a single loss and the daily exposure well inside any prop-firm daily limit.</td></tr>
 </tbody></table></div>

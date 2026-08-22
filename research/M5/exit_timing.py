@@ -1,6 +1,6 @@
 """Does closing before or after 01:00 UTC change the edge?
 
-Entries run to 00:29 and the hold cap is 60 minutes, so trades can live until
+Entries run to 00:29 and the hold cap is 90 minutes, so trades can live until
 about 01:29. This asks whether a hard flat-by-clock rule at various times beats
 letting the per-trade cap decide."""
 import csv, datetime as dt, statistics, math, sys

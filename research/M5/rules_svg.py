@@ -8,13 +8,14 @@ The stop sits at the range midpoint, so risk = half the range = 0.5 in v, and
 every R level falls out of that: entry v=1.0, +0.5R v=1.25, +2R v=2.0,
 -0.5R v=0.75, -1R (the first stop) v=0.5.
 """
-X0, PXM = 100, 10
-def X(m): return X0 + PXM * m
+X0, PXM = 100, 7.5
+def X(m): return round(X0 + PXM * m)
 def Y(v): return 260 - 100 * v
 
 R      = 0.5                      # one R in v units
-ENTRY_M, TRIG_M, WIN_M = 22, 35, 60
-CAP_M  = ENTRY_M + 60
+ENTRY_M, TRIG_M, WIN_M = 22, 35, 78
+HOLD_M = 90
+CAP_M  = ENTRY_M + HOLD_M
 AXIS_Y, H, W = 300, 400, 1080
 
 # the fifteen range candles: o, h, l, c in v units
@@ -26,17 +27,17 @@ RANGE = [(.55,.62,.48,.50),(.50,.58,.42,.44),(.44,.50,.30,.34),(.34,.40,.12,.18)
 WINDOW = [(.90,.97,.86,.92),(.92,.94,.84,.88),(.88,.99,.86,.95),(.95,.97,.87,.90),
           (.90,1.00,.88,.98),(.98,1.00,.92,.94),(.94,1.05,.93,1.02)]
 # the trade, once filled
-PATH = [(ENTRY_M,1.03),(24,1.10),(28,1.05),(32,1.18),(TRIG_M,1.25),
-        (40,1.22),(45,1.38),(50,1.32),(55,1.60),(58,1.75),(WIN_M,2.00)]
+PATH = [(ENTRY_M,1.03),(26,1.10),(30,1.05),(34,1.18),(TRIG_M,1.25),
+        (42,1.22),(50,1.38),(56,1.32),(64,1.60),(70,1.75),(WIN_M,2.00)]
 
 def candle(m, o, h, l, c, hi=False):
     up = c >= o
     col = "var(--pos)" if up else "var(--neg)"
-    x, mid = X(m) + 2, X(m) + 5
+    x, mid = X(m) + 1, X(m) + 3.75
     top, bot = Y(max(o, c)), Y(min(o, c))
     w = 2.4 if hi else 1.4
-    return ('<line x1="%d" y1="%.1f" x2="%d" y2="%.1f" stroke="%s" stroke-width="%.1f"/>'
-            '<rect x="%d" y="%.1f" width="6" height="%.1f" fill="%s"%s/>'
+    return ('<line x1="%.2f" y1="%.1f" x2="%.2f" y2="%.1f" stroke="%s" stroke-width="%.1f"/>'
+            '<rect x="%.1f" y="%.1f" width="5.5" height="%.1f" fill="%s"%s/>'
             % (mid, Y(h), mid, Y(l), col, w, x, top, max(bot - top, 1.6), col,
                ' stroke="var(--ink)" stroke-width="1.2"' if hi else ''))
 
@@ -50,7 +51,7 @@ def build():
       'top half, so only an upward break may be traded. In the 00:15 to 00:29 '
       'window a candle closes above the box, the trade is entered at market, the '
       'stop goes at the range midpoint and the target two R above entry. At plus '
-      'half an R the stop moves up to minus half an R. Anything still open sixty '
+      'half an R the stop moves up to minus half an R. Anything still open ninety '
       'minutes after entry is closed. A footer strip shows Monday to Thursday '
       'traded and Friday skipped.</desc>')
     a('<defs><marker id="arR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" '
@@ -86,29 +87,31 @@ def build():
         a(candle(15 + i, *c, hi=(i == 6)))
 
     # ---- the filter, called out on the candle that decides it ----
-    a('<text x="%d" y="60" font-size="13.5" font-weight="700" fill="var(--pos)">'
+    # sits in the clear band between the +2R line and the +0.5R line, both of
+    # which only start at the fill
+    a('<text x="%d" y="88" font-size="13.5" font-weight="700" fill="var(--pos)">'
       '00:14 closed in the TOP half</text>' % X0)
-    a('<text x="%d" y="80" font-size="12.5" fill="currentColor" fill-opacity=".72">'
+    a('<text x="%d" y="108" font-size="12.5" fill="currentColor" fill-opacity=".72">'
       'so only an up-break counts today</text>' % X0)
-    a('<path d="M%d 90 L%d %.0f" fill="none" stroke="var(--pos)" stroke-width="1.8" '
-      'stroke-opacity=".7" marker-end="url(#arR)"/>' % (X0 + 30, X(14) + 3, Y(.96)))
+    a('<path d="M%d 118 L%d %.0f" fill="none" stroke="var(--pos)" stroke-width="1.8" '
+      'stroke-opacity=".7" marker-end="url(#arR)"/>' % (X0 + 34, X(14) + 3, Y(.96)))
 
     # ---- levels, from the fill onward ----
     xe = X(ENTRY_M)
     a('<line x1="%d" y1="%.0f" x2="%d" y2="%.0f" stroke="var(--pos)" stroke-width="1.6" '
-      'stroke-dasharray="7 5"/>' % (xe, Y(1 + 2 * R), X(90), Y(1 + 2 * R)))
+      'stroke-dasharray="7 5"/>' % (xe, Y(1 + 2 * R), X(120), Y(1 + 2 * R)))
     a('<line x1="%d" y1="%.0f" x2="%d" y2="%.0f" stroke="var(--acc2)" stroke-width="1.4" '
-      'stroke-dasharray="6 4"/>' % (xe, Y(1 + .5 * R), X(90), Y(1 + .5 * R)))
+      'stroke-dasharray="6 4"/>' % (xe, Y(1 + .5 * R), X(120), Y(1 + .5 * R)))
     a('<line x1="%d" y1="%.0f" x2="%d" y2="%.0f" stroke="currentColor" stroke-opacity=".4" '
-      'stroke-width="1.6"/>' % (xe, Y(1), X(90), Y(1)))
+      'stroke-width="1.6"/>' % (xe, Y(1), X(120), Y(1)))
     # first stop, then the move
     xt = X(TRIG_M)
     a('<line x1="%d" y1="%.0f" x2="%d" y2="%.0f" stroke="var(--neg)" stroke-width="2" '
       'stroke-dasharray="9 5"/>' % (xe, Y(1 - R), xt, Y(1 - R)))
     a('<line x1="%d" y1="%.0f" x2="%d" y2="%.0f" stroke="var(--neg)" stroke-opacity=".28" '
-      'stroke-width="1.4" stroke-dasharray="3 6"/>' % (xt, Y(1 - R), X(90), Y(1 - R)))
+      'stroke-width="1.4" stroke-dasharray="3 6"/>' % (xt, Y(1 - R), X(120), Y(1 - R)))
     a('<line x1="%d" y1="%.0f" x2="%d" y2="%.0f" stroke="var(--neg)" stroke-width="2.2" '
-      'stroke-dasharray="9 5"/>' % (xt, Y(1 - .5 * R), X(90), Y(1 - .5 * R)))
+      'stroke-dasharray="9 5"/>' % (xt, Y(1 - .5 * R), X(120), Y(1 - .5 * R)))
     a('<path d="M%d %.0f L%d %.0f" fill="none" stroke="var(--neg)" stroke-width="3" '
       'marker-end="url(#arR)"/>' % (xt + 16, Y(1 - R) - 4, xt + 16, Y(1 - .5 * R) + 6))
 
@@ -132,7 +135,7 @@ def build():
     a('<line x1="%d" y1="106" x2="%d" y2="284" stroke="var(--neg)" stroke-opacity=".45" '
       'stroke-width="1.5" stroke-dasharray="4 5"/>' % (X(CAP_M), X(CAP_M)))
     a('<text x="%d" y="244" font-size="12.5" fill="var(--neg)" fill-opacity=".8" '
-      'text-anchor="end">flat 60 min after entry</text>' % (X(CAP_M) - 10))
+      'text-anchor="end">flat %d min after entry</text>' % (X(CAP_M) - 10, HOLD_M))
 
     # ---- right-hand level labels ----
     for v, lab, col in ((1 + 2 * R, "+2R", 'fill="var(--pos)" font-weight="640"'),
@@ -141,12 +144,13 @@ def build():
                         (1 - .5 * R, "&minus;0.5R", 'fill="var(--neg)" font-weight="640"'),
                         (1 - R, "&minus;1R", 'fill="var(--neg)" fill-opacity=".5"')
                         ):
-        a('<text x="%d" y="%.0f" font-size="12.5" %s>%s</text>' % (X(90) + 10, Y(v) + 4, col, lab))
+        a('<text x="%d" y="%.0f" font-size="12.5" %s>%s</text>' % (X(120) + 10, Y(v) + 4, col, lab))
 
     # ---- time axis ----
     a('<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="currentColor" stroke-opacity=".25" '
-      'stroke-width="1.5"/>' % (X0, AXIS_Y, X(90), AXIS_Y))
-    for m, lab in ((0, "00:00"), (15, "00:15"), (30, "00:30"), (60, "01:00"), (90, "01:30")):
+      'stroke-width="1.5"/>' % (X0, AXIS_Y, X(120), AXIS_Y))
+    for m, lab in ((0, "00:00"), (15, "00:15"), (30, "00:30"), (60, "01:00"),
+                   (90, "01:30"), (120, "02:00")):
         a('<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="currentColor" stroke-opacity=".3"/>'
           % (X(m), AXIS_Y - 5, X(m), AXIS_Y + 5))
         a('<text x="%d" y="%d" font-size="11.5" fill="currentColor" fill-opacity=".55" '
