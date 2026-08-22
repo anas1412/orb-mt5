@@ -1,0 +1,76 @@
+name: Release
+
+# Publish by tagging a commit:
+#   git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to package"
+        required: true
+
+permissions:
+  contents: write          # required to create a release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve the version
+        id: v
+        run: echo "tag=${{ github.event.inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      # Same script that can be run locally, so the packaging is testable
+      # rather than only discovered to be wrong at tag time.
+      - name: Build the package
+        run: python3 .github/scripts/package.py "${{ steps.v.outputs.tag }}" dist
+
+      - name: Write the release notes
+        run: |
+          TAG="${{ steps.v.outputs.tag }}"
+          {
+            echo "Asia-session opening range breakout on gold. One trade a day,"
+            echo "flat within 90 minutes, Monday to Thursday."
+            echo
+            echo "**[Full report and every trade](https://anas1412.github.io/orb-mt5/)**"
+            echo
+            echo "### Install"
+            echo
+            echo "Unzip, copy the \`MQL5\` folder into your terminal's data folder"
+            echo "(**File > Open Data Folder**), then open \`ORB.mq5\` in MetaEditor and"
+            echo "press **F7**. Full steps are in \`INSTALL.txt\`."
+            echo
+            echo "Ships **source, not a compiled .ex5** — the code you run is the code you"
+            echo "can read, and compiling is one keystroke."
+            echo
+            echo "### Check these two against your own broker"
+            echo
+            echo "| Input | What it is |"
+            echo "|---|---|"
+            echo "| \`InpWinterOffset\` | hours your broker is ahead of UTC in winter |"
+            echo "| \`InpFollowsUSDST\` | whether it switches DST on US or EU dates |"
+            echo
+            echo "The included \`CheckBrokerOffset\` script measures both. Everything else"
+            echo "is already set to the tested configuration."
+            echo
+            echo "### Checksum"
+            echo
+            echo '```'
+            cat dist/ORB-$TAG.zip.sha256
+            echo '```'
+          } > dist/notes.md
+          cat dist/notes.md
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.v.outputs.tag }}"
+          gh release create "$TAG" \
+            "dist/ORB-$TAG.zip" "dist/ORB-$TAG.zip.sha256" \
+            --title "ORB $TAG" \
+            --notes-file dist/notes.md
