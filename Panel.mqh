@@ -379,6 +379,26 @@ bool PHasPosition()
 
 bool PEditable() { return !g_tradingOn && !PHasPosition(); }
 
+//+------------------------------------------------------------------+
+//| Why an order would be rejected right now, or "" if nothing is     |
+//| blocking. MQL5 cannot switch AutoTrading on -- that button is     |
+//| deliberately the user's alone, and no API sets it -- so the panel |
+//| detects the state and refuses to claim it is online when it is    |
+//| not, rather than arming and failing at 00:15.                     |
+//+------------------------------------------------------------------+
+string PTradeBlocked()
+  {
+   if(!TerminalInfoInteger(TERMINAL_TRADE_ALLOWED))
+      return "AutoTrading is off in the toolbar";
+   if(!MQLInfoInteger(MQL_TRADE_ALLOWED))
+      return "'Allow algo trading' is off for this EA";
+   if(!AccountInfoInteger(ACCOUNT_TRADE_EXPERT))
+      return "the account does not permit EA trading";
+   if(!AccountInfoInteger(ACCOUNT_TRADE_ALLOWED))
+      return "trading is disabled on this account";
+   return "";
+  }
+
 //| Vertical rhythm. Every y in the panel comes from these, so a row can be
 //| added without hand-adjusting anything below it.
 int PBtnY()    { return P_Y + P_HEAD + 10; }
@@ -406,8 +426,13 @@ void PanelDraw()
    //--- header: name, then the instrument it is actually on
    PLabel("t1", C_LBL, P_Y + 11, "ORB", K_ACC, 10, "Tahoma Bold");
    PLabel("t2", C_LBL + 32, P_Y + 12, _Symbol, K_MUT, 9);
-   PLabel("t3", C_END, P_Y + 12, pos ? "IN TRADE" : (g_tradingOn ? "ONLINE" : "IDLE"),
-          pos ? K_ACC : (g_tradingOn ? K_POS : K_DIM), 8, "Tahoma", ANCHOR_RIGHT_UPPER);
+   const string blocked = PTradeBlocked();
+   string state; color statec;
+   if(g_tradingOn && blocked != "")   { state = "BLOCKED";  statec = K_NEG; }
+   else if(pos)                       { state = "IN TRADE"; statec = K_ACC; }
+   else if(g_tradingOn)               { state = "ONLINE";   statec = K_POS; }
+   else                               { state = "IDLE";     statec = K_DIM; }
+   PLabel("t3", C_END, P_Y + 12, state, statec, 8, "Tahoma", ANCHOR_RIGHT_UPPER);
 
    //--- the primary control gets the full width, so its label can never clip
    PButton("toggle", C_LBL, PBtnY(), C_END - C_LBL, P_BTN,
@@ -447,9 +472,11 @@ void PanelDraw()
 
    //--- one line of live state, and the only place a lock is ever explained:
    //--- an open position is a reason you cannot see from the button alone
-   PLabel("status", C_LBL, PStatusY(),
-          pos ? "position open - settings locked" : g_pStatus,
-          pos ? K_ACC : K_MUT, 8, "Consolas");
+   string line = g_pStatus;
+   color  linec = K_MUT;
+   if(g_tradingOn && blocked != "") { line = blocked;                         linec = K_NEG; }
+   else if(pos)                     { line = "position open - settings locked"; linec = K_ACC; }
+   PLabel("status", C_LBL, PStatusY(), line, linec, 8, "Consolas");
 
    PLabel("foot", C_LBL, PFootY(), "EA by Anas B. & Nydhal G.", K_DIM, 8);
    ChartRedraw();
@@ -539,8 +566,20 @@ bool PanelEvent(const int id, const long &lparam, const double &dparam, const st
 
    if(id == CHARTEVENT_OBJECT_CLICK && sparam == P_PFX "toggle")
      {
-      g_tradingOn = !g_tradingOn;
       ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
+      if(!g_tradingOn)
+        {
+         // arming: check the terminal will actually let an order through
+         const string why = PTradeBlocked();
+         if(why != "")
+           {
+            PrintFormat("panel: cannot go online - %s. MQL5 cannot switch that on "
+                        "for you; enable it and press again.", why);
+            PanelDraw();
+            return true;
+           }
+        }
+      g_tradingOn = !g_tradingOn;
       PrintFormat("panel: trading %s%s", g_tradingOn ? "ON" : "OFF",
                   (!g_tradingOn && PHasPosition())
                   ? " - no new entries; the open position is still managed" : "");
