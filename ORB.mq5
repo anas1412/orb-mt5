@@ -94,7 +94,6 @@ input ENUM_LOT_MODE    InpLotMode         = LOT_RISK_PERCENT;       // Lot sizin
 input double           InpLots            = 0.01;          // Fixed lot size
 input double           InpRiskPercent     = 2.0;           // Risk per trade (percent of balance)
 input double           InpRiskMoney       = 100.0;         // Risk per trade (account currency, LOT_RISK_MONEY)
-input double           InpCommissionPerLot= 0.0;           // Round-turn commission per lot (0 = ignore)
 input double           InpMaxDailyLossPct = 3.5;           // Stop opening trades once down this much today (0=off)
 input long             InpMagic           = 20260821;      // Magic number
 
@@ -850,11 +849,7 @@ double RiskOf(const double lots, const double entry, const double sl)
    const double tickSize  = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
    if(tickValue <= 0 || tickSize <= 0)
       return 0;
-   // Commission belongs in the risk. Measuring risk as price distance alone
-   // while the realised loss carries commission on top makes every full stop
-   // read as -1.05 or -1.13 R when the trade did exactly what it was told.
-   return MathAbs(entry - sl) / tickSize * tickValue * lots
-          + InpCommissionPerLot * lots;
+   return MathAbs(entry - sl) / tickSize * tickValue * lots;
   }
 
 //+------------------------------------------------------------------+
@@ -978,11 +973,7 @@ double LotsFor(const double entry, const double sl)
       const double riskAmount = (g_lotMode == LOT_RISK_MONEY)
                                 ? g_riskMoney
                                 : AccountInfoDouble(ACCOUNT_BALANCE) * g_riskPercent / 100.0;
-      // Solve for the lot size whose PRICE loss plus commission equals the
-      // target, rather than whose price loss alone does:
-      //     target = lots * lossPerLot + lots * commission
-      const double lossPerLot = MathAbs(entry - sl) / tickSize * tickValue
-                                + InpCommissionPerLot;
+      const double lossPerLot = MathAbs(entry - sl) / tickSize * tickValue;
       if(lossPerLot <= 0)
          return 0;
       lots = riskAmount / lossPerLot;
