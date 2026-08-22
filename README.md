@@ -219,9 +219,12 @@ not silently mis-sized.
 
 ### On-chart panel
 
+The header carries the state: **IDLE** when trading is off, **ONLINE** when it
+is armed and waiting, **IN TRADE** while a position is open.
+
 | Row | Control |
 |---|---|
-| `TRADING ON / OFF` | master switch, **starts OFF** |
+| `TRADING ON / OFF` | master switch, full width, **starts OFF** |
 | Risk per trade | value, plus a `%` / currency button that switches sizing mode |
 | Reward : risk | the target, in R |
 | Session start | `HH:MM` UTC — when the range begins |

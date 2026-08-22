@@ -19,10 +19,39 @@
 #property strict
 
 #define P_PFX  "ORBP_"          // object name prefix
-#define P_X    14               // distance from the chart corner
-#define P_Y    24
-#define P_W    276
-#define P_ROW  26
+
+//--- One grid. Every coordinate below is derived from these, so nothing can
+//--- drift out of the panel the way the old toggle did.
+#define P_X     12              // panel origin
+#define P_Y     20
+#define P_W     300             // panel width
+#define P_PAD   14              // inner margin
+#define P_HEAD  34              // header strip
+#define P_BTN   28              // primary button height
+#define P_ROW   24              // settings row pitch
+#define P_FLD   22              // control height inside a row
+
+//--- Columns, all measured from the panel edge so they stay aligned.
+#define C_LBL  (P_X + P_PAD)                    // label column
+#define C_VAL  (P_X + 150)                      // value column
+#define C_VALW  84
+#define C_UNI  (C_VAL + C_VALW + 6)             // unit / mode column
+#define C_UNIW  46
+#define C_END  (P_X + P_W - P_PAD)              // right content edge
+
+//--- Palette. Same family as the report, so the two look related.
+#define K_BG    C'22,21,18'
+#define K_HEAD  C'31,29,25'
+#define K_LINE  C'54,50,44'
+#define K_INK   C'235,231,222'
+#define K_MUT   C'140,133,122'
+#define K_DIM   C'86,82,76'
+#define K_ACC   C'201,168,106'
+#define K_POS   C'79,190,139'
+#define K_POSBG C'16,54,40'
+#define K_NEG   C'224,128,111'
+#define K_NEGBG C'56,24,21'
+#define K_FLD   C'15,14,12'
 
 // The host EA declares g_tradingOn, g_lotMode, g_riskPercent, g_riskMoney,
 // g_rr, g_moveAtR and g_moveToR before including this file, and the panel
@@ -98,11 +127,22 @@ void PStoreLoad()
 //| Object helpers                                                   |
 //+------------------------------------------------------------------+
 void PLabel(const string name, const int x, const int y, const string text,
-            const color clr, const int size = 8, const string font = "Tahoma")
+            const color clr, const int size = 8, const string font = "Tahoma",
+            const ENUM_ANCHOR_POINT anchor = ANCHOR_LEFT_UPPER)
   {
    const string n = P_PFX + name;
+   // An OBJ_LABEL that never gets its text set renders MetaTrader's own default
+   // ("Label1"), which is exactly what appeared under the panel. Refusing to
+   // create empty labels at all removes the possibility.
+   if(StringLen(text) == 0)
+     {
+      if(ObjectFind(0, n) >= 0)
+         ObjectDelete(0, n);
+      return;
+     }
    if(ObjectFind(0, n) < 0)
       ObjectCreate(0, n, OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, n, OBJPROP_ANCHOR, anchor);
    ObjectSetInteger(0, n, OBJPROP_CORNER, CORNER_LEFT_UPPER);
    ObjectSetInteger(0, n, OBJPROP_XDISTANCE, x);
    ObjectSetInteger(0, n, OBJPROP_YDISTANCE, y);
@@ -168,9 +208,10 @@ void PEdit(const string name, const int x, const int y, const int w, const int h
    ObjectSetInteger(0, n, OBJPROP_YSIZE, h);
    ObjectSetInteger(0, n, OBJPROP_ALIGN, ALIGN_RIGHT);
    ObjectSetInteger(0, n, OBJPROP_FONTSIZE, 9);
-   ObjectSetInteger(0, n, OBJPROP_BGCOLOR, editable ? C'34,32,28' : C'22,21,19');
-   ObjectSetInteger(0, n, OBJPROP_COLOR,   editable ? C'243,239,231' : C'110,105,98');
-   ObjectSetInteger(0, n, OBJPROP_BORDER_COLOR, editable ? C'201,168,106' : C'45,42,38');
+   ObjectSetInteger(0, n, OBJPROP_BGCOLOR, K_FLD);
+   ObjectSetInteger(0, n, OBJPROP_COLOR,   editable ? K_INK : K_DIM);
+   // a gold rim means "you can type here"; a flat one means read-only
+   ObjectSetInteger(0, n, OBJPROP_BORDER_COLOR, editable ? K_ACC : K_LINE);
    ObjectSetInteger(0, n, OBJPROP_READONLY, !editable);
    ObjectSetInteger(0, n, OBJPROP_SELECTABLE, false);
    ObjectSetInteger(0, n, OBJPROP_HIDDEN, true);
@@ -204,15 +245,14 @@ string PFieldLabel(const int f)
   {
    switch(f)
      {
-      case P_RISK:     return (g_lotMode == LOT_RISK_MONEY) ? "Risk per trade (cash)"
-                                                            : "Risk per trade (compounds)";
+      case P_RISK:     return (g_lotMode == LOT_RISK_MONEY) ? "Risk (fixed)" : "Risk (compounds)";
       case P_RR:       return "Reward : risk";
       case P_START:    return "Session start";
       case P_RANGE:    return "Range length";
       case P_WINDOW:   return "Break window";
       case P_STOPMOVE: return "Stop move";
-      case P_MOVEAT:   return "   move at";
-      case P_MOVETO:   return "   move to";
+      case P_MOVEAT:   return "Move at";
+      case P_MOVETO:   return "Move to";
      }
    return "";
   }
@@ -339,9 +379,14 @@ bool PHasPosition()
 
 bool PEditable() { return !g_tradingOn && !PHasPosition(); }
 
-//| One place decides where the status line lives, so PanelDraw and
-//| PanelSetStatus cannot disagree and make the text jump.
-int PStatusY() { return P_Y + 60 + P_FIELDS * P_ROW; }
+//| Vertical rhythm. Every y in the panel comes from these, so a row can be
+//| added without hand-adjusting anything below it.
+int PBtnY()    { return P_Y + P_HEAD + 10; }
+int PRowsY()   { return PBtnY() + P_BTN + 12; }
+int PRuleY()   { return PRowsY() + P_FIELDS * P_ROW + 4; }
+int PStatusY() { return PRuleY() + 12; }
+int PFootY()   { return PStatusY() + 18; }
+int PHeight()  { return PFootY() + 20 - P_Y; }
 
 //+------------------------------------------------------------------+
 //| Draw. Called on init and whenever anything changes.              |
@@ -351,59 +396,62 @@ void PanelDraw()
    if(!g_pVisible)
       return;
 
-   const bool   edit = PEditable();
-   const bool   pos  = PHasPosition();
-   const int    h    = 96 + P_FIELDS * P_ROW;
-   const color  ink  = C'243,239,231';
-   const color  mut  = C'148,140,128';
-   const color  acc  = C'201,168,106';
-   const color  ok   = C'79,190,139';
-   const color  no   = C'224,128,111';
+   const bool edit = PEditable();
+   const bool pos  = PHasPosition();
 
-   PBox("bg", P_X, P_Y, P_W, h, C'25,23,19', C'58,54,48');
-   PLabel("title", P_X + 12, P_Y + 9, "ORB  " + _Symbol, ink, 9, "Tahoma Bold");
+   //--- shell
+   PBox("bg", P_X, P_Y, P_W, PHeight(), K_BG, K_LINE);
+   PBox("head", P_X + 1, P_Y + 1, P_W - 2, P_HEAD - 1, K_HEAD, K_HEAD);
 
-   PButton("toggle", P_X + P_W - 96, P_Y + 6, 84, 22,
-           g_tradingOn ? "TRADING ON" : "TRADING OFF",
-           g_tradingOn ? C'18,60,44' : C'62,26,22',
-           g_tradingOn ? ok : no);
+   //--- header: name, then the instrument it is actually on
+   PLabel("t1", C_LBL, P_Y + 11, "ORB", K_ACC, 10, "Tahoma Bold");
+   PLabel("t2", C_LBL + 32, P_Y + 12, _Symbol, K_MUT, 9);
+   PLabel("t3", C_END, P_Y + 12, pos ? "IN TRADE" : (g_tradingOn ? "ONLINE" : "IDLE"),
+          pos ? K_ACC : (g_tradingOn ? K_POS : K_DIM), 8, "Tahoma", ANCHOR_RIGHT_UPPER);
 
-   int y = P_Y + 40;
+   //--- the primary control gets the full width, so its label can never clip
+   PButton("toggle", C_LBL, PBtnY(), C_END - C_LBL, P_BTN,
+           g_tradingOn ? "TRADING  ON" : "TRADING  OFF",
+           g_tradingOn ? K_POSBG : K_NEGBG,
+           g_tradingOn ? K_POS   : K_NEG);
+
+   //--- settings
+   int y = PRowsY();
    for(int f = 0; f < P_FIELDS; f++)
      {
-      const string nm = PFieldName(f);
-      // the two move rows are meaningless while the stop move is off
-      const bool dim  = (!g_stopMoveOn && (f == P_MOVEAT || f == P_MOVETO));
-      PLabel("l_" + nm, P_X + 12, y + 5, PFieldLabel(f), dim ? C'90,86,80' : mut, 8);
+      const string nm  = PFieldName(f);
+      const bool   sub = (f == P_MOVEAT || f == P_MOVETO);   // children of Stop move
+      const bool   dim = (!g_stopMoveOn && sub);
+      const int    ly  = y + (P_ROW - P_FLD) / 2 + 5;
+
+      PLabel("l_" + nm, C_LBL + (sub ? 12 : 0), ly, PFieldLabel(f),
+             dim ? K_DIM : K_MUT, 8);
 
       if(PFieldIsToggle(f))
-        {
-         PButton("b_" + nm, P_X + 138, y, 74, 20, g_stopMoveOn ? "ON" : "OFF",
-                 g_stopMoveOn ? C'18,60,44' : C'52,24,21',
-                 g_stopMoveOn ? ok : no);
-        }
+         PButton("b_" + nm, C_VAL, y + 1, C_VALW, P_FLD, g_stopMoveOn ? "ON" : "OFF",
+                 g_stopMoveOn ? K_POSBG : K_NEGBG, g_stopMoveOn ? K_POS : K_NEG);
       else
         {
-         PEdit("e_" + nm, P_X + 138, y, 74, 20, PFieldText(f), edit && !dim);
+         PEdit("e_" + nm, C_VAL, y + 1, C_VALW, P_FLD, PFieldText(f), edit && !dim);
          if(f == P_RISK)
-            // the unit doubles as the mode switch: percent compounds, cash does not
-            PButton("mode", P_X + 216, y, 40, 20, PFieldUnit(f),
-                    edit ? C'40,37,31' : C'26,25,22', edit ? acc : mut);
+            // the unit is the mode switch: percent compounds, cash does not
+            PButton("mode", C_UNI, y + 1, C_UNIW, P_FLD, PFieldUnit(f),
+                    edit ? K_HEAD : K_BG, edit ? K_ACC : K_DIM);
          else
-            PLabel("u_" + nm, P_X + 218, y + 5, PFieldUnit(f), dim ? C'90,86,80' : mut, 8);
+            PLabel("u_" + nm, C_UNI + 3, ly, PFieldUnit(f), dim ? K_DIM : K_MUT, 8);
         }
       y += P_ROW;
      }
 
-   // why the fields look the way they do, rather than leaving you guessing
-   string why;
-   color  whyc;
-   if(edit)          { why = "fields unlocked";                    whyc = acc; }
-   else if(pos)      { why = "locked: position open";              whyc = no;  }
-   else              { why = "locked: switch trading off to edit"; whyc = mut; }
-   PLabel("lock", P_X + 12, P_Y + 44 + P_FIELDS * P_ROW, why, whyc, 8);
+   PBox("rule", C_LBL, PRuleY(), C_END - C_LBL, 1, K_LINE, K_LINE);
 
-   PLabel("status", P_X + 12, PStatusY(), g_pStatus, mut, 8, "Consolas");
+   //--- one line of live state, and the only place a lock is ever explained:
+   //--- an open position is a reason you cannot see from the button alone
+   PLabel("status", C_LBL, PStatusY(),
+          pos ? "position open - settings locked" : g_pStatus,
+          pos ? K_ACC : K_MUT, 8, "Consolas");
+
+   PLabel("foot", C_LBL, PFootY(), "EA by Anas B. & Nydhal G.", K_DIM, 8);
    ChartRedraw();
   }
 
@@ -439,8 +487,7 @@ void PanelSetStatus(const string s)
    if(!g_pVisible || s == g_pStatus)
       return;
    g_pStatus = s;
-   PLabel("status", P_X + 12, PStatusY(), s, C'148,140,128', 8, "Consolas");
-   ChartRedraw();
+   PanelDraw();          // one draw path, so nothing can disagree about layout
   }
 
 //+------------------------------------------------------------------+
