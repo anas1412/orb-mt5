@@ -220,7 +220,10 @@ not silently mis-sized.
 ### On-chart panel
 
 A toggle and four editable fields: risk, reward:risk, and the two stop-move
-levels. The fields are locked unless trading is **off** *and* there is **no open
+levels. The unit button beside the risk field switches the sizing mode —
+`%` for percent of the current balance (compounds) or your account currency for
+a fixed cash risk (does not). The label says which you are in, so the field can
+never be ambiguous. The fields are locked unless trading is **off** *and* there is **no open
 position** — the stop-move logic recovers a trade's original risk from its take
 profit divided by RR, so letting RR change mid-trade would move the stop to the
 wrong price. Locking removes the possibility instead of guarding against it.

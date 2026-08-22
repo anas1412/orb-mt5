@@ -182,7 +182,8 @@ string PFieldLabel(const int f)
   {
    switch(f)
      {
-      case P_RISK:   return (g_lotMode == LOT_RISK_MONEY) ? "Risk per trade" : "Risk per trade";
+      case P_RISK:   return (g_lotMode == LOT_RISK_MONEY) ? "Risk per trade (cash)"
+                                                          : "Risk per trade (compounds)";
       case P_RR:     return "Reward : risk";
       case P_MOVEAT: return "Move stop at";
       case P_MOVETO: return "Move stop to";
@@ -307,7 +308,12 @@ void PanelDraw()
       PEdit("e_" + nm, P_X + 138, y, 74, 20,
             DoubleToString(PFieldValue(f), (f == P_RISK && g_lotMode == LOT_RISK_MONEY) ? 0 : 2),
             edit);
-      PLabel("u_" + nm, P_X + 218, y + 5, PFieldUnit(f), mut, 8);
+      if(f == P_RISK)
+         // the unit doubles as the mode switch: percent compounds, cash does not
+         PButton("mode", P_X + 216, y, 34, 20, PFieldUnit(f),
+                 edit ? C'40,37,31' : C'26,25,22', edit ? acc : mut);
+      else
+         PLabel("u_" + nm, P_X + 218, y + 5, PFieldUnit(f), mut, 8);
       y += P_ROW;
      }
 
@@ -358,6 +364,27 @@ bool PanelEvent(const int id, const long &lparam, const double &dparam, const st
   {
    if(!g_pVisible)
       return false;
+
+   if(id == CHARTEVENT_OBJECT_CLICK && sparam == P_PFX "mode")
+     {
+      ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
+      if(!PEditable())
+        {
+         Print("panel: locked - switch trading off and close any position first");
+         PanelDraw();
+         return true;
+        }
+      g_lotMode = (g_lotMode == LOT_RISK_MONEY) ? LOT_RISK_PERCENT : LOT_RISK_MONEY;
+      PrintFormat("panel: risk mode %s (%s)",
+                  g_lotMode == LOT_RISK_MONEY ? "fixed cash" : "percent of balance",
+                  g_lotMode == LOT_RISK_MONEY
+                  ? StringFormat("%.0f %s a trade, does not compound",
+                                 g_riskMoney, AccountInfoString(ACCOUNT_CURRENCY))
+                  : StringFormat("%.2f%% of the balance a trade, compounds", g_riskPercent));
+      PStoreSave();
+      PanelDraw();
+      return true;
+     }
 
    if(id == CHARTEVENT_OBJECT_CLICK && sparam == P_PFX "toggle")
      {
