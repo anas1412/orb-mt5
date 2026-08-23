@@ -34,12 +34,24 @@ for r in rows:
 rows.sort(key=lambda r:r['t'])
 R=[r['R'] for r in rows]
 
+def pf(v):
+    """Gross wins over gross losses. None when there are no losses to divide by:
+    a week that never lost has an infinite ratio, which is true but says nothing,
+    so the report shows a dash rather than a number that looks meaningful."""
+    gain = sum(x for x in v if x > 0)
+    loss = -sum(x for x in v if x <= 0)
+    if loss <= 0:
+        return None
+    return round(gain / loss, 2)
+
 def blk(rs, days):
     if not rs: return None
     v=[r['R'] for r in rs]; w=len([x for x in v if x>0])
     return dict(days=days, trades=len(v), wins=w, losses=len(v)-w,
                 wr=round(100.0*w/len(v),1), ev=round(sum(v)/len(v),3),
-                total=round(sum(v),1), ret=round(RISK*sum(v),1))
+                total=round(sum(v),1), ret=round(RISK*sum(v),1),
+                gain=round(sum(x for x in v if x>0),1),
+                loss=round(sum(x for x in v if x<=0),1), pf=pf(v))
 
 out={}
 out['headline']=dict(
@@ -49,6 +61,9 @@ out['headline']=dict(
     se=round(statistics.pstdev(R)/math.sqrt(len(R)),3),
     total=round(sum(R),1), ret=round(RISK*sum(R),0),
     sd=round(statistics.pstdev(R),2),
+    pf=pf(R),
+    gain=round(sum(x for x in R if x>0),1),
+    loss=round(sum(x for x in R if x<=0),1),
     sessions=len(sessions), taken=len({r['date'] for r in rows}),
 )
 # streaks
@@ -93,7 +108,8 @@ for k in sorted(weeks):
                              wr=(b or {}).get('wr',None),
                              ev=(b or {}).get('ev',None),
                              total=(b or {}).get('total',0.0),
-                             ret=(b or {}).get('ret',0.0)))
+                             ret=(b or {}).get('ret',0.0),
+                             pf=(b or {}).get('pf',None)))
 # quarterly
 out['quarters']=[]
 for q,(a,b_) in enumerate([(1,3),(4,6),(7,9)],1):
@@ -145,7 +161,7 @@ def halves():
     def st(x):
         n=len(x); w=len([y for y in x if y>0])
         return dict(n=n,wins=w,wr=round(100.0*w/n,1),ev=round(sum(x)/n,3),
-                    total=round(sum(x),1),ret=round(RISK*sum(x),1))
+                    total=round(sum(x),1),ret=round(RISK*sum(x),1),pf=pf(x))
     return dict(same=st([r for c,r in v if c>=0.50]),
                 opp =st([r for c,r in v if c< 0.50]),
                 all =st([r for c,r in v]))

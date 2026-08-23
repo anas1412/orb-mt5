@@ -40,38 +40,46 @@ def curve_svg(curve, w=1180, h=280, pad=44):
             '<stop offset="100%%" stop-color="var(--pos)" stop-opacity="0"/></linearGradient></defs>'
             '%s</svg>')%(w,h,ys[-1],"".join(g))
 
+def pfc(v, cls=""):
+    """One cell. A period with no losses has no meaningful ratio, so it shows a
+    dash instead of a number that would read as spectacular."""
+    if v is None:
+        return '<td class="q">&ndash;</td>'
+    return '<td class="%s">%.2f</td>' % (cls or ("pos" if v >= 1 else "neg"), v)
+
 def weeks_rows():
     out=[]
     for w in d['weeks']:
         s=dt.date.fromisoformat(w['start'])
         lab="%s&nbsp;&ndash;&nbsp;%s"%(s.strftime("%d %b"),(s+dt.timedelta(days=3)).strftime("%d %b"))
         if w['trades']==0:
-            out.append('<tr class="q"><td>%s</td><td>%d</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>'
+            out.append('<tr class="q"><td>%s</td><td>%d</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>'
                        %(lab,w['sessions'])); continue
         cls="pos" if w['total']>0 else ("neg" if w['total']<0 else "")
         out.append('<tr><td>%s</td><td>%d</td><td><b>%d</b></td><td>%d / %d</td><td>%.0f%%</td>'
-                   '<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td>'
+                   '%s<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td>'
                    '<td class="%s"><b>%+.1f%%</b></td></tr>'
                    %(lab,w['sessions'],w['trades'],w['wins'],w['trades']-w['wins'],w['wr'],
-                     cls,w['ev'],cls,w['total'],cls,w['ret']))
+                     pfc(w['pf']),cls,w['ev'],cls,w['total'],cls,w['ret']))
     return "".join(out)
 
 def q_rows():
     out=[]
     for q in d['quarters']:
         out.append('<tr><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d / %d</td><td>%.1f%%</td>'
-                   '<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td><td class="pos"><b>%+.1f%%</b></td></tr>'
-                   %(q['q'],q['days'],q['trades'],q['wins'],q['losses'],q['wr'],q['ev'],q['total'],q['ret']))
+                   '%s<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td><td class="pos"><b>%+.1f%%</b></td></tr>'
+                   %(q['q'],q['days'],q['trades'],q['wins'],q['losses'],q['wr'],
+                     pfc(q['pf']),q['ev'],q['total'],q['ret']))
     return "".join(out)
 
 def m_rows():
     out=[]
     for m in d['months']:
         out.append('<tr><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d / %d</td><td>%.1f%%</td>'
-                   '<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td>'
+                   '%s<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td>'
                    '<td class="pos"><b>%+.1f%%</b></td></tr>'
-                   %(m['month'],m['days'],m['trades'],m['wins'],m['losses'],m['wr'],m['ev'],
-                     m['total'],m['ret']))
+                   %(m['month'],m['days'],m['trades'],m['wins'],m['losses'],m['wr'],
+                     pfc(m['pf']),m['ev'],m['total'],m['ret']))
     return "".join(out)
 
 def exit_rows():
@@ -111,17 +119,17 @@ def half_rows():
     for label,key,pill,verdict in spec:
         q=hv[key]
         out.append('<tr class="%s"><td><b>%s</b></td><td>%d</td><td>%d</td><td>%.1f%%</td>'
-                   '<td class="%s">%+.3f</td><td class="%s">%+.1f R</td><td class="%s">%+.1f%%</td>'
+                   '%s<td class="%s">%+.3f</td><td class="%s">%+.1f R</td><td class="%s">%+.1f%%</td>'
                    '<td><span class="pill %s">%s</span></td></tr>'
-                   %("hi" if key=="same" else "q", label, q['n'], q['wins'], q['wr'],
+                   %("hi" if key=="same" else "q", label, q['n'], q['wins'], q['wr'], pfc(q['pf']),
                      "pos" if q['ev']>0 else "neg", q['ev'],
                      "pos" if q['total']>0 else "neg", q['total'],
                      "pos" if q['total']>0 else "neg", q['total']*RISK, pill, verdict))
     a=hv['all']
     out.append('<tr><td><b>Every break, no filter</b></td><td>%d</td><td>%d</td><td>%.1f%%</td>'
-               '<td class="pos">%+.3f</td><td class="pos">%+.1f R</td>'
+               '%s<td class="pos">%+.3f</td><td class="pos">%+.1f R</td>'
                '<td class="pos">%+.1f%%</td><td></td></tr>'
-               %(a['n'],a['wins'],a['wr'],a['ev'],a['total'],a['total']*RISK))
+               %(a['n'],a['wins'],a['wr'],pfc(a['pf']),a['ev'],a['total'],a['total']*RISK))
     return "".join(out)
 
 def gallery():
@@ -199,6 +207,8 @@ html=(tpl
  .replace("{{NSTOP}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="stop"))
  .replace("{{SELFPCT}}","%.0f%%"%(100.0*(H["trades"]-next(e["n"] for e in d["exits"] if e["kind"]=="time cap"))/H["trades"]))
  .replace("{{HOLD}}","%d"%HOLD)
+ .replace("{{PF}}","%.2f"%H["pf"])
+ .replace("{{GAIN}}","%+.1f"%H["gain"]).replace("{{LOSS}}","%.1f"%abs(H["loss"]))
  .replace("{{LASTDATE}}",dt.date.fromisoformat(d["coverage"]["last"]).strftime("%d %B %Y")).replace("{{GALLERY}}",gallery()).replace("{{FILTERS}}",filters())
  .replace("{{GENERATED}}","2026-08-22"))
 open(OUT,"w").write(html)

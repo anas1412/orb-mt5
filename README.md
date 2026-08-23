@@ -38,6 +38,7 @@ XAUUSD, real ticks, 2026 (2 Jan – 21 Aug), 2% risk per trade.
 | Trades | **72** from 132 eligible sessions |
 | Win rate | **54.2%** — 39 wins, 33 losses |
 | Expectancy | **+0.654 R** per trade (±0.166 standard error) |
+| Profit factor | **2.71** — won +74.6 R against −27.6 R lost |
 | Total | **+47.1 R** = **+94%** of the account |
 | Worst drawdown | **6.3%** |
 | Longest losing run | **3** |

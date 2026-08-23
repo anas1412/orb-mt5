@@ -210,6 +210,8 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
       <div class="n">both phases, ~{{DAYS2}} days</div></div>
     <div class="k"><div class="l">Worst drawdown</div><div class="v">{{MAXDD}}%</div>
       <div class="n">limit is 10%</div></div>
+    <div class="k"><div class="l">Profit factor</div><div class="v pos">{{PF}}</div>
+      <div class="n">{{GAIN}} R won vs {{LOSS}} R lost</div></div>
   </div>
 
   <nav>
@@ -300,8 +302,8 @@ price is still up there. You are reading <em>where it is</em>, not which way it
 moved.</p></div>
 
 <div class="scroll"><table>
-<caption>Every 2026 Monday&ndash;Thursday break, split by which half the range closed in. Totals, not averages, except EV. Total % is the account move at 2% risk per trade.</caption>
-<thead><tr><th>Which half broke</th><th>Trades</th><th>Wins</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Total %</th><th>Verdict</th></tr></thead>
+<caption>Every 2026 Monday&ndash;Thursday break, split by which half the range closed in. Totals, not averages, except EV. Total % is the account move at 2% risk per trade. Profit factor is R won divided by R lost &mdash; 2.00 means twice as much won as lost.</caption>
+<thead><tr><th>Which half broke</th><th>Trades</th><th>Wins</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Total %</th><th>Verdict</th></tr></thead>
 <tbody>{{HALFROWS}}</tbody></table></div>
 
 <div class="good"><div class="t">Why this filter is worth having</div>
@@ -424,12 +426,12 @@ compounding, so each R is worth a constant two percentage points.</p>
 
 <div class="scroll"><table>
 <caption>By quarter — trading days available, trades taken, and totals</caption>
-<thead><tr><th>Quarter</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
+<thead><tr><th>Quarter</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
 <tbody>{{QROWS}}</tbody></table></div>
 
 <div class="scroll"><table>
 <caption>By month</caption>
-<thead><tr><th>Month</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
+<thead><tr><th>Month</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
 <tbody>{{MROWS}}</tbody></table></div>
 
 <div class="good"><div class="t">Every quarter positive</div>
@@ -447,7 +449,7 @@ the entry conditions.</p>
 
 <div class="scroll"><table>
 <caption>Every week of 2026. Trades taken out of the days available.</caption>
-<thead><tr><th>Week</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
+<thead><tr><th>Week</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
 <tbody>{{WEEKROWS}}</tbody></table></div>
 
 <p>The pattern worth noticing: <strong>you take a trade on roughly half the days
