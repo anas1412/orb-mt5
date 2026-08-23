@@ -45,11 +45,15 @@ h1 em{font-style:normal;color:var(--acc);}
 .lede{font-size:1.14rem;color:var(--ink2);max-width:60ch;margin:0}
 
 /* ---------- kpi ---------- */
-.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:13px;margin:36px 0 8px}
-.k{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 19px;box-shadow:var(--sh)}
+.kpi{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:13px;margin:36px 0 8px}
+/* ten cards divide evenly by 5 and by 2, so neither layout leaves a stranded
+   tile on its own row; 3 across would. */
+@media (max-width:1000px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px) {.kpi{grid-template-columns:1fr}}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;box-shadow:var(--sh);min-width:0}
 .k .l{font-size:10.5px;font-weight:640;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:9px}
-.k .v{font-size:1.85rem;font-weight:670;letter-spacing:-.03em;line-height:1}
-.k .n{font-size:12.5px;color:var(--mut);margin-top:7px;line-height:1.4}
+.k .v{font-size:clamp(1.45rem,2.4vw,1.8rem);font-weight:670;letter-spacing:-.03em;line-height:1}
+.k .n{font-size:12px;color:var(--mut);margin-top:7px;line-height:1.4}
 .k.big{background:linear-gradient(150deg,color-mix(in srgb,var(--pos) 13%,var(--panel)),var(--panel))}
 
 /* ---------- sections ---------- */
@@ -201,17 +205,24 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
     <div class="k big"><div class="l">Total return</div><div class="v pos">+94%</div>
       <div class="n">+47.1 R banked</div></div>
     <div class="k"><div class="l">Win rate</div><div class="v">54.2%</div>
-      <div class="n">39 wins · 33 losses</div></div>
+      <div class="n">39 wins &middot; 33 losses</div></div>
     <div class="k"><div class="l">Per trade</div><div class="v pos">+0.654 R</div>
       <div class="n">&plusmn;0.166 standard error</div></div>
-    <div class="k"><div class="l">Trades taken</div><div class="v">72</div>
-      <div class="n">from 132 eligible sessions</div></div>
+    <div class="k"><div class="l">Profit factor</div><div class="v pos">2.71</div>
+      <div class="n">+74.6 R won vs 27.6 R lost</div></div>
+    <div class="k"><div class="l">Average win</div><div class="v pos">+1.91 R</div>
+      <div class="n">average loss -0.84 R</div></div>
+
     <div class="k"><div class="l">Challenge pass rate</div><div class="v pos">96.5%</div>
       <div class="n">both phases, ~16 days</div></div>
     <div class="k"><div class="l">Worst drawdown</div><div class="v">6.3%</div>
-      <div class="n">limit is 10%</div></div>
-    <div class="k"><div class="l">Profit factor</div><div class="v pos">2.71</div>
-      <div class="n">+74.6 R won vs 27.6 R lost</div></div>
+      <div class="n">the limit is 10%</div></div>
+    <div class="k"><div class="l">Longest win run</div><div class="v pos">6</div>
+      <div class="n">wins in a row</div></div>
+    <div class="k"><div class="l">Longest losing run</div><div class="v">3</div>
+      <div class="n">-6% of the account</div></div>
+    <div class="k"><div class="l">Trades taken</div><div class="v">72</div>
+      <div class="n">from 132 eligible sessions</div></div>
   </div>
 
   <nav>
