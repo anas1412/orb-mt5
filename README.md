@@ -4,6 +4,8 @@ Trades the first breakout of the Asia session range on gold. One trade a day,
 flat within 90 minutes, Monday to Thursday.
 
 **[📊 Full report and every trade →](https://anas1412.github.io/orb-mt5/)**
+&nbsp;&nbsp;·&nbsp;&nbsp;
+**[🖥 Slide deck →](https://anas1412.github.io/orb-mt5/slides.html)**
 
 ---
 

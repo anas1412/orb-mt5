@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORB Asia — Gold</title>
+<style>
+/* A deck commits to one look. No theme switching mid-presentation. */
+:root{
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --neg:#e0806f; --warn:#d9ab52;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font:16px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+
+/* Fixed 1280x720 stage scaled to fit, so a slide looks identical on every
+   screen instead of reflowing into something untested. */
+#fit{position:fixed;inset:0;display:grid;place-items:center}
+#stage{width:1280px;height:720px;position:relative;transform-origin:center center}
+.slide{position:absolute;inset:0;padding:60px 72px;display:none;
+  flex-direction:column;background:var(--bg)}
+.slide.on{display:flex}
+
+h2{font-size:34px;font-weight:660;letter-spacing:-.02em;margin-bottom:26px;
+  padding-bottom:14px;border-bottom:1px solid var(--line);flex:none}
+h2::before{content:"";display:inline-block;width:5px;height:22px;
+  background:var(--acc);margin-right:14px;vertical-align:-3px;border-radius:2px}
+
+/* ---------- title slide ---------- */
+.title{margin:auto 0;display:flex;flex-direction:column;gap:0}
+.eyebrow{font-size:13px;font-weight:650;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--acc);margin-bottom:26px}
+h1{font-size:82px;line-height:1.02;font-weight:680;letter-spacing:-.035em}
+.title .sub{font-size:23px;color:var(--ink2);margin-top:22px;max-width:24ch}
+.titlestats{display:flex;gap:38px;margin-top:52px;font-size:16px;color:var(--mut);
+  flex-wrap:wrap}
+.titlestats b{color:var(--ink);font-size:26px;font-weight:670;display:block;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.foot{color:var(--mut);font-size:14px;margin-top:40px}
+.foot.big{font-size:16px;margin-top:auto;color:var(--acc);font-weight:600}
+
+/* ---------- content ---------- */
+ul.big{list-style:none;display:flex;flex-direction:column;gap:19px;font-size:23px;
+  color:var(--ink2);max-width:60ch}
+ul.big li{padding-left:32px;position:relative;line-height:1.45}
+ul.big li::before{content:"";position:absolute;left:6px;top:13px;width:9px;height:9px;
+  border-radius:50%;background:var(--acc)}
+ul.big b{color:var(--ink);font-weight:660}
+
+ol.rules{list-style:none;counter-reset:r;display:grid;
+  grid-template-columns:1fr 1fr;gap:11px 30px;align-content:start}
+ol.rules li{counter-increment:r;position:relative;padding-left:44px;font-size:17px}
+ol.rules li::before{content:counter(r);position:absolute;left:0;top:1px;width:27px;
+  height:27px;border-radius:8px;background:color-mix(in srgb,var(--acc) 17%,transparent);
+  color:var(--acc);font-weight:680;font-size:14px;display:grid;place-items:center}
+ol.rules b{display:block;color:var(--ink);font-weight:640;line-height:1.3}
+ol.rules span{color:var(--mut);font-size:15px}
+
+.callout{margin-top:auto;border-left:3px solid var(--acc);background:var(--panel);
+  padding:16px 22px;font-size:17px;color:var(--ink2);border-radius:0 8px 8px 0}
+.callout.warn{border-color:var(--warn)}
+
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:20px;color:var(--ink);display:grid;place-items:center}
+.fig svg{width:100%;height:auto;max-height:430px}
+.fig.curve svg{max-height:330px}
+
+.two{display:grid;grid-template-columns:1.15fr 1fr;gap:34px;align-items:start;flex:1}
+.two img{width:100%;border-radius:10px;border:1px solid var(--line);background:#fff}
+.two>div{display:flex;flex-direction:column;height:100%}
+.two ul.big{font-size:19px;gap:14px}
+.two .callout{font-size:16px}
+
+/* ---------- kpi ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+.kl{font-size:11px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);margin-bottom:11px}
+.kv{font-size:36px;font-weight:670;letter-spacing:-.03em;line-height:1;
+  font-variant-numeric:tabular-nums}
+.kv.pos{color:var(--pos)}
+.kn{font-size:13px;color:var(--mut);margin-top:9px;line-height:1.35}
+
+/* ---------- tables ---------- */
+table{border-collapse:collapse;width:100%;font-size:17px;
+  font-variant-numeric:tabular-nums}
+th{text-align:right;padding:12px 16px;font-size:11px;font-weight:660;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+td{padding:13px 16px;border-bottom:1px solid var(--line);text-align:right;color:var(--ink2)}
+td b{color:var(--ink)}
+tbody tr:last-child td{border-bottom:none}
+tr.hi td{background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--ink)}
+/* Ten rows plus a callout does not fit 720px at the default rhythm. */
+table.dense{font-size:15px}
+table.dense th{padding:8px 14px}
+table.dense td{padding:8px 14px}
+
+/* ---------- chrome ---------- */
+#bar{position:fixed;left:0;bottom:0;height:3px;background:var(--acc);
+  transition:width .22s ease;z-index:5}
+#num{position:fixed;right:20px;bottom:16px;font-size:12px;color:var(--mut);
+  font-variant-numeric:tabular-nums;z-index:5}
+#nav{position:fixed;left:20px;bottom:12px;display:flex;gap:8px;z-index:5}
+#nav button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel);color:var(--mut);font-size:15px;cursor:pointer;
+  display:grid;place-items:center}
+#nav button:hover{color:var(--ink);border-color:var(--acc)}
+#hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);font-size:12px;
+  color:var(--mut);z-index:5;transition:opacity .5s}
+#hint.gone{opacity:0}
+
+@media print{
+  html,body{overflow:visible;height:auto}
+  #fit{position:static;display:block}
+  #stage{transform:none!important;width:1280px;height:720px}
+  .slide{display:flex!important;position:relative;page-break-after:always;
+    border:none}
+  #bar,#num,#nav,#hint{display:none}
+}
+</style>
+</head><body>
+
+<div id="fit"><div id="stage">{{SLIDES}}</div></div>
+
+<div id="bar"></div>
+<div id="nav">
+  <button id="prev" aria-label="Previous slide">&#8249;</button>
+  <button id="next" aria-label="Next slide">&#8250;</button>
+</div>
+<div id="hint">arrow keys to move &middot; F for fullscreen</div>
+<div id="num"></div>
+
+<script>
+(function(){
+  var stage=document.getElementById('stage');
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var bar=document.getElementById('bar'), num=document.getElementById('num');
+  var hint=document.getElementById('hint');
+  var i=0;
+
+  // Scale the fixed stage to whatever the window is, letterboxing rather than
+  // reflowing. A slide that fits at 1280x720 fits everywhere.
+  // Guard the scale. A resize event can fire while the viewport still reports
+  // zero, and scale(0) renders the whole deck invisible with no error anywhere
+  // -- it looks like a blank page, not a bug. Refuse to apply a bad number and
+  // try again on the next frame.
+  function fit(){
+    var w=window.innerWidth, h=window.innerHeight;
+    var s=Math.min(w/1280, h/720);
+    if(!isFinite(s) || s<=0){ requestAnimationFrame(fit); return; }
+    stage.style.transform='scale('+s+')';
+  }
+
+  function show(n){
+    i=Math.max(0, Math.min(slides.length-1, n));
+    slides.forEach(function(s,k){ s.classList.toggle('on', k===i); });
+    bar.style.width=(100*(i+1)/slides.length)+'%';
+    num.textContent=(i+1)+' / '+slides.length;
+    if(location.hash!=='#'+(i+1)) history.replaceState(null,'','#'+(i+1));
+    if(i>0) hint.classList.add('gone');
+  }
+
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '||e.key==='PageDown'){
+      e.preventDefault(); show(i+1);
+    } else if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp'){
+      e.preventDefault(); show(i-1);
+    } else if(e.key==='Home'){ show(0);
+    } else if(e.key==='End'){ show(slides.length-1);
+    } else if(e.key==='f'||e.key==='F'){
+      if(document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    }
+  });
+
+  document.getElementById('next').onclick=function(){ show(i+1); };
+  document.getElementById('prev').onclick=function(){ show(i-1); };
+
+  // swipe, so it works on a phone
+  var x0=null;
+  document.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(x0===null) return;
+    var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>50) show(i+(dx<0?1:-1));
+    x0=null;
+  },{passive:true});
+
+  window.addEventListener('resize',fit);
+  window.addEventListener('load',fit);
+  if(window.ResizeObserver) new ResizeObserver(fit).observe(document.documentElement);
+  fit();
+  show(parseInt((location.hash||'#1').slice(1),10)-1 || 0);
+})();
+</script>
+</body></html>
