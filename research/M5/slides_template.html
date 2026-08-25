@@ -112,6 +112,74 @@ table.dense td{padding:8px 14px}
   color:var(--mut);z-index:5;transition:opacity .5s}
 #hint.gone{opacity:0}
 
+/* ---------- narrow screens ----------
+   A 16:9 stage scaled into a 375px-wide portrait window is a 211px strip
+   nobody can read. Below 820px the deck stops being a deck and becomes a
+   scrollable document: every slide visible, stacked, with type that suits the
+   width. Same content, layout that fits. */
+@media (max-width:820px){
+  html,body{overflow:auto;height:auto}
+  #fit{position:static;display:block}
+  #stage{width:100%;height:auto;transform:none!important}
+  .slide{position:static;display:flex!important;padding:34px 20px 40px;
+    height:auto;min-height:0;border-top:1px solid var(--line)}
+  .slide:first-child{border-top:none}
+
+  h1{font-size:clamp(38px,11vw,60px)}
+  h2{font-size:22px;margin-bottom:18px;padding-bottom:11px}
+  h2::before{height:17px;width:4px;margin-right:10px;vertical-align:-2px}
+  .title{margin:0}
+  .title .sub{font-size:18px;max-width:none}
+  .titlestats{gap:20px 26px;margin-top:32px}
+  .titlestats b{font-size:21px}
+  .foot{margin-top:28px}
+  .foot.big{margin-top:26px}
+
+  ul.big{font-size:17px;gap:14px;max-width:none}
+  ul.big li{padding-left:24px}
+  ul.big li::before{width:7px;height:7px;top:9px;left:4px}
+  ol.rules{grid-template-columns:1fr;gap:10px}
+  ol.rules li{font-size:15px;padding-left:38px}
+  ol.rules li::before{width:24px;height:24px;font-size:13px}
+  ol.rules span{font-size:13.5px}
+
+  .callout{margin-top:22px;font-size:15px;padding:13px 16px}
+  .fig{padding:12px;overflow-x:auto}
+  .fig svg,.fig.curve svg{max-height:none;min-width:520px}
+  .two{grid-template-columns:1fr;gap:18px}
+  .two>div{height:auto}
+  .two ul.big{font-size:16px}
+  .two .callout{margin-top:16px}
+
+  .kpis{grid-template-columns:1fr 1fr;gap:11px}
+  .k{padding:14px 15px}
+  .kv{font-size:26px}
+  .kl{font-size:10px;margin-bottom:8px}
+  .kn{font-size:11.5px;margin-top:7px}
+
+  /* a table cannot shrink past its content, so let it scroll on its own */
+  .slide table{display:block;overflow-x:auto;white-space:nowrap;font-size:14px}
+  table th,table td{padding:9px 12px}
+
+  /* the deck chrome is meaningless when everything is on one scroll */
+  #bar,#num,#nav,#hint{display:none}
+}
+@media (max-width:820px) and (orientation:landscape){
+  /* a phone turned sideways is close enough to 16:9 to run the real deck */
+  html,body{overflow:hidden;height:100%}
+  #fit{position:fixed;inset:0;display:grid;place-items:center}
+  #stage{width:1280px;height:720px}
+  .slide{position:absolute;inset:0;display:none;padding:60px 72px;border-top:none}
+  .slide.on{display:flex!important}
+  h1{font-size:82px} h2{font-size:34px}
+  ol.rules{grid-template-columns:1fr 1fr}
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .two{grid-template-columns:1.15fr 1fr}
+  .slide table{display:table;white-space:normal;font-size:17px}
+  #bar,#num,#nav,#hint{display:block}
+  #nav{display:flex}
+}
+
 @media print{
   html,body{overflow:visible;height:auto}
   #fit{position:static;display:block}
@@ -147,7 +215,13 @@ table.dense td{padding:8px 14px}
   // zero, and scale(0) renders the whole deck invisible with no error anywhere
   // -- it looks like a blank page, not a bug. Refuse to apply a bad number and
   // try again on the next frame.
+  // Below 820px in portrait the slides are a scrolling document, so there is
+  // nothing to scale and nothing to hide.
+  var flow = window.matchMedia('(max-width:820px) and (orientation:portrait)');
+  function isFlow(){ return flow.matches; }
+
   function fit(){
+    if(isFlow()){ stage.style.transform=''; return; }
     var w=window.innerWidth, h=window.innerHeight;
     var s=Math.min(w/1280, h/720);
     if(!isFinite(s) || s<=0){ requestAnimationFrame(fit); return; }
@@ -156,6 +230,8 @@ table.dense td{padding:8px 14px}
 
   function show(n){
     i=Math.max(0, Math.min(slides.length-1, n));
+    // in flow mode every slide is already on screen; scroll instead of switching
+    if(isFlow()){ slides[i].scrollIntoView({behavior:'smooth',block:'start'}); return; }
     slides.forEach(function(s,k){ s.classList.toggle('on', k===i); });
     bar.style.width=(100*(i+1)/slides.length)+'%';
     num.textContent=(i+1)+' / '+slides.length;
@@ -192,6 +268,9 @@ table.dense td{padding:8px 14px}
   window.addEventListener('resize',fit);
   window.addEventListener('load',fit);
   if(window.ResizeObserver) new ResizeObserver(fit).observe(document.documentElement);
+  // rotating a phone swaps between the two layouts
+  (flow.addEventListener ? flow.addEventListener.bind(flow,'change')
+                         : flow.addListener.bind(flow))(function(){ fit(); show(i); });
   fit();
   show(parseInt((location.hash||'#1').slice(1),10)-1 || 0);
 })();

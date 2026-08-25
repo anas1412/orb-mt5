@@ -3,9 +3,9 @@
 Trades the first breakout of the Asia session range on gold. One trade a day,
 flat within 90 minutes, Monday to Thursday.
 
-**[📊 Full report and every trade →](https://anas1412.github.io/orb-mt5/)**
+**[🖥 Slide deck →](https://anas1412.github.io/orb-mt5/)**
 &nbsp;&nbsp;·&nbsp;&nbsp;
-**[🖥 Slide deck →](https://anas1412.github.io/orb-mt5/slides.html)**
+**[📊 Full report and every trade →](https://anas1412.github.io/orb-mt5/full-report.html)**
 
 ---
 
@@ -59,9 +59,9 @@ How the 72 trades ended:
 
 | Exit | Trades | Total |
 |---|---|---|
-| Target hit (+2R) | 32 | +65.3 R |
+| Target hit (+2R) | 35 | +71.3 R |
 | Stopped out | 33 | −27.6 R |
-| 90-minute cap | 7 | +6.6 R |
+| 90-minute cap | 4 | +3.3 R |
 
 ---
 

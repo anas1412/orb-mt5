@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Build slides.html -- a self-contained web deck for the ORB Asia edge.
+"""Build index.html -- a self-contained web deck for the ORB Asia edge.
+
+The deck is the landing page; the long report sits at full-report.html.
 
 Every number comes from report_data.json and every diagram from the same
 generators the report uses, so the deck cannot drift from the research.
 
-    python3 build_slides.py     ->  ~/orb/strategy/slides.html
+    python3 build_slides.py     ->  ~/orb/strategy/index.html
 """
 import base64, datetime as dt, json, os
 
@@ -14,7 +16,7 @@ from curve import curve_svg
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
-OUT = os.path.join(REPO, "slides.html")
+OUT = os.path.join(REPO, "index.html")
 TRADES = os.path.expanduser("~/orb/trades")
 
 d = json.load(open(os.path.join(HERE, "report_data.json")))
@@ -109,10 +111,12 @@ S.append(("A trade that worked", """
       <li>Reached target after <b>88 minutes</b> &mdash; two minutes
           inside the cap</li>
     </ul>
-    <div class="callout">Under the old 60-minute rule this closed at
-      +1.57 R. The extra half hour is worth 0.43 R.</div>
+    <div class="callout">Held 88 of the 90 minutes allowed. Only %d trades
+      in %d ever reach the cap, and those still average positive.</div>
   </div>
-</div>""" % img("2026-08-12_long_win.png")))
+</div>""" % (img("2026-08-12_long_win.png"),
+             next(e["n"] for e in d["exits"] if e["kind"] == "time cap"),
+             H["trades"])))
 
 S.append(("A trade that failed &mdash; and only cost half", """
 <div class="two">
@@ -194,7 +198,7 @@ These are the reasons to keep the size small.</div>""" % H["se"]))
 S.append(("Run it yourself", """
 <ul class="big">
   <li>Full report and all %d trade charts &mdash;
-      <b>anas1412.github.io/orb-mt5</b></li>
+      <b>anas1412.github.io/orb-mt5/full-report.html</b></li>
   <li>Source, the MetaTrader 5 expert advisor &mdash;
       <b>github.com/anas1412/orb-mt5</b></li>
   <li>Every backtest reproduces from the repo on Windows or Linux</li>

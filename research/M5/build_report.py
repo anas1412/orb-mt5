@@ -8,7 +8,7 @@ RISK=2.0   # % of the initial balance per trade, no compounding
 HOLD=90    # InpMaxHoldMinutes, must match the run that produced report_data.json
 H=d['headline']
 OUT   = os.path.expanduser("~/orb/ORB-asia-report.html")   # local deliverable
-PAGES = os.path.expanduser("~/orb/strategy/index.html")        # GitHub Pages entry point
+PAGES = os.path.expanduser("~/orb/strategy/full-report.html")   # linked from the deck
 TRADES_SRC = os.path.expanduser("~/orb/trades")
 TRADES_DST = os.path.expanduser("~/orb/strategy/trades")
 
