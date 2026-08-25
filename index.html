@@ -403,7 +403,7 @@ These are the reasons to keep the size small.</div></section><section class="sli
   <button id="prev" aria-label="Previous slide">&#8249;</button>
   <button id="next" aria-label="Next slide">&#8250;</button>
 </div>
-<div id="hint">arrow keys to move &middot; F for fullscreen</div>
+<div id="hint">scroll or arrow keys to move &middot; F for fullscreen</div>
 <div id="num"></div>
 
 <script>
@@ -459,6 +459,21 @@ These are the reasons to keep the size small.</div></section><section class="sli
 
   document.getElementById('next').onclick=function(){ show(i+1); };
   document.getElementById('prev').onclick=function(){ show(i-1); };
+
+  // Mouse wheel and trackpad. A trackpad flick fires a burst of events for up
+  // to a second, so advancing per event would skip several slides. Fire once
+  // per gesture instead: the first event moves, the rest of the burst is
+  // ignored, and the wheel going quiet for 200ms starts a new gesture.
+  var lastWheel=0, wheelFired=false;
+  document.addEventListener('wheel',function(e){
+    if(isFlow()) return;                       // flow mode scrolls natively
+    var now=Date.now();
+    if(now-lastWheel > 200) wheelFired=false;
+    lastWheel=now;
+    if(wheelFired || Math.abs(e.deltaY) < 12) return;
+    wheelFired=true;
+    show(i + (e.deltaY > 0 ? 1 : -1));
+  },{passive:true});
 
   // swipe, so it works on a phone
   var x0=null;
