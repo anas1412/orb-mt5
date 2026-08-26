@@ -859,8 +859,13 @@ double RiskOf(const double lots, const double entry, const double sl)
 //+------------------------------------------------------------------+
 void AnchorTakeProfitToFill(const double fill, const bool isBuy, const double sl)
   {
-   if(InpTPMode == TP_NONE || fill <= 0)
+   if(InpTPMode == TP_NONE)
       return;
+   if(fill <= 0)
+     {
+      Print("broker reported no fill price, target deferred to the next tick");
+      return;
+     }
 
    const double tp = TakeProfitFrom(isBuy, fill, sl);
    if(tp <= 0)
@@ -881,6 +886,11 @@ void AnchorTakeProfitToFill(const double fill, const bool isBuy, const double sl
                      g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
       return;
      }
+
+   // Fell through the loop: the position is not visible yet. Broker execution
+   // is not always instant, and this runs the moment the order returns. Say so
+   // rather than returning quietly -- ManageOpenPosition will fill it in.
+   PrintFormat("position not visible yet, target deferred to the next tick");
   }
 
 //+------------------------------------------------------------------+
@@ -1063,13 +1073,43 @@ void ManageOpenPosition()
       // The target encodes it: its distance is the original risk times RR,
       // so dividing recovers R without keeping per-ticket state that a
       // restart would lose.
+      // A missing target is not cosmetic: R is recovered from it, so without
+      // one this loop computes risk 0 and the stop never moves. Backfill it
+      // here, which also makes AnchorTakeProfitToFill's timing irrelevant --
+      // if the position was not visible when the order returned, the next
+      // tick puts the target on.
+      if(InpTPMode == TP_RR && tp <= 0 && g_rr > 0)
+        {
+         // The stop cannot have moved yet -- moving it needs a target to
+         // measure against -- so the live stop is still the original.
+         const double r0 = (ticket == g_openTicket && g_openSL > 0)
+                           ? MathAbs(open - g_openSL) : MathAbs(open - sl);
+         if(r0 > 0)
+           {
+            const double fixTP = NormalizeDouble(isBuy ? open + r0 * g_rr
+                                                       : open - r0 * g_rr, g_digits);
+            if(g_trade.PositionModify(ticket, sl, fixTP))
+               PrintFormat("target was missing on #%I64u, set to %s", ticket,
+                           DoubleToString(fixTP, g_digits));
+            else
+               PrintFormat("could not backfill target on #%I64u: %d %s", ticket,
+                           g_trade.ResultRetcode(), g_trade.ResultRetcodeDescription());
+           }
+         continue;                 // act on the stop next tick, with a target set
+        }
+
       double risk = 0;
       if(InpTPMode == TP_RR && g_rr > 0 && tp > 0)
          risk = MathAbs(tp - open) / g_rr;
       else if(ticket == g_openTicket && g_openSL > 0)
          risk = MathAbs(open - g_openSL);
       if(risk <= 0)
+        {
+         PrintFormat("cannot recover R for #%I64u (target %s, tracked %s) - "
+                     "stop will not move", ticket,
+                     DoubleToString(tp, g_digits), ticket == g_openTicket ? "yes" : "no");
          continue;
+        }
       const double price = isBuy ? SymbolInfoDouble(_Symbol, SYMBOL_BID)
                                  : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
       const double moved = isBuy ? price - open : open - price;
