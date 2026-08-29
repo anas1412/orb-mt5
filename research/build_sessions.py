@@ -6,7 +6,7 @@ before any entry decision. Nothing here can see the future -- the rolling
 columns use prior sessions only. The outcome columns are what happened
 afterwards and are labels, not inputs.
 
-    python3 build_sessions.py   ->  research/M5/sessions_2024_2026.csv
+    python3 build_sessions.py   ->  research/sessions_2024_2026.csv
 """
 import csv, datetime as dt, os, statistics
 from collections import defaultdict

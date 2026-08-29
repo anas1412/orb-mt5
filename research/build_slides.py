@@ -15,7 +15,7 @@ import rules_svg
 from curve import curve_svg
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.dirname(os.path.dirname(HERE))
+REPO = os.path.dirname(HERE)          # research/ -> repo root
 OUT = os.path.join(REPO, "index.html")
 TRADES = os.path.expanduser("~/orb/trades")
 
