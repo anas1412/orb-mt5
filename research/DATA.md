@@ -1,8 +1,28 @@
 # Data files
 
-Everything here is generated, and every generator is in this folder. If you want
-to rebuild from scratch rather than trust these, `BarDump.mq5` exports the M1
-bars and `run_cp050_mt5.sh` produces the trade CSVs.
+The raw bars are here, and so is every script that turns them into the rest. You
+do not need MetaTrader to reproduce any of this — only to regenerate the raw
+bars themselves, which is what `BarDump.mq5` does.
+
+## bars_XAUUSD_2024_2026.csv.gz
+
+**The raw input. Everything else here is derived from this file.**
+
+733,006 one-minute bars, 2 Jan 2024 to 21 Aug 2026, broker hours 01 to 18
+(broker is UTC+3 in summer, UTC+2 in winter, so this covers roughly 22:00 to
+16:00 UTC). Exported from MetaTrader with `BarDump.mq5`.
+
+    gunzip -c bars_XAUUSD_2024_2026.csv.gz > bars.csv
+
+    time,open,high,low,close,ticks,volume
+    2024.01.02 01:05,2063.10,2063.35,2062.95,2063.20,88,0
+
+`time` is broker time, not UTC. `ticks` is tick volume, populated on every row.
+`volume` is real volume, always 0 — the broker does not report it for CFDs, so
+tick count is the only activity measure available.
+
+9.6 MB compressed, 39 MB raw. It is in the repo so you never need MetaTrader or
+a broker feed to rebuild anything below it.
 
 ## sessions_2024_2026.csv
 
