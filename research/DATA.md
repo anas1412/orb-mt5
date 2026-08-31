@@ -8,7 +8,7 @@ bars themselves, which is what `BarDump.mq5` does.
 
 **The raw input. Everything else here is derived from this file.**
 
-738,381 one-minute bars, 2 Jan 2024 to 28 Aug 2026, broker hours 01 to 18
+740,251 one-minute bars, 2 Jan 2024 to 31 Aug 2026, broker hours 01 to 18
 (broker is UTC+3 in summer, UTC+2 in winter, so this covers roughly 22:00 to
 16:00 UTC). Exported from MetaTrader with `BarDump.mq5`.
 
@@ -19,12 +19,12 @@ bars themselves, which is what `BarDump.mq5` does.
 `volume` is real volume, always 0 — the broker does not report it for CFDs, so
 tick count is the only activity measure available.
 
-39 MB, plain CSV, no compression. It is in the repo so you never need
+40 MB, plain CSV, no compression. It is in the repo so you never need
 MetaTrader or a broker feed to rebuild anything below it.
 
 ## sessions_2024_2026.csv
 
-One row per Asia session, 687 of them. **This is the dataset for session-quality
+One row per Asia session, 688 of them. **This is the dataset for session-quality
 modelling** — the question of whether a session is worth trading at all, rather
 than which trades to filter.
 
@@ -51,22 +51,51 @@ Built by `build_sessions.py` from raw M1 bars.
 **No lookahead.** Every feature is computable at 00:15 UTC, before any entry
 decision exists. The rolling columns use earlier sessions only.
 
-**It reproduces the EA.** Filter to 2026 and Monday–Thursday: 136 eligible
-sessions, 74 trades, 54.1% win rate, +0.649 R per trade, +48.1 R total —
+**It reproduces the EA.** Filter to 2026 and Monday–Thursday: 137 eligible
+sessions, 75 trades, 53.3% win rate, +0.627 R per trade, +47.0 R total —
 identical to the MT5 backtest, reached from raw bars by a separate path.
 
 **Rows cover Monday–Friday; the EA trades Monday–Thursday.** Filter on `dow`
 before comparing.
 
+## One row is not from the Strategy Tester
+
+**`2026.08.31 03:16` in both trade files was replayed from the bars, not
+tested.** Worth knowing before you diff anything against your own run.
+
+MetaTrader's history server only serves bars up to the last *completed*
+trading day. Today's bars exist in a live chart, because the terminal builds
+them from the tick stream, but they never reach the history base the Strategy
+Tester reads. So the tester quietly clamps its date range instead of failing,
+and the current session is simply absent. The tell is a log line that disagrees
+with the range you asked for:
+
+    XAUUSD: history synchronized from 2023.01.03 to 2026.08.28
+
+`research/sim_offline.py` replays the EA over raw bars to cover that one day.
+Run it with no arguments and it checks itself against the tester across 2026:
+it picks the same 74 days, in the same direction, and agrees within 0.10 R on
+67 of them. The seven it misses are all intrabar ordering — an M1 bar cannot
+say whether its high or its low came first, which matters when the stop move
+and the stop sit inside the same minute. That ambiguity does not arise on
+31 August: the trade was stopped five minutes in, having never traded close to
+the +0.5R trigger.
+
+R is set to −1.033, the mean of every full stop-out in 2026, so the row carries
+the same commission and spread drag as the tested ones rather than a clean
+−1.000 that would flatter the total.
+
+Re-run the tester tomorrow and this row is replaced by a real one.
+
 ## trades_live_config.csv
 
-269 trades, the configuration actually traded: half-of-the-range filter on at
+270 trades, the configuration actually traded: half-of-the-range filter on at
 0.50, Friday off, stop at the midpoint, 2R target, stop move +0.5R → −0.5R,
-90-minute cap. 74 of these are 2026, and they are the headline numbers.
+90-minute cap. 75 of these are 2026, and they are the headline numbers.
 
 ## trades_all_breaks.csv
 
-363 trades, same configuration with the half filter **off**, so every break that
+364 trades, same configuration with the half filter **off**, so every break that
 happened carries its outcome. Use this when you need both classes — the trades
 the filter allowed and the ones it rejected.
 
