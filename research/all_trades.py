@@ -54,19 +54,37 @@ for i,tr in enumerate(rows,1):
     win = tr['R']>0
     em = tr['t'].hour*60+tr['t'].minute - st
 
-    # walk forward to find the real exit so the chart ends where the trade did
-    moved=False; cur=sl; exit_m=em+HOLD; exit_p=None
-    sgn=1 if buy else -1
+    # The run already recorded HOW the trade ended and what it made, so the
+    # only open question is WHEN. Driving the walk from the recorded result
+    # instead of re-deriving one means the marker cannot contradict the label
+    # above it -- which it did for 27 Aug 2026, drawn on the target while the
+    # title read LOSS.
+    spread = int(tr['spread_pts'])*0.01
+    sgn = 1 if buy else -1
+    kind = (tr['exit'].split() or ["hold"])[0]
+    # A stop exit near -1R was the original stop; a shallow one was the stop
+    # after it moved to -0.5R.
+    stop_lvl = sl if abs(tr['R']) > 0.75 else e+sgn*(-0.5)*risk
+    exit_p = stop_lvl if kind=="sl" else tp if kind=="tp" else e+sgn*tr['R']*risk
+
+    exit_m = em+HOLD
     for m in range(st+em, st+em+HOLD+1):
         if m not in b: break
-        o,h,l,c=b[m]
-        adv = l if buy else h; fav = h if buy else l
-        if (adv-cur)*sgn<=0: exit_m=m-st; exit_p=cur; break
-        if not moved and (fav-e)*sgn>=0.5*risk:
-            moved=True; cur=e+sgn*(-0.5)*risk
-            if (adv-cur)*sgn<=0: exit_m=m-st; exit_p=cur; break
-        if (fav-tp)*sgn>=0: exit_m=m-st; exit_p=tp; break
-        exit_m=m-st; exit_p=c
+        o,h,l,c = b[m]
+        # A short's stop sits on the ASK while the candles draw the BID.
+        adv = l if buy else h+spread
+        fav = h if buy else l
+        exit_m = m-st
+        if kind=="sl" and (adv-stop_lvl)*sgn <= 0: break
+        if kind=="tp" and (fav-tp)*sgn >= 0: break
+
+    # Belt and braces: half an R of disagreement means the marker is telling a
+    # different story from the number, not rounding.
+    drawn = (exit_p-e)*sgn/risk
+    if abs(drawn-tr['R']) > 0.5:
+        raise SystemExit("%s: marker at %.2f is %+.2f R but the run recorded "
+                         "%+.3f R" % (d, exit_p, drawn, tr['R']))
+
     last = st+exit_m+6
     xs=[m for m in range(st-4,last+1) if m in b]
     if len(xs)<25: continue
@@ -100,7 +118,7 @@ for i,tr in enumerate(rows,1):
     ax.text(7,hi+span*.055,"15-min range",color=ACC,fontsize=9.5,ha="center",weight="bold")
     ax.text(22,lo-span*.055,"entries until 00:29",color=MUT,fontsize=8.5,ha="center")
 
-    res = "WIN   +2.00 R" if win else ("LOSS   %.2f R"%tr['R'])
+    res = "%s   %+.2f R" % ("WIN" if win else "LOSS", tr['R'])
     ax.set_title("%s   ·   %s   ·   %s   —   %s"
                  % (d.strftime("%d %B %Y"),d.strftime("%A"),
                     "LONG" if buy else "SHORT",res),

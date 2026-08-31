@@ -18,7 +18,7 @@
   "R": -0.537,
   "score": 0.757,
   "range_pts": 518,
-  "held": 16,
+  "held": 0,
   "file": "2026-01-06_long_loss.png"
  },
  {
@@ -73,7 +73,7 @@
   "R": -1.028,
   "score": 0.969,
   "range_pts": 1083,
-  "held": 4,
+  "held": 5,
   "file": "2026-01-19_short_loss.png"
  },
  {
@@ -205,7 +205,7 @@
   "R": -0.506,
   "score": 0.502,
   "range_pts": 2347,
-  "held": 14,
+  "held": 11,
   "file": "2026-03-02_short_loss.png"
  },
  {
@@ -260,7 +260,7 @@
   "R": -0.52,
   "score": 0.643,
   "range_pts": 1182,
-  "held": 33,
+  "held": 1,
   "file": "2026-03-17_short_loss.png"
  },
  {
@@ -535,7 +535,7 @@
   "R": -0.514,
   "score": 0.965,
   "range_pts": 1217,
-  "held": 47,
+  "held": 1,
   "file": "2026-06-04_short_loss.png"
  },
  {
@@ -810,7 +810,7 @@
   "R": -1.031,
   "score": 0.841,
   "range_pts": 1085,
-  "held": 37,
+  "held": 9,
   "file": "2026-08-27_short_loss.png"
  },
  {
