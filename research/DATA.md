@@ -8,7 +8,7 @@ bars themselves, which is what `BarDump.mq5` does.
 
 **The raw input. Everything else here is derived from this file.**
 
-733,006 one-minute bars, 2 Jan 2024 to 21 Aug 2026, broker hours 01 to 18
+738,381 one-minute bars, 2 Jan 2024 to 28 Aug 2026, broker hours 01 to 18
 (broker is UTC+3 in summer, UTC+2 in winter, so this covers roughly 22:00 to
 16:00 UTC). Exported from MetaTrader with `BarDump.mq5`.
 
@@ -24,7 +24,7 @@ MetaTrader or a broker feed to rebuild anything below it.
 
 ## sessions_2024_2026.csv
 
-One row per Asia session, 682 of them. **This is the dataset for session-quality
+One row per Asia session, 687 of them. **This is the dataset for session-quality
 modelling** — the question of whether a session is worth trading at all, rather
 than which trades to filter.
 
@@ -51,8 +51,8 @@ Built by `build_sessions.py` from raw M1 bars.
 **No lookahead.** Every feature is computable at 00:15 UTC, before any entry
 decision exists. The rolling columns use earlier sessions only.
 
-**It reproduces the EA.** Filter to 2026 and Monday–Thursday: 132 eligible
-sessions, 72 trades, 54.2% win rate, +0.654 R per trade, +47.1 R total —
+**It reproduces the EA.** Filter to 2026 and Monday–Thursday: 136 eligible
+sessions, 74 trades, 54.1% win rate, +0.649 R per trade, +48.1 R total —
 identical to the MT5 backtest, reached from raw bars by a separate path.
 
 **Rows cover Monday–Friday; the EA trades Monday–Thursday.** Filter on `dow`
@@ -60,13 +60,13 @@ before comparing.
 
 ## trades_live_config.csv
 
-267 trades, the configuration actually traded: half-of-the-range filter on at
+269 trades, the configuration actually traded: half-of-the-range filter on at
 0.50, Friday off, stop at the midpoint, 2R target, stop move +0.5R → −0.5R,
-90-minute cap. 72 of these are 2026, and they are the headline numbers.
+90-minute cap. 74 of these are 2026, and they are the headline numbers.
 
 ## trades_all_breaks.csv
 
-361 trades, same configuration with the half filter **off**, so every break that
+363 trades, same configuration with the half filter **off**, so every break that
 happened carries its outcome. Use this when you need both classes — the trades
 the filter allowed and the ones it rejected.
 

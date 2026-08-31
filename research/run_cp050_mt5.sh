@@ -1,7 +1,8 @@
 #!/bin/bash
 # Re-run the live configuration on real ticks and keep the trade-by-trade CSV.
-# Data now runs to 2026.08.21; the tester stops at the start of ToDate, so
-# ToDate must be the day AFTER the last day you want included.
+# The tester stops at the START of ToDate, so ToDate must be the day AFTER the
+# last day you want included. Pass it as $1 to avoid the hardcoded date going
+# stale and silently re-running an old window -- which is exactly what happened.
 set -u
 MT5="$HOME/.wine_mt5/drive_c/Program Files/MetaTrader 5"
 D="$HOME/.wine_mt5/drive_c/users/$USER/AppData/Roaming/MetaQuotes/Terminal/Common/Files"
@@ -9,7 +10,8 @@ INI="$HOME/orb/strategy/tester.ini"
 EXE="terminal6""4.exe"
 si () { sed -i "s|^$1=.*|$1=$2|" "$INI"; }
 sed -i 's|^Symbol=.*|Symbol=XAUUSD|' "$INI"
-sed -i 's|^ToDate=.*|ToDate=2026.08.22|' "$INI"
+TO="${1:?usage: run_cp050_mt5.sh YYYY.MM.DD  (the day AFTER the last one you want)}"
+sed -i "s|^ToDate=.*|ToDate=$TO|" "$INI"
 si InpTimeZone 0; si InpStartHour 0; si InpStartMinute 0
 si InpRangeMinutes 15; si InpSignalTF 1; si InpEntryMode 0
 si InpNoEntryAfterMin 15; si InpMaxHoldMinutes 90; si InpForceCloseMin 360

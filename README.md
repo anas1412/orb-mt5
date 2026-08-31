@@ -33,15 +33,15 @@ rate for 1 R of give-up.
 
 ## Results
 
-XAUUSD, real ticks, 2026 (2 Jan – 21 Aug), 2% risk per trade.
+XAUUSD, real ticks, 2026 (2 Jan – 28 Aug), 2% risk per trade.
 
 | | |
 |---|---|
-| Trades | **72** from 132 eligible sessions |
-| Win rate | **54.2%** — 39 wins, 33 losses |
-| Expectancy | **+0.654 R** per trade (±0.166 standard error) |
-| Profit factor | **2.71** — won +74.6 R against −27.6 R lost |
-| Total | **+47.1 R** = **+94%** of the account |
+| Trades | **74** from 136 eligible sessions |
+| Win rate | **54.1%** — 40 wins, 34 losses |
+| Expectancy | **+0.649 R** per trade (±0.164 standard error) |
+| Profit factor | **2.68** — won +76.7 R against −28.6 R lost |
+| Total | **+48.1 R** = **+96%** of the account |
 | Worst drawdown | **6.3%** |
 | Longest losing run | **3** |
 
@@ -51,16 +51,16 @@ simulated 40 000 times on the 2026 outcomes:
 | Risk per trade | Pass both phases | Trades needed | Trading days |
 |---|---|---|---|
 | 1.0% | 99.9% | 19 | ~35 |
-| 1.5% | 98.9% | 12 | ~22 |
-| **2.0%** | **96.5%** | **9** | **~16** |
-| 3.0% | 89.4% | 6 | ~11 |
+| 1.5% | 98.7% | 12 | ~22 |
+| **2.0%** | **96.2%** | **9** | **~17** |
+| 3.0% | 89.1% | 6 | ~11 |
 
-How the 72 trades ended:
+How the 74 trades ended:
 
 | Exit | Trades | Total |
 |---|---|---|
-| Target hit (+2R) | 35 | +71.3 R |
-| Stopped out | 33 | −27.6 R |
+| Target hit (+2R) | 36 | +73.3 R |
+| Stopped out | 34 | −28.6 R |
 | 90-minute cap | 4 | +3.3 R |
 
 ---
@@ -175,7 +175,7 @@ Research scripts and the full study are in [`research/`](research/).
   Asia open in 2026. London and New York were tested and do not work.
 - **It is a regime bet.** The filter depends on ranges that trend rather than
   chop. If the 15-minute range drops below 0.15% of price, the edge is gone.
-- **72 trades is a small sample.** The ±0.166 standard error on expectancy is
+- **74 trades is a small sample.** The ±0.164 standard error on expectancy is
   real, and so is the chance that 2026 was kind.
 
 Not financial advice. Test on demo first.
