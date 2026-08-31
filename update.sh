@@ -6,6 +6,7 @@
 #   bash update.sh --full          re-test 2024 onward from scratch (~20 min)
 #   bash update.sh 2026.09.05      stop after 4 Sep (ToDate is exclusive)
 #   bash update.sh --push          skip the confirmation before pushing
+#   bash update.sh --force         rebuild even when nothing new has closed
 #
 # Incremental by default, because each session is independent: one trade,
 # opened and closed inside 90 minutes, carrying nothing into the next. Testing
@@ -24,12 +25,13 @@ BROKER=FTMO-Demo
 SYMBOL=XAUUSD
 EPOCH=2024.01.01
 
-TO=""; PUSH=ask; FULL=no
+TO=""; PUSH=ask; FULL=no; FORCE=no
 for a in "$@"; do
   case "$a" in
     --push)    PUSH=yes ;;
     --no-push) PUSH=no ;;
     --full)    FULL=yes ;;
+    --force)   FORCE=yes ;;
     *)         TO="$a" ;;
   esac
 done
@@ -53,6 +55,19 @@ run_mt5 () {
 }
 
 cd "$REPO"
+
+# Launching MetaTrader, pulling bars and re-testing costs a minute and a half.
+# Whether any of it is needed is answerable from two markers on disk, so ask
+# first. A day with no trade leaves no row, which is why coverage is tracked
+# separately from the trade files.
+if [ "$FORCE" = no ] && [ "$FULL" = no ]; then
+  if ! ( cd research && python3 coverage.py | sed 's/^/  /' ); then
+    echo
+    echo "nothing new has closed since the last run. --force to rebuild anyway."
+    exit 0
+  fi
+  echo
+fi
 
 say "1/9  terminal must be closed"
 if pgrep -x "$EXE" >/dev/null; then

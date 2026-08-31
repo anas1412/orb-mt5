@@ -224,10 +224,18 @@ October.
 ## Adding new trades
 
 ```bash
-bash update.sh              # everything since the last run, ~2 min
+bash update.sh              # everything since the last run, ~1.5 min
+bash update.sh --force      # rebuild even when nothing new has closed
 bash update.sh --full       # re-test 2024 onward from scratch, ~20 min
 bash update.sh --push       # skip the confirmation before pushing
 ```
+
+It checks coverage before launching anything, so a run with nothing new costs
+0.03s instead of a minute and a half. A day with no trade leaves no row, so
+coverage cannot be read off the trade files -- it comes from the tester's own
+reported range in `tested_through.txt` plus whatever `replayed.json` added on
+top. Missing days need nothing special: it resumes from the marker and tests
+everything since.
 
 Nine steps: check the terminal is closed, pull today's bars from a live chart,
 dump the days not on file, test the days not tested, replay what the tester
