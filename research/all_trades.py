@@ -67,6 +67,10 @@ for i,tr in enumerate(rows,1):
     stop_lvl = sl if abs(tr['R']) > 0.75 else e+sgn*(-0.5)*risk
     exit_p = stop_lvl if kind=="sl" else tp if kind=="tp" else e+sgn*tr['R']*risk
 
+    # The stop only sits at -0.5R after the trade has been +0.5R up, so the
+    # moved level cannot be searched for from the entry bar -- do that and a
+    # trade "stops" before the move that created the level could have armed.
+    armed  = abs(tr['R']) > 0.75          # a full stop is live from the start
     exit_m = em+HOLD
     for m in range(st+em, st+em+HOLD+1):
         if m not in b: break
@@ -75,8 +79,12 @@ for i,tr in enumerate(rows,1):
         adv = l if buy else h+spread
         fav = h if buy else l
         exit_m = m-st
-        if kind=="sl" and (adv-stop_lvl)*sgn <= 0: break
-        if kind=="tp" and (fav-tp)*sgn >= 0: break
+        if kind=="tp":
+            if (fav-tp)*sgn >= 0: break
+        elif kind=="sl":
+            if not armed and (fav-e)*sgn >= 0.5*risk: armed = True
+            if armed and (adv-stop_lvl)*sgn <= 0: break
+
 
     # Belt and braces: half an R of disagreement means the marker is telling a
     # different story from the number, not rounding.

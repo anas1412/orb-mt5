@@ -18,7 +18,7 @@
   "R": -0.537,
   "score": 0.757,
   "range_pts": 518,
-  "held": 0,
+  "held": 16,
   "file": "2026-01-06_long_loss.png"
  },
  {
@@ -260,7 +260,7 @@
   "R": -0.52,
   "score": 0.643,
   "range_pts": 1182,
-  "held": 1,
+  "held": 33,
   "file": "2026-03-17_short_loss.png"
  },
  {
@@ -535,7 +535,7 @@
   "R": -0.514,
   "score": 0.965,
   "range_pts": 1217,
-  "held": 1,
+  "held": 47,
   "file": "2026-06-04_short_loss.png"
  },
  {

@@ -41,7 +41,10 @@ verified working under Wine, so there is no copy step and no `docker cp`.
     ├── Panel.mqh           on-chart control panel (toggle + editable settings)
     ├── TestTimeZones.mq5   asserts the time model
     ├── CheckBrokerOffset.mq5  measures the two broker inputs
-    └── ORB.mq5             the EA (not written yet)
+    ├── BarDump.mq5         exports M1 bars from the tester
+    ├── SyncDump.mq5        exports M1 bars from a LIVE chart, today included
+    ├── ORB.mq5             the EA
+    └── research/           the study, the builders and the data
 ```
 
 Symlinked to:
@@ -199,25 +202,100 @@ Needs M1 history back to Oct 2025 for the probe symbol.
 
 ## Status
 
+Shipped. The EA trades the Asia range on gold, is released, and the study is
+published at `anas1412.github.io/orb-mt5`.
+
 | # | Step | State |
 |---|---|---|
-| 1 | Time module | written, compiles clean — **not yet run** |
-| 1b | Broker offset probe | written, compiles clean — needs Oct 2025 M1 history |
-| 2 | `ORB.mq5` | not started |
+| 1 | Time module | done, asserted by `TestTimeZones` |
+| 1b | Broker offset probe | done — FTMO demo measured at UTC+3 summer, +2 winter |
+| 2 | `ORB.mq5` | done, plus `Panel.mqh` for on-chart control |
 | 3 | Compile toolchain | working headless under Wine |
-| 4 | M1 + real tick history | cached for EURUSD, GBPUSD, USDCHF, USDJPY, XAUUSD, US100.cash |
-| 5 | One backtest by hand | blocked on 2 |
-| 6+ | Full backtest, optimize, deploy | — |
+| 4 | M1 + real tick history | cached 2024-01-02 onward for XAUUSD |
+| 5 | Backtest | done — see `research/` and `report_data.json` |
+| 6 | Deploy | live on an FTMO demo, panel starts OFF |
 
-**Step 1 is the gate.** Run `TestTimeZones` on any chart and confirm every
-assertion passes before writing a line of trading logic.
+**`InpFollowsUSDST` is still unverified** and stays that way until an autumn
+switch weekend has M1 history behind it. It matters for about one week each
+October.
 
-### Blocked on the user
+---
 
-- ~~Working demo login~~ — done (FTMO demo; credentials live outside this repo)
-- First symbol and first session to test
+## Adding new trades
 
-Neither blocks steps 1–3.
+The published numbers, the report, the deck and the trade gallery all come from
+one tester run. This is the order, and the last step is not optional.
+
+```bash
+# 1. today's bars, if today matters -- see the trap below
+cd "<terminal folder>" && wine terminal64.exe /portable /config:sync.ini
+
+# 2. re-run both configurations. ToDate is the day AFTER the last one wanted
+cd ~/orb/strategy/research && bash run_cp050_mt5.sh 2026.09.01
+
+# 3. rebuild everything downstream
+python3 report_data.py && python3 all_trades.py
+python3 build_report.py && python3 build_slides.py && python3 build_client.py
+python3 build_sessions.py
+
+# 4. AUDIT. Non-zero exit means do not publish
+python3 check_charts.py
+```
+
+`check_charts.py` compares the charts, filenames, gallery captions and totals
+back to the tester CSV. It exists because a wrong chart does not look wrong.
+
+### The Strategy Tester cannot see today
+
+MetaTrader's history server only serves bars up to the last **completed**
+trading day. Today's bars exist in a live chart, because the terminal builds
+them from the tick stream, but they never reach the history base the tester
+reads. The tester then **clamps its date range instead of failing**. The only
+tell is a log line that disagrees with what was asked for:
+
+    XAUUSD: history synchronized from 2023.01.03 to 2026.08.28
+
+Opening the terminal and letting it sync does **not** fix this, so do not ask
+the user to. Three caches stack up and clearing the wrong one looks like
+progress:
+
+| Cache | Goes stale? |
+|---|---|
+| `Bases/` | terminal's own, updated by a live chart |
+| `Tester/bases/` | the agent's private copy — **yes**, wipe it after new data |
+| `Tester/cache/*.tst` | preprocessed ticks, keyed by symbol and date range |
+
+To include today: `SyncDump.mq5` on a live chart pulls the bars, then
+`sim_offline.py` replays the EA over them. It self-checks against the tester
+and prints the comparison. Mark any replayed row in `DATA.md` and replace it
+with a real one on the next run.
+
+### Three traps in the chart code
+
+Each of these shipped a chart that disagreed with its own data.
+
+- **A short's stop sits on the ASK; the candles draw the BID.** Walking bids
+  only makes a short look like it survived a stop it really hit. 27 Aug 2026
+  ran on to the target and drew its exit marker there, under a title reading
+  `LOSS -1.03 R`. Adverse price for a sell is `high + spread`.
+- **Never re-derive an outcome the run already recorded.** Only the exit *time*
+  is unknown; take the kind and the level from the CSV. Anything computed twice
+  from different data eventually disagrees, and the picture is what a reader
+  trusts.
+- **The -0.5R stop is not live until the trade has been +0.5R up.** Searching
+  for that level from the entry bar "stops" trades before the move that created
+  the level could have armed.
+
+Intrabar ordering is the standing limitation: an M1 bar will not say whether
+its high or its low came first, which decides whether the stop move armed
+before the stop was hit. It affects the exit *time* on a handful of charts, not
+the recorded result. Check it before trusting a replayed day.
+
+### Numbers live in report_data.json
+
+Never hand-write a figure into README, the report, the deck or the client page.
+They are all generated from `report_data.json`, which is how the exits table
+once ended up summing to +44.3 R under a +47.1 R headline.
 
 ---
 
