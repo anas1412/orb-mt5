@@ -8,7 +8,8 @@
   "score": 0.819,
   "range_pts": 957,
   "held": 14,
-  "file": "2026-01-05_long_win.png"
+  "file": "2026-01-05_long_win.png",
+  "sig": "10b6b2f77f961f0e"
  },
  {
   "n": 2,
@@ -19,7 +20,8 @@
   "score": 0.757,
   "range_pts": 518,
   "held": 16,
-  "file": "2026-01-06_long_loss.png"
+  "file": "2026-01-06_long_loss.png",
+  "sig": "c14ae846a357ef40"
  },
  {
   "n": 3,
@@ -30,7 +32,8 @@
   "score": 0.935,
   "range_pts": 336,
   "held": 2,
-  "file": "2026-01-08_long_loss.png"
+  "file": "2026-01-08_long_loss.png",
+  "sig": "e24a1a7905140020"
  },
  {
   "n": 4,
@@ -41,7 +44,8 @@
   "score": 0.962,
   "range_pts": 1797,
   "held": 19,
-  "file": "2026-01-12_long_win.png"
+  "file": "2026-01-12_long_win.png",
+  "sig": "946991c5af2c97d8"
  },
  {
   "n": 5,
@@ -52,7 +56,8 @@
   "score": 0.873,
   "range_pts": 739,
   "held": 37,
-  "file": "2026-01-13_short_win.png"
+  "file": "2026-01-13_short_win.png",
+  "sig": "d19e4f5d84d90577"
  },
  {
   "n": 6,
@@ -63,7 +68,8 @@
   "score": 0.766,
   "range_pts": 1078,
   "held": 90,
-  "file": "2026-01-14_long_win.png"
+  "file": "2026-01-14_long_win.png",
+  "sig": "74951fa3d767dadb"
  },
  {
   "n": 7,
@@ -74,7 +80,8 @@
   "score": 0.969,
   "range_pts": 1083,
   "held": 5,
-  "file": "2026-01-19_short_loss.png"
+  "file": "2026-01-19_short_loss.png",
+  "sig": "c85cc6bdc489a6f1"
  },
  {
   "n": 8,
@@ -85,7 +92,8 @@
   "score": 1.0,
   "range_pts": 367,
   "held": 1,
-  "file": "2026-01-20_long_loss.png"
+  "file": "2026-01-20_long_loss.png",
+  "sig": "536771de72333325"
  },
  {
   "n": 9,
@@ -96,7 +104,8 @@
   "score": 0.84,
   "range_pts": 692,
   "held": 36,
-  "file": "2026-01-21_long_win.png"
+  "file": "2026-01-21_long_win.png",
+  "sig": "c03cf0433469c2c4"
  },
  {
   "n": 10,
@@ -107,7 +116,8 @@
   "score": 0.996,
   "range_pts": 10523,
   "held": 29,
-  "file": "2026-02-02_long_loss.png"
+  "file": "2026-02-02_long_loss.png",
+  "sig": "39f27e6d57fadea7"
  },
  {
   "n": 11,
@@ -118,7 +128,8 @@
   "score": 0.691,
   "range_pts": 3021,
   "held": 39,
-  "file": "2026-02-03_long_loss.png"
+  "file": "2026-02-03_long_loss.png",
+  "sig": "55a2a59c73692adf"
  },
  {
   "n": 12,
@@ -129,7 +140,8 @@
   "score": 0.98,
   "range_pts": 4125,
   "held": 51,
-  "file": "2026-02-04_long_win.png"
+  "file": "2026-02-04_long_win.png",
+  "sig": "50d4794db7f67578"
  },
  {
   "n": 13,
@@ -140,7 +152,8 @@
   "score": 0.756,
   "range_pts": 1364,
   "held": 1,
-  "file": "2026-02-11_short_loss.png"
+  "file": "2026-02-11_short_loss.png",
+  "sig": "a59f59583b6e2b37"
  },
  {
   "n": 14,
@@ -151,7 +164,8 @@
   "score": 0.765,
   "range_pts": 1569,
   "held": 26,
-  "file": "2026-02-17_short_win.png"
+  "file": "2026-02-17_short_win.png",
+  "sig": "31eae4668ae93e31"
  },
  {
   "n": 15,
@@ -162,7 +176,8 @@
   "score": 0.531,
   "range_pts": 1112,
   "held": 27,
-  "file": "2026-02-18_long_win.png"
+  "file": "2026-02-18_long_win.png",
+  "sig": "c71b937cdf51be61"
  },
  {
   "n": 16,
@@ -173,7 +188,8 @@
   "score": 0.828,
   "range_pts": 3396,
   "held": 9,
-  "file": "2026-02-23_short_loss.png"
+  "file": "2026-02-23_short_loss.png",
+  "sig": "0e7a97172a5ba3d1"
  },
  {
   "n": 17,
@@ -184,7 +200,8 @@
   "score": 0.666,
   "range_pts": 1728,
   "held": 6,
-  "file": "2026-02-24_long_loss.png"
+  "file": "2026-02-24_long_loss.png",
+  "sig": "14b16af090666b81"
  },
  {
   "n": 18,
@@ -195,7 +212,8 @@
   "score": 0.87,
   "range_pts": 1386,
   "held": 29,
-  "file": "2026-02-26_long_win.png"
+  "file": "2026-02-26_long_win.png",
+  "sig": "9524884bc4bba3a7"
  },
  {
   "n": 19,
@@ -206,7 +224,8 @@
   "score": 0.502,
   "range_pts": 2347,
   "held": 11,
-  "file": "2026-03-02_short_loss.png"
+  "file": "2026-03-02_short_loss.png",
+  "sig": "d8594cd956cb95f7"
  },
  {
   "n": 20,
@@ -217,7 +236,8 @@
   "score": 0.916,
   "range_pts": 1255,
   "held": 37,
-  "file": "2026-03-03_long_loss.png"
+  "file": "2026-03-03_long_loss.png",
+  "sig": "b3ed6807559ff732"
  },
  {
   "n": 21,
@@ -228,7 +248,8 @@
   "score": 0.881,
   "range_pts": 1330,
   "held": 19,
-  "file": "2026-03-05_long_loss.png"
+  "file": "2026-03-05_long_loss.png",
+  "sig": "8e3d8f60854c04f1"
  },
  {
   "n": 22,
@@ -239,7 +260,8 @@
   "score": 0.514,
   "range_pts": 1143,
   "held": 90,
-  "file": "2026-03-11_long_win.png"
+  "file": "2026-03-11_long_win.png",
+  "sig": "b62aca6e4fb46477"
  },
  {
   "n": 23,
@@ -250,7 +272,8 @@
   "score": 0.791,
   "range_pts": 1654,
   "held": 45,
-  "file": "2026-03-12_long_win.png"
+  "file": "2026-03-12_long_win.png",
+  "sig": "663e21ae993eb657"
  },
  {
   "n": 24,
@@ -261,7 +284,8 @@
   "score": 0.643,
   "range_pts": 1182,
   "held": 33,
-  "file": "2026-03-17_short_loss.png"
+  "file": "2026-03-17_short_loss.png",
+  "sig": "9ccd1156baa65148"
  },
  {
   "n": 25,
@@ -272,7 +296,8 @@
   "score": 0.767,
   "range_pts": 4787,
   "held": 20,
-  "file": "2026-03-23_short_win.png"
+  "file": "2026-03-23_short_win.png",
+  "sig": "9a1219c7eb70be76"
  },
  {
   "n": 26,
@@ -283,7 +308,8 @@
   "score": 0.939,
   "range_pts": 2596,
   "held": 11,
-  "file": "2026-03-24_short_win.png"
+  "file": "2026-03-24_short_win.png",
+  "sig": "05519b43b59fe740"
  },
  {
   "n": 27,
@@ -294,7 +320,8 @@
   "score": 0.74,
   "range_pts": 1752,
   "held": 63,
-  "file": "2026-03-25_long_win.png"
+  "file": "2026-03-25_long_win.png",
+  "sig": "2b6880c113bea15b"
  },
  {
   "n": 28,
@@ -305,7 +332,8 @@
   "score": 0.996,
   "range_pts": 2961,
   "held": 90,
-  "file": "2026-03-26_long_win.png"
+  "file": "2026-03-26_long_win.png",
+  "sig": "a39b52e35c3510cb"
  },
  {
   "n": 29,
@@ -316,7 +344,8 @@
   "score": 0.688,
   "range_pts": 1758,
   "held": 4,
-  "file": "2026-03-31_short_win.png"
+  "file": "2026-03-31_short_win.png",
+  "sig": "f4bccf0dd1d74d82"
  },
  {
   "n": 30,
@@ -327,7 +356,8 @@
   "score": 0.862,
   "range_pts": 1157,
   "held": 12,
-  "file": "2026-04-01_long_win.png"
+  "file": "2026-04-01_long_win.png",
+  "sig": "4c027322dd49aabe"
  },
  {
   "n": 31,
@@ -338,7 +368,8 @@
   "score": 0.959,
   "range_pts": 1819,
   "held": 29,
-  "file": "2026-04-02_long_loss.png"
+  "file": "2026-04-02_long_loss.png",
+  "sig": "75e2c2df6e6065f6"
  },
  {
   "n": 32,
@@ -349,7 +380,8 @@
   "score": 0.977,
   "range_pts": 1890,
   "held": 3,
-  "file": "2026-04-06_long_loss.png"
+  "file": "2026-04-06_long_loss.png",
+  "sig": "b5805cc4d94788ce"
  },
  {
   "n": 33,
@@ -360,7 +392,8 @@
   "score": 0.83,
   "range_pts": 2684,
   "held": 59,
-  "file": "2026-04-08_short_win.png"
+  "file": "2026-04-08_short_win.png",
+  "sig": "6fdf20ef7950d70d"
  },
  {
   "n": 34,
@@ -371,7 +404,8 @@
   "score": 0.897,
   "range_pts": 856,
   "held": 36,
-  "file": "2026-04-13_long_win.png"
+  "file": "2026-04-13_long_win.png",
+  "sig": "099dee5a75f946f6"
  },
  {
   "n": 35,
@@ -382,7 +416,8 @@
   "score": 0.911,
   "range_pts": 889,
   "held": 11,
-  "file": "2026-04-14_long_loss.png"
+  "file": "2026-04-14_long_loss.png",
+  "sig": "d8ac3dcd988b3f18"
  },
  {
   "n": 36,
@@ -393,7 +428,8 @@
   "score": 0.733,
   "range_pts": 831,
   "held": 6,
-  "file": "2026-04-15_short_loss.png"
+  "file": "2026-04-15_short_loss.png",
+  "sig": "80c76edb32d34a29"
  },
  {
   "n": 37,
@@ -404,7 +440,8 @@
   "score": 0.71,
   "range_pts": 1047,
   "held": 43,
-  "file": "2026-04-20_long_win.png"
+  "file": "2026-04-20_long_win.png",
+  "sig": "3fd7c7e521bd1051"
  },
  {
   "n": 38,
@@ -415,7 +452,8 @@
   "score": 0.977,
   "range_pts": 2961,
   "held": 2,
-  "file": "2026-04-23_short_loss.png"
+  "file": "2026-04-23_short_loss.png",
+  "sig": "46aaa00bc4089872"
  },
  {
   "n": 39,
@@ -426,7 +464,8 @@
   "score": 0.862,
   "range_pts": 896,
   "held": 29,
-  "file": "2026-04-27_long_win.png"
+  "file": "2026-04-27_long_win.png",
+  "sig": "2cb06e40508eee04"
  },
  {
   "n": 40,
@@ -437,7 +476,8 @@
   "score": 0.803,
   "range_pts": 1111,
   "held": 4,
-  "file": "2026-05-11_short_loss.png"
+  "file": "2026-05-11_short_loss.png",
+  "sig": "a85025f768bfc447"
  },
  {
   "n": 41,
@@ -448,7 +488,8 @@
   "score": 0.784,
   "range_pts": 1072,
   "held": 5,
-  "file": "2026-05-12_long_loss.png"
+  "file": "2026-05-12_long_loss.png",
+  "sig": "e082ff873547d3c2"
  },
  {
   "n": 42,
@@ -459,7 +500,8 @@
   "score": 0.818,
   "range_pts": 988,
   "held": 18,
-  "file": "2026-05-14_long_loss.png"
+  "file": "2026-05-14_long_loss.png",
+  "sig": "09608ab1c46b5d31"
  },
  {
   "n": 43,
@@ -470,7 +512,8 @@
   "score": 0.834,
   "range_pts": 1957,
   "held": 15,
-  "file": "2026-05-18_short_win.png"
+  "file": "2026-05-18_short_win.png",
+  "sig": "63ecafd30fe632c2"
  },
  {
   "n": 44,
@@ -481,7 +524,8 @@
   "score": 0.845,
   "range_pts": 1237,
   "held": 35,
-  "file": "2026-05-19_short_win.png"
+  "file": "2026-05-19_short_win.png",
+  "sig": "2e5cdaacf811e14e"
  },
  {
   "n": 45,
@@ -492,7 +536,8 @@
   "score": 0.814,
   "range_pts": 1084,
   "held": 5,
-  "file": "2026-05-20_long_win.png"
+  "file": "2026-05-20_long_win.png",
+  "sig": "4af87cdeb2d45da5"
  },
  {
   "n": 46,
@@ -503,7 +548,8 @@
   "score": 0.572,
   "range_pts": 845,
   "held": 2,
-  "file": "2026-05-21_long_loss.png"
+  "file": "2026-05-21_long_loss.png",
+  "sig": "9392362b4e00bad8"
  },
  {
   "n": 47,
@@ -514,7 +560,8 @@
   "score": 0.675,
   "range_pts": 1130,
   "held": 90,
-  "file": "2026-05-26_short_win.png"
+  "file": "2026-05-26_short_win.png",
+  "sig": "b820c3e69b24cf9c"
  },
  {
   "n": 48,
@@ -525,7 +572,8 @@
   "score": 0.532,
   "range_pts": 847,
   "held": 26,
-  "file": "2026-06-02_long_loss.png"
+  "file": "2026-06-02_long_loss.png",
+  "sig": "55127a19b1848253"
  },
  {
   "n": 49,
@@ -536,7 +584,8 @@
   "score": 0.965,
   "range_pts": 1217,
   "held": 47,
-  "file": "2026-06-04_short_loss.png"
+  "file": "2026-06-04_short_loss.png",
+  "sig": "d0882ad7158cb0a9"
  },
  {
   "n": 50,
@@ -547,7 +596,8 @@
   "score": 0.856,
   "range_pts": 999,
   "held": 6,
-  "file": "2026-06-10_long_loss.png"
+  "file": "2026-06-10_long_loss.png",
+  "sig": "a1ea01c6ea27cc40"
  },
  {
   "n": 51,
@@ -558,7 +608,8 @@
   "score": 0.691,
   "range_pts": 2349,
   "held": 43,
-  "file": "2026-06-11_long_win.png"
+  "file": "2026-06-11_long_win.png",
+  "sig": "908dc9497ee6b93d"
  },
  {
   "n": 52,
@@ -569,7 +620,8 @@
   "score": 0.868,
   "range_pts": 765,
   "held": 14,
-  "file": "2026-06-15_long_loss.png"
+  "file": "2026-06-15_long_loss.png",
+  "sig": "e6f09a47443efe4c"
  },
  {
   "n": 53,
@@ -580,7 +632,8 @@
   "score": 0.94,
   "range_pts": 499,
   "held": 9,
-  "file": "2026-06-16_short_win.png"
+  "file": "2026-06-16_short_win.png",
+  "sig": "070f7f7d2dc47cc9"
  },
  {
   "n": 54,
@@ -591,7 +644,8 @@
   "score": 0.791,
   "range_pts": 1148,
   "held": 28,
-  "file": "2026-06-17_long_loss.png"
+  "file": "2026-06-17_long_loss.png",
+  "sig": "11afb4cc980dddef"
  },
  {
   "n": 55,
@@ -602,7 +656,8 @@
   "score": 0.922,
   "range_pts": 2262,
   "held": 41,
-  "file": "2026-06-18_long_win.png"
+  "file": "2026-06-18_long_win.png",
+  "sig": "c87971455c0a10e4"
  },
  {
   "n": 56,
@@ -613,7 +668,8 @@
   "score": 0.935,
   "range_pts": 2247,
   "held": 35,
-  "file": "2026-06-22_long_win.png"
+  "file": "2026-06-22_long_win.png",
+  "sig": "e03c46d2147e1329"
  },
  {
   "n": 57,
@@ -624,7 +680,8 @@
   "score": 0.877,
   "range_pts": 1239,
   "held": 16,
-  "file": "2026-06-25_short_win.png"
+  "file": "2026-06-25_short_win.png",
+  "sig": "09d585a2db3105d8"
  },
  {
   "n": 58,
@@ -635,7 +692,8 @@
   "score": 0.544,
   "range_pts": 1097,
   "held": 11,
-  "file": "2026-06-29_short_loss.png"
+  "file": "2026-06-29_short_loss.png",
+  "sig": "6d9acd4b83b3d96e"
  },
  {
   "n": 59,
@@ -646,7 +704,8 @@
   "score": 0.924,
   "range_pts": 1533,
   "held": 17,
-  "file": "2026-07-02_long_loss.png"
+  "file": "2026-07-02_long_loss.png",
+  "sig": "0750fc25bedf6a8c"
  },
  {
   "n": 60,
@@ -657,7 +716,8 @@
   "score": 1.0,
   "range_pts": 1121,
   "held": 6,
-  "file": "2026-07-09_long_loss.png"
+  "file": "2026-07-09_long_loss.png",
+  "sig": "9473b67934a36409"
  },
  {
   "n": 61,
@@ -668,7 +728,8 @@
   "score": 0.825,
   "range_pts": 1613,
   "held": 51,
-  "file": "2026-07-20_long_win.png"
+  "file": "2026-07-20_long_win.png",
+  "sig": "01483ef26f776b8c"
  },
  {
   "n": 62,
@@ -679,7 +740,8 @@
   "score": 0.769,
   "range_pts": 885,
   "held": 59,
-  "file": "2026-07-21_long_win.png"
+  "file": "2026-07-21_long_win.png",
+  "sig": "ab8c6532421f16f5"
  },
  {
   "n": 63,
@@ -690,7 +752,8 @@
   "score": 0.967,
   "range_pts": 1595,
   "held": 48,
-  "file": "2026-07-22_long_win.png"
+  "file": "2026-07-22_long_win.png",
+  "sig": "5bb863c43423e84c"
  },
  {
   "n": 64,
@@ -701,7 +764,8 @@
   "score": 0.579,
   "range_pts": 1208,
   "held": 61,
-  "file": "2026-07-28_short_win.png"
+  "file": "2026-07-28_short_win.png",
+  "sig": "6baeed80071b4e43"
  },
  {
   "n": 65,
@@ -712,7 +776,8 @@
   "score": 0.703,
   "range_pts": 750,
   "held": 23,
-  "file": "2026-07-30_short_win.png"
+  "file": "2026-07-30_short_win.png",
+  "sig": "14a4f344a8bcba10"
  },
  {
   "n": 66,
@@ -723,7 +788,8 @@
   "score": 0.769,
   "range_pts": 891,
   "held": 22,
-  "file": "2026-08-03_short_win.png"
+  "file": "2026-08-03_short_win.png",
+  "sig": "83134e8e89f4f479"
  },
  {
   "n": 67,
@@ -734,7 +800,8 @@
   "score": 0.717,
   "range_pts": 1251,
   "held": 37,
-  "file": "2026-08-11_long_loss.png"
+  "file": "2026-08-11_long_loss.png",
+  "sig": "de39be16e9118d6d"
  },
  {
   "n": 68,
@@ -745,7 +812,8 @@
   "score": 0.913,
   "range_pts": 1292,
   "held": 88,
-  "file": "2026-08-12_long_win.png"
+  "file": "2026-08-12_long_win.png",
+  "sig": "b480c1a630122fb8"
  },
  {
   "n": 69,
@@ -756,7 +824,8 @@
   "score": 0.673,
   "range_pts": 929,
   "held": 7,
-  "file": "2026-08-13_long_win.png"
+  "file": "2026-08-13_long_win.png",
+  "sig": "7272c66f56fd9778"
  },
  {
   "n": 70,
@@ -767,7 +836,8 @@
   "score": 0.947,
   "range_pts": 1141,
   "held": 15,
-  "file": "2026-08-17_long_win.png"
+  "file": "2026-08-17_long_win.png",
+  "sig": "faca9de2044c5805"
  },
  {
   "n": 71,
@@ -778,7 +848,8 @@
   "score": 0.856,
   "range_pts": 1335,
   "held": 39,
-  "file": "2026-08-19_long_loss.png"
+  "file": "2026-08-19_long_loss.png",
+  "sig": "55dd6b7ae14c80f3"
  },
  {
   "n": 72,
@@ -789,7 +860,8 @@
   "score": 0.688,
   "range_pts": 849,
   "held": 3,
-  "file": "2026-08-20_long_loss.png"
+  "file": "2026-08-20_long_loss.png",
+  "sig": "3ca2f538ef24fd07"
  },
  {
   "n": 73,
@@ -800,7 +872,8 @@
   "score": 0.966,
   "range_pts": 654,
   "held": 15,
-  "file": "2026-08-26_short_win.png"
+  "file": "2026-08-26_short_win.png",
+  "sig": "4198c7d61940085c"
  },
  {
   "n": 74,
@@ -811,7 +884,8 @@
   "score": 0.841,
   "range_pts": 1085,
   "held": 9,
-  "file": "2026-08-27_short_loss.png"
+  "file": "2026-08-27_short_loss.png",
+  "sig": "1c34561ef215ef3a"
  },
  {
   "n": 75,
@@ -822,6 +896,7 @@
   "score": 0.855,
   "range_pts": 1005,
   "held": 5,
-  "file": "2026-08-31_long_loss.png"
+  "file": "2026-08-31_long_loss.png",
+  "sig": "7d589aa2578ab87e"
  }
 ]

@@ -241,6 +241,12 @@ configuration and re-imports every month of ticks. Only position size is not
 independent, so R comes from the tester and the dollar columns are re-derived
 from the continuing balance in `merge_trades.py`.
 
+`all_trades.py` redraws only what changed, keyed on a signature over the trade
+row, that day's bars, its position in the year and the file's own contents --
+so editing the drawing code redraws everything by itself. `--all` forces it.
+Nothing in a chart may depend on the number of trades, or every chart goes
+stale whenever one is added.
+
 `check_charts.py` is the step that matters. It compares the charts, filenames,
 gallery captions and totals back to the tester CSV and stops the run rather
 than publishing. It exists because a wrong chart does not look wrong.

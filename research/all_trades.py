@@ -1,12 +1,22 @@
 """One chart per trade, into ~/orb/trades/. Labels de-collided, x-axis clipped
-to the trade's actual life."""
-import csv, os, datetime as dt, json
+to the trade's actual life.
+
+Only redraws what changed. Each chart carries a signature over the trade row,
+that day's bars, its position in the year and this file's own contents, so a
+new trade costs one drawing rather than seventy-six. Pass --all to force the
+lot, which is what an unrelated style change needs.
+"""
+import csv, hashlib, os, sys, datetime as dt, json
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from mt5paths import COMMON as D, bars as barsfile
 
 HOLD = 90   # InpMaxHoldMinutes -- must match the run that produced the CSV
+FORCE = "--all" in sys.argv
+# Hashing this file means a change to the drawing code redraws everything by
+# itself, so the cache can never serve a chart the current code would not draw.
+CODE = hashlib.sha1(open(os.path.abspath(__file__), "rb").read()).hexdigest()[:12]
 OUT=os.path.expanduser("~/orb/trades"); os.makedirs(OUT,exist_ok=True)
 INK="#141310"; MUT="#8a837a"; POS="#12694a"; NEG="#a8352a"; ACC="#8a6d3b"; GRID="#ece7dd"
 def nth(y,m,dow,n):
@@ -38,10 +48,28 @@ def place(levels, span):
         if ys[i]-ys[i-1] < gap: ys[i]=ys[i-1]+gap
     return [(items[i][0],ys[i])+items[i][1:] for i in range(len(items))]
 
-index=[]
+def signature(tr, daybars, i):
+    h=hashlib.sha1(CODE.encode())
+    h.update(repr([tr[k] for k in ('entry_time','dir','entry','sl','R','exit',
+                                   'close_pos','spread_pts','range_pts')]).encode())
+    h.update(repr(sorted(daybars.items())).encode())
+    h.update(b"%d" % i)          # the subtitle carries the trade's position
+    return h.hexdigest()[:16]
+
+old={}
+if os.path.exists("trade_index.json"):
+    for e in json.load(open("trade_index.json")):
+        old[e['date']]=e
+
+index=[]; drawn=0; reused=0
 for i,tr in enumerate(rows,1):
     d=tr['t'].date(); b=bars.get(d)
     if not b: continue
+    sig=signature(tr,b,i)
+    prev=old.get(d.isoformat())
+    if not FORCE and prev and prev.get('sig')==sig and \
+       os.path.exists(os.path.join(OUT,prev['file'])):
+        index.append(prev); reused+=1; continue
     st=off(d)*60
     rng=[b[m] for m in range(st,st+15) if m in b]
     if len(rng)<15: continue
@@ -88,10 +116,10 @@ for i,tr in enumerate(rows,1):
 
     # Belt and braces: half an R of disagreement means the marker is telling a
     # different story from the number, not rounding.
-    drawn = (exit_p-e)*sgn/risk
-    if abs(drawn-tr['R']) > 0.5:
+    drawn_r = (exit_p-e)*sgn/risk
+    if abs(drawn_r-tr['R']) > 0.5:
         raise SystemExit("%s: marker at %.2f is %+.2f R but the run recorded "
-                         "%+.3f R" % (d, exit_p, drawn, tr['R']))
+                         "%+.3f R" % (d, exit_p, drawn_r, tr['R']))
 
     last = st+exit_m+6
     xs=[m for m in range(st-4,last+1) if m in b]
@@ -131,8 +159,8 @@ for i,tr in enumerate(rows,1):
                  % (d.strftime("%d %B %Y"),d.strftime("%A"),
                     "LONG" if buy else "SHORT",res),
                  fontsize=14,color=POS if win else NEG,weight="bold",loc="left",pad=16)
-    ax.text(0,1.02,"00:14 closed in the %s half     range %.0f pts     held %d min     trade %d of %d"
-            % ("top" if buy else "bottom",width/0.01,exit_m-em,i,len(rows)),
+    ax.text(0,1.02,"00:14 closed in the %s half     range %.0f pts     held %d min     trade %d"
+            % ("top" if buy else "bottom",width/0.01,exit_m-em,i),
             transform=ax.transAxes,fontsize=9,color=MUT)
     tick=[t_ for t_ in range(0,xr+1,15)]
     ax.set_xticks(tick); ax.set_xticklabels(["%02d:%02d"%(t_//60,t_%60) for t_ in tick],fontsize=9)
@@ -145,6 +173,7 @@ for i,tr in enumerate(rows,1):
     fig.savefig(os.path.join(OUT,fn),bbox_inches="tight",facecolor="white"); plt.close(fig)
     index.append(dict(n=i,date=d.isoformat(),day=d.strftime("%a"),dir=tr['dir'],
                       R=round(tr['R'],3),score=round(score,3),range_pts=round(width/0.01),
-                      held=exit_m-em,file=fn))
+                      held=exit_m-em,file=fn,sig=sig))
+    drawn+=1
 json.dump(index,open("trade_index.json","w"),indent=1)
-print("wrote %d charts" % len(index))
+print("%d charts: drew %d, reused %d" % (len(index),drawn,reused))
