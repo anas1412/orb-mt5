@@ -15,13 +15,15 @@
 #property strict
 #property script_show_inputs
 
-input string InpFrom      = "2026.08.28";  // first date to fetch (broker time)
+input int    InpDaysBack  = 30;            // how far back to fetch
 input int    InpWaitSecs  = 90;            // give up after this long
 
 void OnStart()
   {
-   datetime from = StringToTime(InpFrom);
+   // Counted back from the server's clock, not written as a date: a fixed date
+   // silently stops covering the gap as soon as it falls behind.
    datetime to   = TimeCurrent();
+   datetime from = to - (datetime)InpDaysBack * 86400;
    MqlRates r[];
    int got = 0, stable = 0;
 

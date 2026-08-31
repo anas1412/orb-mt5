@@ -101,9 +101,14 @@ say "4/9  test the days we have not tested"
 # ticks. Neither refreshes itself, so a run after new data silently repeats the
 # old one. Only the current year and month need clearing -- wiping all of it
 # re-imports every month and costs minutes.
-YEAR=${TO%%.*}; MONTH=${TO:0:4}${TO:5:2}
+# Clear the previous month too: a gap that straddles a month boundary leaves
+# the earlier month's ticks stale, and stale reads exactly like "no trades".
+YEAR=${TO%%.*}
+MONTH=$(date -d "${TO//./-}" +%Y%m)
+PREV=$(date -d "${TO//./-} -1 month" +%Y%m)
 rm -f "$MT5/Tester/bases/$BROKER/history/$SYMBOL/$YEAR.hcs" \
       "$MT5/Tester/bases/$BROKER/ticks/$SYMBOL/$MONTH.tkc" \
+      "$MT5/Tester/bases/$BROKER/ticks/$SYMBOL/$PREV.tkc" \
       "$MT5"/Tester/cache/ORB."$SYMBOL".*.tst
 if [ "$FULL" = yes ]; then
   TEST_FROM=$EPOCH
