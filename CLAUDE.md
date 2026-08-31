@@ -223,27 +223,41 @@ October.
 
 ## Adding new trades
 
-The published numbers, the report, the deck and the trade gallery all come from
-one tester run. This is the order, and the last step is not optional.
-
 ```bash
-# 1. today's bars, if today matters -- see the trap below
-cd "<terminal folder>" && wine terminal64.exe /portable /config:sync.ini
-
-# 2. re-run both configurations. ToDate is the day AFTER the last one wanted
-cd ~/orb/strategy/research && bash run_cp050_mt5.sh 2026.09.01
-
-# 3. rebuild everything downstream
-python3 report_data.py && python3 all_trades.py
-python3 build_report.py && python3 build_slides.py && python3 build_client.py
-python3 build_sessions.py
-
-# 4. AUDIT. Non-zero exit means do not publish
-python3 check_charts.py
+bash update.sh              # everything since the last run, ~2 min
+bash update.sh --full       # re-test 2024 onward from scratch, ~20 min
+bash update.sh --push       # skip the confirmation before pushing
 ```
 
-`check_charts.py` compares the charts, filenames, gallery captions and totals
-back to the tester CSV. It exists because a wrong chart does not look wrong.
+Nine steps: check the terminal is closed, pull today's bars from a live chart,
+dump the days not on file, test the days not tested, replay what the tester
+would not, rebuild every page, **audit**, refresh the shipped CSVs, commit and
+push.
+
+**Incremental by default**, because each session is independent -- one trade,
+opened and closed inside 90 minutes, carrying nothing into the next. A few new
+days test in under a second; 2024 onward takes about ninety seconds per
+configuration and re-imports every month of ticks. Only position size is not
+independent, so R comes from the tester and the dollar columns are re-derived
+from the continuing balance in `merge_trades.py`.
+
+`check_charts.py` is the step that matters. It compares the charts, filenames,
+gallery captions and totals back to the tester CSV and stops the run rather
+than publishing. It exists because a wrong chart does not look wrong.
+
+### Things that fail silently here
+
+Every one of these looked like something else first.
+
+| Symptom | Cause |
+|---|---|
+| A step "runs slowly" for ever | The `.ini` had no `[Tester]` section. MetaTrader opens the GUI and waits. Always launch through `run_mt5`, which checks the section and passes a timeout |
+| An `.ini` edit empties the file | **Every `.ini` in the MT5 tree is a symlink back to this repo.** `sed x.ini > "$MT5/x.ini"` truncates its own input. Use `sed -i` on the repo copy |
+| MetaTrader exits 0 and logs nothing | Wine is holding state after a `kill -9`. `wineserver -k` clears it; `update.sh` does this in step 1 |
+| A window reports "0 trades" | A second terminal launched while one was still closing and exited immediately. `run_window.sh` verifies against the tester's own log, since an empty result is a legitimate answer |
+| A wait loop never finishes | `pgrep -f "bash update.sh"` **matches its own command line.** Wait on a PID, or bracket a character: `pgrep -f 'update[.]sh'` |
+| An error message never prints | `set -e` kills the script on a failed command substitution. `x=$(cmd || true)` |
+| The tester ignores the dates asked for | It **clamps `ToDate`** to its history and reports the clamped value. That clamped date is the coverage record, and it is an *exclusive* end -- the day it names is the day it did not test |
 
 ### The Strategy Tester cannot see today
 

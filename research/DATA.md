@@ -58,34 +58,28 @@ identical to the MT5 backtest, reached from raw bars by a separate path.
 **Rows cover Monday–Friday; the EA trades Monday–Thursday.** Filter on `dow`
 before comparing.
 
-## One row is not from the Strategy Tester
+<!-- replayed:start -->
+## Rows that are not from the Strategy Tester
 
-**`2026.08.31 03:16` in both trade files was replayed from the bars, not
-tested.** Worth knowing before you diff anything against your own run.
+**`2026.08.31 03:16` replayed from the bars, not tested.** Worth knowing before you
+diff anything against your own run.
 
 MetaTrader's history server only serves bars up to the last *completed*
 trading day. Today's bars exist in a live chart, because the terminal builds
 them from the tick stream, but they never reach the history base the Strategy
-Tester reads. So the tester quietly clamps its date range instead of failing,
-and the current session is simply absent. The tell is a log line that disagrees
-with the range you asked for:
+Tester reads, so the tester quietly clamps its date range instead of failing.
 
-    XAUUSD: history synchronized from 2023.01.03 to 2026.08.28
+`sim_offline.py` replays the EA over raw bars to cover those days. Run it with
+no arguments and it checks itself against the tester across 2026: same days,
+same directions, agreeing within 0.10 R on the large majority. Where it differs
+is intrabar ordering, since an M1 bar cannot say whether its high or its low
+came first.
 
-`research/sim_offline.py` replays the EA over raw bars to cover that one day.
-Run it with no arguments and it checks itself against the tester across 2026:
-it picks the same 74 days, in the same direction, and agrees within 0.10 R on
-67 of them. The seven it misses are all intrabar ordering — an M1 bar cannot
-say whether its high or its low came first, which matters when the stop move
-and the stop sit inside the same minute. That ambiguity does not arise on
-31 August: the trade was stopped five minutes in, having never traded close to
-the +0.5R trigger.
+R carries the mean drag measured from every full stop-out in the tested rows,
+so a replayed row is no cleaner than a real one.
 
-R is set to −1.033, the mean of every full stop-out in 2026, so the row carries
-the same commission and spread drag as the tested ones rather than a clean
-−1.000 that would flatter the total.
-
-Re-run the tester tomorrow and this row is replaced by a real one.
+These rows vanish on the next tester run that can see the day.
+<!-- replayed:end -->
 
 ## trades_live_config.csv
 

@@ -50,8 +50,13 @@ def load_bars():
     return bars
 
 
-def session(bars, d):
-    """Return the trade for one date, or a string saying why there wasn't one."""
+def session(bars, d, half_filter=True, require_closed=True):
+    """Return the trade for one date, or a string saying why there wasn't one.
+
+    require_closed refuses a trade the bars have not carried all the way to an
+    exit. Without it, running this mid-session publishes a position that is
+    still open as though it had finished.
+    """
     if d.weekday() > 3:                       # Monday to Thursday only
         return "not a trading day"
     b = bars.get(d)
@@ -82,14 +87,18 @@ def session(bars, d):
     if sig is None:
         return "no break by 00:29"
     m, buy = sig
-    if buy != allow_buy:
+    if half_filter and buy != allow_buy:
         # The EA does not wait for a break the other way; the day is over.
         return "broke the wrong half (closed %.2f, broke %s)" % (
             close_pos, "up" if buy else "down")
     if m + 1 not in b:
         return "no bar to enter on"
+    if require_closed and (m + 1 + HOLD) not in b:
+        return "still open, bars stop %d min into a %d min trade" % (
+            max(k for k in b if k >= m + 1) - m - 1, HOLD)
 
     sgn   = 1 if buy else -1
+    entry_min = m + 1 - st                           # minutes past the session open
     entry = b[m + 1][0] + (SPREAD if buy else 0.0)   # market: ask to buy, bid to sell
     risk  = abs(entry - mid)
     sl    = mid
@@ -105,23 +114,24 @@ def session(bars, d):
         fav = h if buy else l
         if (adv - cur) * sgn <= 0:
             return dict(d=d, buy=buy, entry=entry, sl=sl, tp=tp, close_pos=close_pos,
-                        rng=hi - lo, held=k - m - 1, exit="sl", price=cur,
-                        R=(cur - entry) * sgn / risk)
+                        rng=hi - lo, entry_min=entry_min, held=k - m - 1, exit="sl", price=cur,
+                        R=(cur - entry) * sgn / risk, allowed=allow_buy)
         if not moved and (fav - entry) * sgn >= MOVE_AT * risk:
             moved = True
             cur = entry + sgn * MOVE_TO * risk
             if (adv - cur) * sgn <= 0:
                 return dict(d=d, buy=buy, entry=entry, sl=sl, tp=tp, close_pos=close_pos,
-                            rng=hi - lo, held=k - m - 1, exit="sl", price=cur,
-                            R=(cur - entry) * sgn / risk)
+                            rng=hi - lo, entry_min=entry_min, held=k - m - 1, exit="sl", price=cur,
+                            R=(cur - entry) * sgn / risk, allowed=allow_buy)
         if (fav - tp) * sgn >= 0:
             return dict(d=d, buy=buy, entry=entry, sl=sl, tp=tp, close_pos=close_pos,
-                        rng=hi - lo, held=k - m - 1, exit="tp", price=tp, R=RR)
+                        rng=hi - lo, entry_min=entry_min, held=k - m - 1, exit="tp", price=tp, R=RR,
+                        allowed=allow_buy)
         last = c
         last_k = k
     return dict(d=d, buy=buy, entry=entry, sl=sl, tp=tp, close_pos=close_pos,
-                rng=hi - lo, held=last_k - m - 1, exit="hold", price=last,
-                R=(last - entry) * sgn / risk)
+                rng=hi - lo, entry_min=entry_min, held=last_k - m - 1, exit="hold", price=last,
+                R=(last - entry) * sgn / risk, allowed=allow_buy)
 
 
 def main():
