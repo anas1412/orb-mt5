@@ -3,15 +3,21 @@
 # rebuild every page, audit, commit, push.
 #
 #   bash update.sh                 everything since the last run
-#   bash update.sh --full          re-test 2024 onward from scratch (~20 min)
+#   bash update.sh --full          re-run the whole tester from scratch (~20 min)
 #   bash update.sh 2026.09.05      stop after 4 Sep (ToDate is exclusive)
 #   bash update.sh --push          skip the confirmation before pushing
 #   bash update.sh --force         rebuild even when nothing new has closed
 #
 # Incremental by default, because each session is independent: one trade,
 # opened and closed inside 90 minutes, carrying nothing into the next. Testing
-# a few new days takes seconds; testing 2024 onward takes about ninety seconds
-# per configuration and re-imports every month of tick data.
+# a few new days takes seconds; the whole range takes about ninety seconds per
+# configuration and re-imports every month of tick data.
+#
+# THE PUBLISHED RESULTS ARE 2026 ONLY -- report_data.py drops every other year,
+# so the edge is never claimed on 2024 or 2025. The tester still starts in 2024
+# because those trades label the session dataset in research/, where the quiet
+# years are the negative examples. They are inputs to that file and nothing
+# else.
 #
 # The audit is the point. It stops the run rather than publishing a chart that
 # disagrees with its own data, which has happened.
@@ -23,7 +29,8 @@ D="$HOME/.wine_mt5/drive_c/users/$USER/AppData/Roaming/MetaQuotes/Terminal/Commo
 EXE="terminal6""4.exe"          # split so pgrep -f never matches this script
 BROKER=FTMO-Demo
 SYMBOL=XAUUSD
-EPOCH=2024.01.01
+EPOCH=2024.01.01                # where the tester starts, NOT where the edge is
+                                # measured -- see the note above
 
 TO=""; PUSH=ask; FULL=no; FORCE=no
 for a in "$@"; do

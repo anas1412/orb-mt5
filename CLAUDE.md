@@ -226,9 +226,15 @@ October.
 ```bash
 bash update.sh              # everything since the last run, ~1.5 min
 bash update.sh --force      # rebuild even when nothing new has closed
-bash update.sh --full       # re-test 2024 onward from scratch, ~20 min
+bash update.sh --full       # re-run the whole tester from scratch, ~20 min
 bash update.sh --push       # skip the confirmation before pushing
 ```
+
+**The published results are 2026 only.** `report_data.py` drops every other
+year, so the edge is never claimed on 2024 or 2025. The tester still starts in
+2024 because those trades label the session dataset in `research/`, where the
+quiet years serve as negative examples -- they are inputs to that file and
+nothing else.
 
 It checks coverage before launching anything, so a run with nothing new costs
 0.03s instead of a minute and a half. A day with no trade leaves no row, so
