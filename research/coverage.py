@@ -16,9 +16,6 @@ import datetime as dt, json, os, sys
 from mt5paths import COMMON as D
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# The range closes at 00:15 UTC and the trade is capped at 90 minutes, so a
-# session is certainly finished by 02:00 UTC. Half an hour of slack on top.
-SESSION_DONE_UTC = dt.time(2, 30)
 
 
 def covered_through():
@@ -39,11 +36,16 @@ def covered_through():
 
 
 def want_through(now=None):
-    """First date whose session has not finished yet."""
+    """First date not worth asking about yet.
+
+    Deliberately does NOT wait out the 90-minute cap. Running the pipeline is
+    itself the statement that the session is over, and a trade stopped at
+    minute five is finished whatever the clock says. Whether it really resolved
+    is decided by the bars, in sim_offline.session, which refuses a trade it
+    cannot carry to an exit.
+    """
     now = now or dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
     day = now.date()
-    if now.time() < SESSION_DONE_UTC:
-        day -= dt.timedelta(days=1)      # today's session has not closed
     # Only Monday to Thursday can produce a trade; anything later in the week
     # is already accounted for once Thursday is.
     while day.weekday() > 3:

@@ -53,9 +53,12 @@ def load_bars():
 def session(bars, d, half_filter=True, require_closed=True):
     """Return the trade for one date, or a string saying why there wasn't one.
 
-    require_closed refuses a trade the bars have not carried all the way to an
-    exit. Without it, running this mid-session publishes a position that is
-    still open as though it had finished.
+    require_closed refuses a trade the bars have not carried to an exit. Without
+    it, running this mid-session publishes an open position as though it had
+    finished. It asks whether the trade RESOLVED, not whether 90 minutes have
+    passed -- a stop at minute five is a finished trade, and waiting out the
+    cap before admitting it is what made the tool say "up to date" while a loss
+    sat on the account.
     """
     if d.weekday() > 3:                       # Monday to Thursday only
         return "not a trading day"
@@ -93,9 +96,6 @@ def session(bars, d, half_filter=True, require_closed=True):
             close_pos, "up" if buy else "down")
     if m + 1 not in b:
         return "no bar to enter on"
-    if require_closed and (m + 1 + HOLD) not in b:
-        return "still open, bars stop %d min into a %d min trade" % (
-            max(k for k in b if k >= m + 1) - m - 1, HOLD)
 
     sgn   = 1 if buy else -1
     entry_min = m + 1 - st                           # minutes past the session open
@@ -104,9 +104,13 @@ def session(bars, d, half_filter=True, require_closed=True):
     sl    = mid
     tp    = entry + sgn * RR * risk
 
-    moved, cur = False, sl
+    moved, cur, ran_out = False, sl, False
     for k in range(m + 1, m + 1 + HOLD + 1):
         if k not in b:
+            # Out of bars before the clock ran out. Whether this matters depends
+            # on why: a stop or a target already returned above, so reaching
+            # here means the trade is genuinely still open.
+            ran_out = True
             break
         o, h, l, c = b[k]
         # A short's stop sits on the ask while the candle draws the bid.
@@ -129,6 +133,9 @@ def session(bars, d, half_filter=True, require_closed=True):
                         allowed=allow_buy)
         last = c
         last_k = k
+    if require_closed and ran_out:
+        return "still open, bars stop %d min into a %d min trade" % (
+            last_k - m - 1, HOLD)
     return dict(d=d, buy=buy, entry=entry, sl=sl, tp=tp, close_pos=close_pos,
                 rng=hi - lo, entry_min=entry_min, held=last_k - m - 1, exit="hold", price=last,
                 R=(last - entry) * sgn / risk, allowed=allow_buy)

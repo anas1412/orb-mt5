@@ -892,11 +892,23 @@
   "date": "2026-08-31",
   "day": "Mon",
   "dir": "buy",
-  "R": -1.035,
+  "R": -1.022,
   "score": 0.855,
   "range_pts": 1005,
   "held": 5,
   "file": "2026-08-31_long_loss.png",
-  "sig": "7d589aa2578ab87e"
+  "sig": "7be70a236e389edb"
+ },
+ {
+  "n": 76,
+  "date": "2026-09-01",
+  "day": "Tue",
+  "dir": "buy",
+  "R": -1.035,
+  "score": 0.757,
+  "range_pts": 1164,
+  "held": 23,
+  "file": "2026-09-01_long_loss.png",
+  "sig": "6a54f535f22c1044"
  }
 ]

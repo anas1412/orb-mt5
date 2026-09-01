@@ -33,15 +33,15 @@ rate for 1 R of give-up.
 
 ## Results
 
-XAUUSD, real ticks, 2026 (2 Jan – 31 Aug), 2% risk per trade.
+XAUUSD, real ticks, 2026 (2 Jan – 1 Sep), 2% risk per trade.
 
 | | |
 |---|---|
-| Trades | **75** from 137 eligible sessions |
-| Win rate | **53.3%** — 40 wins, 35 losses |
-| Expectancy | **+0.627 R** per trade (±0.164 standard error) |
-| Profit factor | **2.59** — won +76.7 R against -29.6 R lost |
-| Total | **+47.0 R** = **+94%** of the account |
+| Trades | **76** from 138 eligible sessions |
+| Win rate | **52.6%** — 40 wins, 36 losses |
+| Expectancy | **+0.605 R** per trade (±0.163 standard error) |
+| Profit factor | **2.50** — won +76.7 R against -30.7 R lost |
+| Total | **+46.0 R** = **+92%** of the account |
 | Worst drawdown | **6.3%** |
 | Longest losing run | **3** |
 
@@ -50,17 +50,17 @@ simulated 40 000 times on the 2026 outcomes:
 
 | Risk per trade | Pass both phases | Trades needed | Trading days |
 |---|---|---|---|
-| 1.0% | 99.8% | 19 | ~35 |
-| 1.5% | 98.5% | 13 | ~24 |
-| **2.0%** | **95.7%** | **10** | **~18** |
-| 3.0% | 88.0% | 6 | ~11 |
+| 1.0% | 99.8% | 19 | ~34 |
+| 1.5% | 98.2% | 13 | ~24 |
+| **2.0%** | **95.0%** | **10** | **~18** |
+| 3.0% | 86.8% | 6 | ~11 |
 
-How the 75 trades ended:
+How the 76 trades ended:
 
 | Exit | Trades | Total |
 |---|---|---|
 | Target hit (+2R) | 36 | +73.3 R |
-| Stopped out | 35 | -29.6 R |
+| Stopped out | 36 | -30.7 R |
 | 90-minute cap | 4 | +3.3 R |
 
 ---
@@ -175,7 +175,7 @@ Research scripts and the full study are in [`research/`](research/).
   Asia open in 2026. London and New York were tested and do not work.
 - **It is a regime bet.** The filter depends on ranges that trend rather than
   chop. If the 15-minute range drops below 0.15% of price, the edge is gone.
-- **75 trades is a small sample.** The ±0.164 standard error on expectancy is
+- **76 trades is a small sample.** The ±0.164 standard error on expectancy is
   real, and so is the chance that 2026 was kind.
 
 Not financial advice. Test on demo first.
