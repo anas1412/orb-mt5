@@ -237,7 +237,10 @@ quiet years serve as negative examples -- they are inputs to that file and
 nothing else.
 
 It checks coverage before launching anything, so a run with nothing new costs
-0.03s instead of a minute and a half. A day with no trade leaves no row, so
+0.03s instead of a minute and a half. **Running it is the statement that the
+session is over** -- it does not wait out the 90-minute cap before believing
+you. Whether a trade really resolved is decided by the bars in
+`sim_offline.session`, which refuses one it cannot carry to an exit. A day with no trade leaves no row, so
 coverage cannot be read off the trade files -- it comes from the tester's own
 reported range in `tested_through.txt` plus whatever `replayed.json` added on
 top. Missing days need nothing special: it resumes from the marker and tests
@@ -277,6 +280,7 @@ Every one of these looked like something else first.
 | A window reports "0 trades" | A second terminal launched while one was still closing and exited immediately. `run_window.sh` verifies against the tester's own log, since an empty result is a legitimate answer |
 | A wait loop never finishes | `pgrep -f "bash update.sh"` **matches its own command line.** Wait on a PID, or bracket a character: `pgrep -f 'update[.]sh'` |
 | An error message never prints | `set -e` kills the script on a failed command substitution. `x=$(cmd || true)` |
+| "Up to date" when a trade just closed | The guard waited for the 90-minute cap. A stop at minute five is a finished trade; ask whether it **resolved**, never how long it has been |
 | The tester ignores the dates asked for | It **clamps `ToDate`** to its history and reports the clamped value. That clamped date is the coverage record, and it is an *exclusive* end -- the day it names is the day it did not test |
 
 ### The Strategy Tester cannot see today
