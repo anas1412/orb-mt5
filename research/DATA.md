@@ -61,7 +61,7 @@ before comparing.
 <!-- replayed:start -->
 ## Rows that are not from the Strategy Tester
 
-**`2026.09.01 03:21` replayed from the bars, not tested.** Worth knowing before you
+**`2026.09.02 03:18` replayed from the bars, not tested.** Worth knowing before you
 diff anything against your own run.
 
 MetaTrader's history server only serves bars up to the last *completed*
