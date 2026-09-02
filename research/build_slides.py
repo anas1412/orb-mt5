@@ -141,7 +141,10 @@ S.append(("2026, on real ticks", '<div class="kpis">%s</div>' % "".join([
     kpi("Profit factor", "%.2f" % H["pf"], "%+.1f R won vs %.1f lost" % (H["gain"], abs(H["loss"]))),
     kpi("Trades", "%d" % H["trades"], "from %d eligible sessions" % H["sessions"], ""),
     kpi("Worst drawdown", "%.1f%%" % d["maxdd"], "the limit is 10%", ""),
-    kpi("Longest losing run", "%d" % d["streaks"]["worst_loss"], "%.0f%% of the account" % (RISK * d["streaks"]["worst_loss"]), ""),
+    # The minus matters: the report's matching card reads "-8% of the account",
+    # and a loss rendered as a bare "8%" is the one number a reader could take
+    # the wrong way round.
+    kpi("Longest losing run", "%d" % d["streaks"]["worst_loss"], "-%.0f%% of the account" % (RISK * d["streaks"]["worst_loss"]), ""),
     kpi("Longest winning run", "%d" % d["streaks"]["best_win"], "wins in a row"),
 ])))
 
