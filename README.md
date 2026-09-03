@@ -33,16 +33,16 @@ rate for 1 R of give-up.
 
 ## Results
 
-XAUUSD, real ticks, 2026 (2 Jan – 2 Sep), 2% risk per trade.
+XAUUSD, real ticks, 2026 (2 Jan – 3 Sep), 2% risk per trade.
 
 | | |
 |---|---|
-| Trades | **77** from 139 eligible sessions |
+| Trades | **77** from 140 eligible sessions |
 | Win rate | **51.9%** — 40 wins, 37 losses |
-| Expectancy | **+0.584 R** per trade (±0.162 standard error) |
-| Profit factor | **2.42** — won +76.7 R against -31.7 R lost |
+| Expectancy | **+0.585 R** per trade (±0.162 standard error) |
+| Profit factor | **2.42** — won +76.7 R against -31.6 R lost |
 | Total | **+45.0 R** = **+90%** of the account |
-| Worst drawdown | **8.3%** |
+| Worst drawdown | **8.2%** |
 | Longest losing run | **4** |
 
 **Challenge pass rate** — FundingPips two-step, +8% then +5%, 10% max loss,
@@ -51,7 +51,7 @@ simulated 40 000 times on the 2026 outcomes:
 | Risk per trade | Pass both phases | Trades needed | Trading days |
 |---|---|---|---|
 | 1.0% | 99.8% | 21 | ~38 |
-| 1.5% | 97.8% | 13 | ~23 |
+| 1.5% | 97.8% | 13 | ~24 |
 | **2.0%** | **94.2%** | **10** | **~18** |
 | 3.0% | 85.7% | 6 | ~11 |
 
@@ -59,7 +59,7 @@ How the 77 trades ended:
 
 | Exit | Trades | Total |
 |---|---|---|
-| Stopped out | 37 | -31.7 R |
+| Stopped out | 37 | -31.6 R |
 | Target hit (+2R) | 36 | +73.3 R |
 | 90-minute cap | 4 | +3.3 R |
 

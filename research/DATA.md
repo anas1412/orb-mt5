@@ -59,26 +59,7 @@ identical to the MT5 backtest, reached from raw bars by a separate path.
 before comparing.
 
 <!-- replayed:start -->
-## Rows that are not from the Strategy Tester
-
-**`2026.09.02 03:18` replayed from the bars, not tested.** Worth knowing before you
-diff anything against your own run.
-
-MetaTrader's history server only serves bars up to the last *completed*
-trading day. Today's bars exist in a live chart, because the terminal builds
-them from the tick stream, but they never reach the history base the Strategy
-Tester reads, so the tester quietly clamps its date range instead of failing.
-
-`sim_offline.py` replays the EA over raw bars to cover those days. Run it with
-no arguments and it checks itself against the tester across 2026: same days,
-same directions, agreeing within 0.10 R on the large majority. Where it differs
-is intrabar ordering, since an M1 bar cannot say whether its high or its low
-came first.
-
-R carries the mean drag measured from every full stop-out in the tested rows,
-so a replayed row is no cleaner than a real one.
-
-These rows vanish on the next tester run that can see the day.
+Every row in both trade files came from the Strategy Tester.
 <!-- replayed:end -->
 
 ## trades_live_config.csv
