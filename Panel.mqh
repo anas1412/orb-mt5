@@ -54,7 +54,9 @@
 #define K_FLD   C'15,14,12'
 
 // The host EA declares g_tradingOn, g_lotMode, g_riskPercent, g_riskMoney,
-// g_rr, g_moveAtR and g_moveToR before including this file, and the panel
+// g_rr, g_moveAtR, g_moveToR, g_stopMoveOn, g_startHour, g_startMinute,
+// g_rangeMinutes, g_noEntryAfterMin, g_ydayFilter and g_ydayMinBody before
+// including this file, and the panel
 // writes to those same variables directly. No forward declarations: MQL5's
 // `extern` would risk creating separate copies, and then edits here would
 // never reach the trading logic.
@@ -64,7 +66,8 @@
 //    button, so adding a setting is one enum entry plus one case per accessor.
 enum ENUM_P_FIELD
   {
-   P_RISK, P_RR, P_START, P_RANGE, P_WINDOW, P_STOPMOVE, P_MOVEAT, P_MOVETO, P_FIELDS
+   P_RISK, P_RR, P_START, P_RANGE, P_WINDOW, P_STOPMOVE, P_MOVEAT, P_MOVETO,
+   P_YDAY, P_YDAYMIN, P_FIELDS
   };
 
 string g_pStatus  = "";
@@ -101,6 +104,8 @@ void PStoreSave()
    GlobalVariableSet(PStoreKey("sm"),       (double)g_startMinute);
    GlobalVariableSet(PStoreKey("rangemin"), (double)g_rangeMinutes);
    GlobalVariableSet(PStoreKey("window"),   (double)g_noEntryAfterMin);
+   GlobalVariableSet(PStoreKey("yday"),     g_ydayFilter ? 1 : 0);
+   GlobalVariableSet(PStoreKey("ydaymin"),  g_ydayMinBody);
   }
 
 //| Restore only what was actually stored, so a fresh chart uses the
@@ -121,6 +126,8 @@ void PStoreLoad()
    if(GlobalVariableCheck(PStoreKey("sm")))        g_startMinute = (int)GlobalVariableGet(PStoreKey("sm"));
    if(GlobalVariableCheck(PStoreKey("rangemin")))  g_rangeMinutes = (int)GlobalVariableGet(PStoreKey("rangemin"));
    if(GlobalVariableCheck(PStoreKey("window")))    g_noEntryAfterMin = (int)GlobalVariableGet(PStoreKey("window"));
+   if(GlobalVariableCheck(PStoreKey("yday")))      g_ydayFilter  = GlobalVariableGet(PStoreKey("yday")) > 0.5;
+   if(GlobalVariableCheck(PStoreKey("ydaymin")))   g_ydayMinBody = GlobalVariableGet(PStoreKey("ydaymin"));
   }
 
 //+------------------------------------------------------------------+
@@ -234,12 +241,23 @@ string PFieldName(const int f)
       case P_STOPMOVE: return "stopmove";
       case P_MOVEAT:   return "moveat";
       case P_MOVETO:   return "moveto";
+      case P_YDAY:     return "yday";
+      case P_YDAYMIN:  return "ydaymin";
      }
    return "";
   }
 
 //| A row is either an edit box or a plain toggle button.
-bool PFieldIsToggle(const int f) { return f == P_STOPMOVE; }
+bool PFieldIsToggle(const int f) { return f == P_STOPMOVE || f == P_YDAY; }
+
+//| The two toggles, and which child rows each one owns.
+bool PToggleOn(const int f) { return f == P_YDAY ? g_ydayFilter : g_stopMoveOn; }
+int  PParentOf(const int f)
+  {
+   if(f == P_MOVEAT || f == P_MOVETO) return P_STOPMOVE;
+   if(f == P_YDAYMIN)                 return P_YDAY;
+   return -1;
+  }
 
 string PFieldLabel(const int f)
   {
@@ -253,6 +271,8 @@ string PFieldLabel(const int f)
       case P_STOPMOVE: return "Stop move";
       case P_MOVEAT:   return "Move at";
       case P_MOVETO:   return "Move to";
+      case P_YDAY:     return "Yesterday filter";
+      case P_YDAYMIN:  return "Min body";
      }
    return "";
   }
@@ -270,6 +290,7 @@ string PFieldUnit(const int f)
       case P_WINDOW: return "min";
       case P_MOVEAT: return "R";
       case P_MOVETO: return "R";
+      case P_YDAYMIN: return SymbolInfoString(_Symbol, SYMBOL_CURRENCY_PROFIT);   // the candle body is in price
      }
    return "";
   }
@@ -287,6 +308,7 @@ string PFieldText(const int f)
       case P_WINDOW: return IntegerToString(g_noEntryAfterMin);
       case P_MOVEAT: return DoubleToString(g_moveAtR, 2);
       case P_MOVETO: return DoubleToString(g_moveToR, 2);
+      case P_YDAYMIN: return DoubleToString(g_ydayMinBody, 0);
      }
    return "";
   }
@@ -356,6 +378,10 @@ bool PFieldApply(const int f, const string txt)
            { PrintFormat("panel: move-to %.2f must sit below move-at %.2f, or the stop "
                          "would jump past price", v, g_moveAtR); return false; }
          g_moveToR = v; return true;
+      case P_YDAYMIN:
+         if(v <= 0)
+           { PrintFormat("panel: min body %.2f must be above 0 (use the Yesterday filter button to switch it off)", v); return false; }
+         g_ydayMinBody = v; return true;
      }
    return false;
   }
@@ -445,16 +471,16 @@ void PanelDraw()
    for(int f = 0; f < P_FIELDS; f++)
      {
       const string nm  = PFieldName(f);
-      const bool   sub = (f == P_MOVEAT || f == P_MOVETO);   // children of Stop move
-      const bool   dim = (!g_stopMoveOn && sub);
+      const bool   sub = (PParentOf(f) >= 0);                  // a child of a toggle row
+      const bool   dim = (sub && !PToggleOn(PParentOf(f)));
       const int    ly  = y + (P_ROW - P_FLD) / 2 + 5;
 
       PLabel("l_" + nm, C_LBL + (sub ? 12 : 0), ly, PFieldLabel(f),
              dim ? K_DIM : K_MUT, 8);
 
       if(PFieldIsToggle(f))
-         PButton("b_" + nm, C_VAL, y + 1, C_VALW, P_FLD, g_stopMoveOn ? "ON" : "OFF",
-                 g_stopMoveOn ? K_POSBG : K_NEGBG, g_stopMoveOn ? K_POS : K_NEG);
+         PButton("b_" + nm, C_VAL, y + 1, C_VALW, P_FLD, PToggleOn(f) ? "ON" : "OFF",
+                 PToggleOn(f) ? K_POSBG : K_NEGBG, PToggleOn(f) ? K_POS : K_NEG);
       else
         {
          PEdit("e_" + nm, C_VAL, y + 1, C_VALW, P_FLD, PFieldText(f), edit && !dim);
@@ -538,6 +564,24 @@ bool PanelEvent(const int id, const long &lparam, const double &dparam, const st
       PrintFormat("panel: stop move %s%s", g_stopMoveOn ? "ON" : "OFF",
                   g_stopMoveOn ? StringFormat(" (at +%.2fR move to %.2fR)", g_moveAtR, g_moveToR)
                                : " - the stop stays where it started");
+      PStoreSave();
+      PanelDraw();
+      return true;
+     }
+
+   if(id == CHARTEVENT_OBJECT_CLICK && sparam == P_PFX "b_yday")
+     {
+      ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
+      if(!PEditable())
+        {
+         Print("panel: locked - switch trading off and close any position first");
+         PanelDraw();
+         return true;
+        }
+      g_ydayFilter = !g_ydayFilter;
+      PrintFormat("panel: yesterday filter %s%s", g_ydayFilter ? "ON" : "OFF",
+                  g_ydayFilter ? StringFormat(" (skip breaks against a daily candle with body >= %.0f)", g_ydayMinBody)
+                               : " - breaks are taken regardless of yesterday");
       PStoreSave();
       PanelDraw();
       return true;

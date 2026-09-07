@@ -68,6 +68,8 @@ input double           InpMaxRangePoints  = 0;             // Max range size (po
 input int              InpRangeLookback   = 0;             // Rolling filter: sessions to compare against (0=off)
 input double           InpMinRangeRatio   = 1.25;          // Rolling filter: range must be this x the median
 input double           InpMinClosePos     = 0.50;          // Trade only the half the range closed in (0.50=midpoint, 0=off)
+input bool             InpYdayFilter      = false;         // Skip breaks against yesterday's daily candle (off: not in the published config)
+input double           InpYdayMinBody     = 30.0;          // ...only when that candle's body is at least this (price units)
 input bool             InpTradeMon        = true;          // Trade Monday
 input bool             InpTradeTue        = true;          // Trade Tuesday
 input bool             InpTradeWed        = true;          // Trade Wednesday
@@ -146,6 +148,8 @@ int              g_startHour   = 0;
 int              g_startMinute = 0;
 int              g_rangeMinutes = 15;
 int              g_noEntryAfterMin = 15;
+bool             g_ydayFilter  = false;
+double           g_ydayMinBody = 30.0;
 
 #include <Panel.mqh>
 
@@ -223,6 +227,8 @@ int OnInit()
    g_startMinute = InpStartMinute;
    g_rangeMinutes    = InpRangeMinutes;
    g_noEntryAfterMin = InpNoEntryAfterMin;
+   g_ydayFilter  = InpYdayFilter;
+   g_ydayMinBody = InpYdayMinBody;
    PanelInit(InpMagic, InpShowPanel);
 
    return INIT_SUCCEEDED;
@@ -582,6 +588,11 @@ void LookForBreak()
       g_daySkipped = true;                 // one shot per day, as tested
       return;
      }
+   if(!YesterdayAllows(isBuy))
+     {
+      g_daySkipped = true;                 // same one-shot rule: rejection ends the day
+      return;
+     }
 
    Enter(isBuy ? ORDER_TYPE_BUY : ORDER_TYPE_SELL);
   }
@@ -708,6 +719,48 @@ bool ClosePositionAllows(const bool isBuy)
    PrintFormat("range closed in the %s half, but the break is to the %s - skipping "
                "(wrong half, %.2f < %.2f)", cp >= 0.5 ? "top" : "bottom",
                isBuy ? "upside" : "downside", score, InpMinClosePos);
+   return false;
+  }
+
+//+------------------------------------------------------------------+
+//| Yesterday's-candle rule. OFF by default; not in the published      |
+//| numbers.                                                          |
+//|                                                                   |
+//| The half-of-the-range rule reads a 15 minute box and nothing       |
+//| before it. In late Aug 2026 gold fell $280 in six sessions and the |
+//| box closed top-half on four of them, so the EA bought into a       |
+//| crash four times. Measured on 2026: a break WITH the previous      |
+//| daily candle (body >= $30) went 59% for +0.83 R a trade, a break    |
+//| AGAINST it 33% for +0.09. Skipping the latter cost 2.2 R over the  |
+//| year and cut the worst drawdown from 10.3% to 4.2%.               |
+//|                                                                   |
+//| D1 bar 1 is the last COMPLETED daily candle in broker days - on a  |
+//| Monday that is Friday's. A body under the threshold has no         |
+//| opinion. Rejection ends the day, like the half rule, because that  |
+//| is how it was measured.                                           |
+//+------------------------------------------------------------------+
+bool YesterdayAllows(const bool isBuy)
+  {
+   if(!g_ydayFilter)
+      return true;
+
+   const double o = iOpen(_Symbol, PERIOD_D1, 1);
+   const double c = iClose(_Symbol, PERIOD_D1, 1);
+   if(o <= 0 || c <= 0)
+     {
+      Print("yesterday filter: no completed daily candle available, not blocking");
+      return true;
+     }
+
+   const double body = c - o;
+   if(MathAbs(body) < g_ydayMinBody)
+      return true;
+   if((body > 0) == isBuy)
+      return true;
+
+   PrintFormat("yesterday's daily candle closed %+.2f, but the break is to the %s - skipping "
+               "(against yesterday, body %.2f >= %.2f)", body,
+               isBuy ? "upside" : "downside", MathAbs(body), g_ydayMinBody);
    return false;
   }
 

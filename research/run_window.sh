@@ -26,6 +26,7 @@ si InpStopMoveAtR 0.5; si InpStopMoveToR -0.5
 si InpRangeLookback 0; si InpRiskPercent 2.0
 si InpTradeMon true; si InpTradeTue true; si InpTradeWed true; si InpTradeThu true
 si InpTradeFri false
+si InpYdayFilter "${YDAY:-false}"; si InpYdayMinBody 30
 
 # An empty result file is a legitimate answer -- a window can genuinely hold no
 # trades -- so row count cannot tell a real run from one that never started. A

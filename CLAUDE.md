@@ -228,6 +228,7 @@ bash update.sh              # everything since the last run, ~1.5 min
 bash update.sh --force      # rebuild even when nothing new has closed
 bash update.sh --full       # re-run the whole tester from scratch, ~20 min
 bash update.sh --push       # skip the confirmation before pushing
+YDAY=true bash research/run_window.sh 2026.01.01 2026.09.08   # one-off: yesterday filter ON
 ```
 
 **The published results are 2026 only.** `report_data.py` drops every other
@@ -281,6 +282,7 @@ Every one of these looked like something else first.
 | A wait loop never finishes | `pgrep -f "bash update.sh"` **matches its own command line.** Wait on a PID, or bracket a character: `pgrep -f 'update[.]sh'` |
 | An error message never prints | `set -e` kills the script on a failed command substitution. `x=$(cmd || true)` |
 | "Up to date" when a trade just closed | The guard waited for the 90-minute cap. A stop at minute five is a finished trade; ask whether it **resolved**, never how long it has been |
+| A trade vanishes from a fresh full-year run | **Margin.** Windows start from the `Deposit` in `tester.ini` ($10,000); on a tiny-range day 2% of that is over a lot of gold, and the demo rejects it with `not enough money`. The published 20 Jan 2026 row only exists because that run's balance had drifted to ~$3,900. Read the journal before blaming the code |
 | The tester ignores the dates asked for | It **clamps `ToDate`** to its history and reports the clamped value. That clamped date is the coverage record, and it is an *exclusive* end -- the day it names is the day it did not test |
 
 ### The Strategy Tester cannot see today

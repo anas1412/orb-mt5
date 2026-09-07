@@ -108,6 +108,7 @@ Everything is adjustable without reopening the inputs dialog.
 | **Range length** | Minutes |
 | **Break window** | Minutes after the range closes that a break still counts |
 | **Stop move** | ON / OFF, with its two levels beneath |
+| **Yesterday filter** | ON / OFF. Skips a break against the previous daily candle when its body is at least **Min body**. Off by default and not in the published numbers |
 
 Settings are locked while trading is on or a position is open, and are
 remembered across restarts. The header reads **IDLE**, **ONLINE**, **IN TRADE**,
@@ -127,6 +128,7 @@ The defaults are the tested configuration. These are the ones worth knowing:
 | `InpMaxHoldMinutes` | `90` | Flat after 90 minutes |
 | `InpMinClosePos` | `0.50` | The half-of-the-range rule |
 | `InpTradeFri` | `false` | Friday off |
+| `InpYdayFilter` / `MinBody` | `false` / `30` | Skip breaks against yesterday's daily candle. Measured, not published |
 | `InpSLPercentOfRange` | `50` | Stop at the midpoint |
 | `InpRR` | `2.0` | Target at 2R |
 | `InpStopMoveAtR` / `ToR` | `0.5` / `-0.5` | At +0.5R, move to −0.5R |

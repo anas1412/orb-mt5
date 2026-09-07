@@ -20,6 +20,7 @@ si InpStopMoveAtR 0.5; si InpStopMoveToR -0.5
 si InpRangeLookback 0; si InpRiskPercent 2.0
 si InpTradeMon true; si InpTradeTue true; si InpTradeWed true; si InpTradeThu true
 si InpTradeFri false
+si InpYdayFilter "${YDAY:-false}"; si InpYdayMinBody 30
 for CP in 0.00 0.50; do
   si InpMinClosePos "$CP"
   # cp 0.00 keeps every break, which is what the half-vs-half table needs
