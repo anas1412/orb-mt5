@@ -1066,6 +1066,28 @@ double LotsFor(const double entry, const double sl)
       PrintFormat("computed %.4f lots, below the %.4f minimum — no trade", lots, min);
       return 0;
      }
+   // Fit to free margin. Risk sizing alone can ask for more gold than the
+   // account can hold: with 2% risk and ~2% margin on XAUUSD, any day whose stop
+   // is under 0.04% of price needs more than the whole balance in margin, at ANY
+   // account size -- lots and free margin both scale with the balance. 20 Jan
+   // 2026 sat exactly on that line: rejected in a fresh backtest, accepted in an
+   // older one, decided by lot rounding alone. A smaller position is strictly
+   // better than a rejected order followed by a retry on the next bar at a
+   // different price. 0.95 leaves room for the spread and margin on the ask.
+   double need = 0;
+   const double free = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+   if(OrderCalcMargin(entry >= sl ? ORDER_TYPE_BUY : ORDER_TYPE_SELL, _Symbol, lots, entry, need)
+      && need > 0 && need > free * 0.95)
+     {
+      const double fit = MathFloor(lots * (free * 0.95 / need) / step) * step;
+      if(fit >= min)
+        {
+         PrintFormat("margin: %.2f lots needs %.0f but only %.0f is free - sized down to %.2f "
+                     "(risk %.0f instead of %.0f)", lots, need, free, fit,
+                     RiskOf(fit, entry, sl), RiskOf(lots, entry, sl));
+         lots = fit;
+        }
+     }
    return lots;
   }
 
