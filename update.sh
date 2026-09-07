@@ -7,6 +7,7 @@
 #   bash update.sh 2026.09.05      stop after 4 Sep (ToDate is exclusive)
 #   bash update.sh --push          skip the confirmation before pushing
 #   bash update.sh --force         rebuild even when nothing new has closed
+#   bash update.sh --account accounts/ftmo.env   log into that broker account
 #
 # Incremental by default, because each session is independent: one trade,
 # opened and closed inside 90 minutes, carrying nothing into the next. Testing
@@ -33,9 +34,11 @@ SYMBOL=XAUUSD
 EPOCH=2024.01.01                # where the tester starts, NOT where the edge is
                                 # measured -- see the note above
 
-TO=""; PUSH=ask; FULL=no; FORCE=no
-for a in "$@"; do
+TO=""; PUSH=ask; FULL=no; FORCE=no; ACCOUNT=""
+while [ $# -gt 0 ]; do
+  a="$1"; shift
   case "$a" in
+    --account) ACCOUNT="${1:?--account needs a file}"; shift ;;
     --push)    PUSH=yes ;;
     --no-push) PUSH=no ;;
     --full)    FULL=yes ;;
@@ -43,6 +46,12 @@ for a in "$@"; do
     *)         TO="$a" ;;
   esac
 done
+# The account file is plain KEY=value, sourced here so it works from any shell
+# (the user's is fish; `set -a; source` is bash-only).
+if [ -n "$ACCOUNT" ]; then
+  [ -f "$ACCOUNT" ] || { echo "no such account file: $ACCOUNT" >&2; exit 1; }
+  set -a; . "$ACCOUNT"; set +a
+fi
 # The tester stops at the START of ToDate, so it must be the day after the last
 # one wanted. It clamps this to whatever history it has and says so.
 TO="${TO:-$(date -d tomorrow +%Y.%m.%d)}"
