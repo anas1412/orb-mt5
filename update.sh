@@ -29,6 +29,7 @@ D="$HOME/.wine_mt5/drive_c/users/$USER/AppData/Roaming/MetaQuotes/Terminal/Commo
 EXE="terminal6""4.exe"          # split so pgrep -f never matches this script
 BROKER=FTMO-Demo
 SYMBOL=XAUUSD
+. "$REPO/research/mt5.sh"
 EPOCH=2024.01.01                # where the tester starts, NOT where the edge is
                                 # measured -- see the note above
 
@@ -57,8 +58,10 @@ run_mt5 () {
   local ini="$1" secs="$2"
   grep -q '^\[Tester\]\|^\[StartUp\]' "$REPO/$ini" ||
     die "$ini has no [Tester] or [StartUp] section. MetaTrader would hang on it."
-  ( cd "$MT5" && WINEPREFIX="$HOME/.wine_mt5" WINEDEBUG=-all \
-      timeout "$secs" wine "$EXE" /portable /config:"$ini" >/dev/null 2>&1 ) || true
+  mt5_config "$REPO/$ini" "$MT5/run.ini"
+  mt5_run run.ini "$secs"; local rc=$?
+  rm -f "$MT5/run.ini"
+  [ "$rc" -eq 0 ] || die "see above"
 }
 
 cd "$REPO"

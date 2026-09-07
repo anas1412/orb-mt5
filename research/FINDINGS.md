@@ -1,5 +1,8 @@
 # ORB parameter study — 2026
 
+> The scripts behind every table here live in [`studies/`](studies/); they are
+> not part of the pipeline.
+
 Asia opening range on XAUUSD. Session 00:00 UTC, 15-minute range, M1 signal
 bars, 15-minute entry window, 90-minute hold cap, 2% risk, one trade per day.
 

@@ -12,6 +12,7 @@ MT5="$HOME/.wine_mt5/drive_c/Program Files/MetaTrader 5"
 D="$HOME/.wine_mt5/drive_c/users/$USER/AppData/Roaming/MetaQuotes/Terminal/Common/Files"
 INI="$HOME/orb/strategy/tester.ini"
 EXE="terminal6""4.exe"
+. "$(dirname "$0")/mt5.sh"
 FROM="${1:?usage: run_window.sh FROM TO}"
 TO="${2:?usage: run_window.sh FROM TO}"
 
@@ -47,9 +48,10 @@ for CP in 0.00 0.50; do
   si InpMinClosePos "$CP"        # 0.00 keeps every break, for the half-vs-half table
   rm -f "$D"/ORB_XAUUSD_*_tester.csv
   : > "$LOG" 2>/dev/null || true
-  ( cd "$MT5" && WINEPREFIX="$HOME/.wine_mt5" WINEDEBUG=-all wine "$EXE" /portable /config:tester.ini >/dev/null 2>&1 )
-  # Without the guard, set -e kills the script on a failed command
-  # substitution and the message below never prints -- the run just stops.
+  mt5_config "$INI" "$MT5/run.ini"
+  mt5_run run.ini 900; rc=$?
+  rm -f "$MT5/run.ini"
+  [ "$rc" -eq 0 ] || exit 1
   LINE=$(started || true)
   if [ -z "$LINE" ]; then
     echo "the tester never ran the window starting $FROM -- is another terminal still open?" >&2
