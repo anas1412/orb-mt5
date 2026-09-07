@@ -33,7 +33,7 @@ rate for 1 R of give-up.
 
 ## Results
 
-XAUUSD, real ticks, 2026 (2 Jan – 3 Sep), 2% risk per trade.
+XAUUSD, real ticks, 2026 (2 Jan – 7 Sep), 2% risk per trade.
 
 | | |
 |---|---|
