@@ -37,29 +37,29 @@ XAUUSD, real ticks, 2026 (2 Jan – 7 Sep), 2% risk per trade.
 
 | | |
 |---|---|
-| Trades | **77** from 140 eligible sessions |
-| Win rate | **51.9%** — 40 wins, 37 losses |
-| Expectancy | **+0.585 R** per trade (±0.162 standard error) |
-| Profit factor | **2.42** — won +76.7 R against -31.6 R lost |
-| Total | **+45.0 R** = **+90%** of the account |
-| Worst drawdown | **8.2%** |
-| Longest losing run | **4** |
+| Trades | **78** from 141 eligible sessions |
+| Win rate | **51.3%** — 40 wins, 38 losses |
+| Expectancy | **+0.564 R** per trade (±0.161 standard error) |
+| Profit factor | **2.35** — won +76.7 R against -32.7 R lost |
+| Total | **+44.0 R** = **+88%** of the account |
+| Worst drawdown | **10.3%** |
+| Longest losing run | **5** |
 
 **Challenge pass rate** — FundingPips two-step, +8% then +5%, 10% max loss,
 simulated 40 000 times on the 2026 outcomes:
 
 | Risk per trade | Pass both phases | Trades needed | Trading days |
 |---|---|---|---|
-| 1.0% | 99.8% | 21 | ~38 |
-| 1.5% | 97.8% | 13 | ~24 |
-| **2.0%** | **94.2%** | **10** | **~18** |
-| 3.0% | 85.7% | 6 | ~11 |
+| 1.0% | 99.7% | 21 | ~38 |
+| 1.5% | 97.4% | 13 | ~24 |
+| **2.0%** | **93.5%** | **10** | **~18** |
+| 3.0% | 84.4% | 6 | ~11 |
 
-How the 77 trades ended:
+How the 78 trades ended:
 
 | Exit | Trades | Total |
 |---|---|---|
-| Stopped out | 37 | -31.6 R |
+| Stopped out | 38 | -32.7 R |
 | Target hit (+2R) | 36 | +73.3 R |
 | 90-minute cap | 4 | +3.3 R |
 
@@ -175,7 +175,7 @@ Research scripts and the full study are in [`research/`](research/).
   Asia open in 2026. London and New York were tested and do not work.
 - **It is a regime bet.** The filter depends on ranges that trend rather than
   chop. If the 15-minute range drops below 0.15% of price, the edge is gone.
-- **77 trades is a small sample.** The ±0.164 standard error on expectancy is
+- **78 trades is a small sample.** The ±0.164 standard error on expectancy is
   real, and so is the chance that 2026 was kind.
 
 Not financial advice. Test on demo first.
