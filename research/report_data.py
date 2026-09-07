@@ -44,6 +44,15 @@ def pf(v):
         return None
     return round(gain / loss, 2)
 
+def wl_seq(rs):
+    """W/L per trade in the order they happened, e.g. L-L-W-W-L.
+
+    Not `seq` -- that name is already a streak list further down, and shadowing
+    it turns this into "list is not callable" at the point of use.
+    """
+    return "-".join("W" if r['R'] > 0 else "L"
+                    for r in sorted(rs, key=lambda r: r['t']))
+
 def blk(rs, days):
     if not rs: return None
     v=[r['R'] for r in rs]; w=len([x for x in v if x>0])
@@ -51,7 +60,7 @@ def blk(rs, days):
                 wr=round(100.0*w/len(v),1), ev=round(sum(v)/len(v),3),
                 total=round(sum(v),1), ret=round(RISK*sum(v),1),
                 gain=round(sum(x for x in v if x>0),1),
-                loss=round(sum(x for x in v if x<=0),1), pf=pf(v))
+                loss=round(sum(x for x in v if x<=0),1), pf=pf(v), seq=wl_seq(rs))
 
 out={}
 out['headline']=dict(
@@ -109,7 +118,8 @@ for k in sorted(weeks):
                              ev=(b or {}).get('ev',None),
                              total=(b or {}).get('total',0.0),
                              ret=(b or {}).get('ret',0.0),
-                             pf=(b or {}).get('pf',None)))
+                             pf=(b or {}).get('pf',None),
+                             seq=(b or {}).get('seq','')))
 # quarterly
 out['quarters']=[]
 for q,(a,b_) in enumerate([(1,3),(4,6),(7,9)],1):

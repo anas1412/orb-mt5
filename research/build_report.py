@@ -19,19 +19,26 @@ def pfc(v, cls=""):
         return '<td class="q">&ndash;</td>'
     return '<td class="%s">%.2f</td>' % (cls or ("pos" if v >= 1 else "neg"), v)
 
+def seq_cell(s):
+    """L-L-W-W-L, wins green and losses red, so a streak is visible at a glance."""
+    if not s: return "&ndash;"
+    return '<span class="seq">%s</span>' % "-".join(
+        '<b class="%s">%s</b>' % ("pos" if c == "W" else "neg", c) for c in s.split("-"))
+
 def weeks_rows():
     out=[]
     for w in d['weeks']:
         s=dt.date.fromisoformat(w['start'])
         lab="%s&nbsp;&ndash;&nbsp;%s"%(s.strftime("%d %b"),(s+dt.timedelta(days=3)).strftime("%d %b"))
         if w['trades']==0:
-            out.append('<tr class="q"><td>%s</td><td>%d</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>'
+            out.append('<tr class="q"><td>%s</td><td>%d</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>'
                        %(lab,w['sessions'])); continue
         cls="pos" if w['total']>0 else ("neg" if w['total']<0 else "")
-        out.append('<tr><td>%s</td><td>%d</td><td><b>%d</b></td><td>%d / %d</td><td>%.0f%%</td>'
+        out.append('<tr><td>%s</td><td>%d</td><td><b>%d</b></td><td>%d / %d</td><td>%s</td><td>%.0f%%</td>'
                    '%s<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td>'
                    '<td class="%s"><b>%+.1f%%</b></td></tr>'
-                   %(lab,w['sessions'],w['trades'],w['wins'],w['trades']-w['wins'],w['wr'],
+                   %(lab,w['sessions'],w['trades'],w['wins'],w['trades']-w['wins'],
+                     seq_cell(w['seq']),w['wr'],
                      pfc(w['pf']),cls,w['ev'],cls,w['total'],cls,w['ret']))
     return "".join(out)
 
@@ -47,11 +54,13 @@ def q_rows():
 def m_rows():
     out=[]
     for m in d['months']:
-        out.append('<tr><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d / %d</td><td>%.1f%%</td>'
-                   '%s<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td>'
-                   '<td class="pos"><b>%+.1f%%</b></td></tr>'
-                   %(m['month'],m['days'],m['trades'],m['wins'],m['losses'],m['wr'],
-                     pfc(m['pf']),m['ev'],m['total'],m['ret']))
+        cls="pos" if m['total']>0 else ("neg" if m['total']<0 else "")
+        out.append('<tr><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d / %d</td><td>%s</td><td>%.1f%%</td>'
+                   '%s<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td>'
+                   '<td class="%s"><b>%+.1f%%</b></td></tr>'
+                   %(m['month'],m['days'],m['trades'],m['wins'],m['losses'],
+                     seq_cell(m['seq']),m['wr'],
+                     pfc(m['pf']),cls,m['ev'],cls,m['total'],cls,m['ret']))
     return "".join(out)
 
 def exit_rows():
