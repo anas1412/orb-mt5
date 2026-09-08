@@ -6,3 +6,4 @@ __pycache__/
 accounts/*.env
 !accounts/example.env
 run.ini
+docker/mt5/

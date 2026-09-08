@@ -62,7 +62,7 @@ started () {
 for CP in ${CPS:-0.00 0.50}; do      # CPS="0.50" skips the filter-off run when only the live config is wanted
   si InpMinClosePos "$CP"        # 0.00 keeps every break, for the half-vs-half table
   rm -f "$D"/ORB_"$SYM"_*_tester.csv
-  : > "$LOG" 2>/dev/null || true
+  mkdir -p "$(dirname "$LOG")"; : > "$LOG" 2>/dev/null || true   # a fresh volume has no Tester/logs yet
   mt5_config "$INI" "$MT5/run.ini"
   mt5_run run.ini 900; rc=$?
   rm -f "$MT5/run.ini"

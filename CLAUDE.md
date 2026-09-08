@@ -347,6 +347,36 @@ Never hand-write a figure into README, the report, the deck or the client page.
 They are all generated from `report_data.json`, which is how the exits table
 once ended up summing to +44.3 R under a +47.1 R headline.
 
+## Docker
+
+The engine in a container: Ubuntu 24.04, WineHQ stable, Xvfb, python3 +
+matplotlib, the terminal binaries staged from a working install into
+`docker/mt5/` (ignored by git), the EA compiled at build time -- the image is
+refused if it does not compile. The layout inside is the host's layout exactly
+(`/root/.wine_mt5/drive_c/Program Files/MetaTrader 5`, repo at
+`/root/orb/strategy`), so every script runs unchanged.
+
+```bash
+docker build -f docker/Dockerfile -t orb-mt5 .        # ~15 min cold, seconds cached
+docker run --rm --env-file accounts/ftmo.env \
+  -v orb-bases:"/root/.wine_mt5/drive_c/Program Files/MetaTrader 5/Bases" \
+  -v orb-tester:"/root/.wine_mt5/drive_c/Program Files/MetaTrader 5/Tester" \
+  -v orb-config:"/root/.wine_mt5/drive_c/Program Files/MetaTrader 5/Config" \
+  -v "$PWD/out:/out" orb-mt5 \
+  bash research/report.sh strategies/asia-gold.toml 2026.01.01 2026.09.09
+```
+
+History, tester caches and Config are volumes; the image holds no account and
+no data. **Without `--env-file` the run stops at once** with
+`tester not started because the account is not specified` -- that line in the
+journal means the container works and only the login is missing. Results are
+copied to `/out` by the entrypoint.
+
+Two things learned building it: Docker `RUN` is dash, so `${var//x/y}` needs a
+`SHELL` line -- placed *after* the expensive layers, or it invalidates their
+cache and Wine reinstalls; and the terminal reports build 6182 inside although
+6140 was staged, so it updates itself on first start.
+
 ---
 
 ## Conventions
