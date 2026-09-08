@@ -59,7 +59,7 @@ started () {
     grep -oE "testing of Experts.ORB\\.ex5 from $FROM 00:00 to [0-9.]+" | tail -1
 }
 
-for CP in 0.00 0.50; do
+for CP in ${CPS:-0.00 0.50}; do      # CPS="0.50" skips the filter-off run when only the live config is wanted
   si InpMinClosePos "$CP"        # 0.00 keeps every break, for the half-vs-half table
   rm -f "$D"/ORB_"$SYM"_*_tester.csv
   : > "$LOG" 2>/dev/null || true
