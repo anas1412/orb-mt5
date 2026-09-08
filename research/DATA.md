@@ -8,9 +8,10 @@ bars themselves, which is what `BarDump.mq5` does.
 
 **The raw input. Everything else here is derived from this file.**
 
-740,251 one-minute bars, 2 Jan 2024 to 31 Aug 2026, broker hours 01 to 18
+752,023 one-minute bars, 2 Jan 2024 to 7 Sep 2026, broker hours 01 to 18
 (broker is UTC+3 in summer, UTC+2 in winter, so this covers roughly 22:00 to
-16:00 UTC). Exported from MetaTrader with `BarDump.mq5`.
+16:00 UTC). Exported from MetaTrader with `BarDump.mq5`; the most recent ~30 days come from
+`SyncDump.mq5` on a live chart and carry all 24 hours.
 
     time,open,high,low,close,ticks,volume
     2024.01.02 01:05,2063.10,2063.35,2062.95,2063.20,88,0
@@ -19,12 +20,12 @@ bars themselves, which is what `BarDump.mq5` does.
 `volume` is real volume, always 0 — the broker does not report it for CFDs, so
 tick count is the only activity measure available.
 
-40 MB, plain CSV, no compression. It is in the repo so you never need
+42 MB, plain CSV, no compression. It is in the repo so you never need
 MetaTrader or a broker feed to rebuild anything below it.
 
 ## sessions_2024_2026.csv
 
-One row per Asia session, 688 of them. **This is the dataset for session-quality
+One row per Asia session, 693 of them. **This is the dataset for session-quality
 modelling** — the question of whether a session is worth trading at all, rather
 than which trades to filter.
 
@@ -51,8 +52,8 @@ Built by `build_sessions.py` from raw M1 bars.
 **No lookahead.** Every feature is computable at 00:15 UTC, before any entry
 decision exists. The rolling columns use earlier sessions only.
 
-**It reproduces the EA.** Filter to 2026 and Monday–Thursday: 137 eligible
-sessions, 75 trades, 53.3% win rate, +0.627 R per trade, +47.0 R total —
+**It reproduces the EA.** Filter to 2026 and Monday–Thursday: 141 eligible
+sessions, 78 trades, 51.3% win rate, +0.564 R per trade, +44.0 R total —
 identical to the MT5 backtest, reached from raw bars by a separate path.
 
 **Rows cover Monday–Friday; the EA trades Monday–Thursday.** Filter on `dow`
@@ -83,13 +84,13 @@ These rows vanish on the next tester run that can see the day.
 
 ## trades_live_config.csv
 
-270 trades, the configuration actually traded: half-of-the-range filter on at
+273 trades, the configuration actually traded: half-of-the-range filter on at
 0.50, Friday off, stop at the midpoint, 2R target, stop move +0.5R → −0.5R,
-90-minute cap. 75 of these are 2026, and they are the headline numbers.
+90-minute cap. 78 of these are 2026, and they are the headline numbers.
 
 ## trades_all_breaks.csv
 
-364 trades, same configuration with the half filter **off**, so every break that
+367 trades, same configuration with the half filter **off**, so every break that
 happened carries its outcome. Use this when you need both classes — the trades
 the filter allowed and the ones it rejected.
 

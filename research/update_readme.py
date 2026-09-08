@@ -71,3 +71,41 @@ if missing:
 print("README %s: %d trades, %.1f%%, %+.1f R, PF %.2f"
       % ("updated" if r != before else "already current",
          H["trades"], H["wr"], H["total"], H["pf"]))
+
+
+def refresh_data_md():
+    """The counts in DATA.md drift every run unless something owns them."""
+    p = os.path.join(HERE, "DATA.md")
+    m = open(p).read()
+    import csv, datetime as dt
+    bars = os.path.join(HERE, "bars_XAUUSD_2024_2026.csv")
+    n_bars = sum(1 for _ in open(bars)) - 1
+    last = None
+    with open(bars) as fh:
+        for line in fh: last = line
+    last_day = dt.datetime.strptime(last.split(",")[0], "%Y.%m.%d %H:%M").strftime("%-d %b %Y")
+    mb = os.path.getsize(bars) / 1e6
+    n_sess = sum(1 for _ in open(os.path.join(HERE, "sessions_2024_2026.csv"))) - 1
+    live = list(csv.DictReader(open(os.path.join(HERE, "trades_live_config.csv"))))
+    allb = list(csv.DictReader(open(os.path.join(HERE, "trades_all_breaks.csv"))))
+    n26 = len([r for r in live if r["entry_time"][:4] == "2026"])
+    subs = [
+        (r"[\d,]+ one-minute bars, 2 Jan 2024 to [^,]+,", "%s one-minute bars, 2 Jan 2024 to %s," % (format(n_bars, ","), last_day)),
+        (r"\d+ MB, plain CSV", "%.0f MB, plain CSV" % mb),
+        (r"One row per Asia session, \d+ of them", "One row per Asia session, %d of them" % n_sess),
+        (r"\d+ eligible\nsessions, \d+ trades, [\d.]+% win rate, [+-][\d.]+ R per trade, [+-][\d.]+ R total",
+         "%d eligible\nsessions, %d trades, %.1f%% win rate, %+.3f R per trade, %+.1f R total"
+         % (H["sessions"], H["trades"], H["wr"], H["ev"], H["total"])),
+        (r"\d+ trades, the configuration actually traded", "%d trades, the configuration actually traded" % len(live)),
+        (r"\d+ of these are 2026", "%d of these are 2026" % n26),
+        (r"\d+ trades, same configuration", "%d trades, same configuration" % len(allb)),
+    ]
+    for pat, rep in subs:
+        m, k = re.subn(pat, rep, m, count=1)
+        if k != 1:
+            sys.exit("DATA.md: pattern no longer matches: %s" % pat)
+    open(p, "w").write(m)
+    print("DATA.md counts: %s bars to %s, %d sessions, %d / %d trades"
+          % (format(n_bars, ","), last_day, n_sess, len(live), len(allb)))
+
+refresh_data_md()

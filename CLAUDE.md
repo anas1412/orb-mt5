@@ -43,8 +43,13 @@ verified working under Wine, so there is no copy step and no `docker cp`.
     ├── CheckBrokerOffset.mq5  measures the two broker inputs
     ├── BarDump.mq5         exports M1 bars from the tester
     ├── SyncDump.mq5        exports M1 bars from a LIVE chart, today included
+    ├── DumpD1.mq5          exports the daily candles the EA reads (yesterday filter)
     ├── ORB.mq5             the EA
-    └── research/           the study, the builders and the data
+    ├── update.sh           the one command; tester.ini / dump.ini / sync.ini / d1.ini beside it
+    ├── accounts/           broker logins, one .env per account (ignored; example.env tracked)
+    └── research/           the pipeline, the builders and the data
+        ├── mt5.sh          the ONLY MetaTrader launcher: login block, journal watch, reset
+        └── studies/        the one-off scripts behind FINDINGS.md, not part of the pipeline
 ```
 
 Symlinked to:
@@ -67,7 +72,7 @@ ln -sf ~/orb/strategy/ORB.mq5 "$MT5/MQL5/Experts/ORB.mq5"
 
 ## Terminal
 
-MT5 build 6090, **portable** install. Data sits beside the executable, not in
+MT5 build 6140, **portable** install. Data sits beside the executable, not in
 `AppData/Roaming`.
 
 | | path |
@@ -228,6 +233,7 @@ bash update.sh              # everything since the last run, ~1.5 min
 bash update.sh --force      # rebuild even when nothing new has closed
 bash update.sh --full       # re-run the whole tester from scratch, ~20 min
 bash update.sh --push       # skip the confirmation before pushing
+bash update.sh --account accounts/ftmo.env   # log into that broker account; else the saved session
 YDAY=true bash research/run_window.sh 2026.01.01 2026.09.08   # one-off: yesterday filter ON
 ```
 

@@ -147,19 +147,30 @@ The defaults are the tested configuration. These are the ones worth knowing:
 Lot sizes round to the **nearest** step, not down, so realised risk lands within
 about 9% of your target instead of occasionally half of it. Note a full stop
 loses slightly more than your risk figure, the difference being commission.
+If the size needs more margin than the account has free -- a very tight stop on
+gold can -- the EA sizes down to fit and says so in the journal, rather than
+having the order rejected.
 
 ---
 
 ## Reproduce the backtest
 
 ```bash
-cd "<terminal folder>" && wine terminal64.exe /portable /config:tester.ini
+bash update.sh                                # test new days, rebuild, audit, commit
+bash update.sh --account accounts/ftmo.env    # log into a specific broker account
+bash research/run_window.sh 2026.01.01 2026.09.08   # one window, both configurations
 ```
 
-On Windows, drop `wine`. Results land in `Common\Files\ORB_XAUUSD_*.csv`, one
-row per trade. Needs M1 real-tick history for XAUUSD.
+`update.sh` runs MetaTrader headless, tests only the days not yet tested,
+redraws only the charts that changed, and refuses to publish if any chart
+disagrees with the trade data. Copy `accounts/example.env` to give it a broker
+login; without one it uses the terminal's saved session. Results land in
+`Common\Files\ORB_XAUUSD_*.csv`, one row per trade. Needs M1 real-tick history
+for XAUUSD.
 
-Research scripts and the full study are in [`research/`](research/).
+Research scripts and the full study are in [`research/`](research/); the
+one-off studies behind [`FINDINGS.md`](research/FINDINGS.md) are archived in
+[`research/studies/`](research/studies/).
 
 ---
 
