@@ -1,0 +1,13 @@
+# Same, with the target at 2.5R instead of 2R.
+name = "1step-gold-25r"
+
+[rules]
+rr = 2.5
+
+[risk]
+per_trade = 2.5
+
+[report]
+benchmark = "fundingpips-1step-flex"
+output    = "1-step-full-report-2.5rr.html"
+title     = "ORB Asia Gold, 1 Step Flex, 2.5% risk, 2.5R"

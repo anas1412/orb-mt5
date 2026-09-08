@@ -2,7 +2,8 @@
 import csv, os, json, datetime as dt, statistics, math, random
 from collections import Counter
 from mt5paths import COMMON as D, bars as barsfile
-random.seed(31337); RISK=2.0
+import ctx
+random.seed(31337); RISK=ctx.RISK
 
 def nth(y,m,dow,n):
     if n>0:
@@ -14,9 +15,9 @@ def off(d): return 3 if nth(d.year,3,0,2)<=d<nth(d.year,11,0,1) else 2
 
 # every Mon-Thu session that had a complete 15-minute range = a tradeable day
 bars={}
-for row in csv.DictReader(open(barsfile("XAUUSD"))):
+for row in csv.DictReader(open(barsfile(ctx.SYMBOL))):
     t=dt.datetime.strptime(row["time"],"%Y.%m.%d %H:%M")
-    if t.year!=2026: continue
+    if not ctx.in_range(t): continue
     bars.setdefault(t.date(),{})[t.hour*60+t.minute]=(
         float(row["open"]),float(row["high"]),float(row["low"]),float(row["close"]))
 out_cover=None
@@ -27,7 +28,7 @@ for d,b in bars.items():
     st=off(d)*60
     if len([m for m in range(st,st+15) if m in b])>=15: sessions.add(d)
 
-rows=[r for r in csv.DictReader(open(os.path.join(D,"live_cp0.50.csv"))) if r['entry_time'][:4]=='2026']
+rows=[r for r in csv.DictReader(open(ctx.CSV_LIVE)) if ctx.row_in_range(r)]
 for r in rows:
     r['R']=float(r['R']); r['t']=dt.datetime.strptime(r['entry_time'],"%Y.%m.%d %H:%M")
     r['date']=r['t'].date()
@@ -132,7 +133,7 @@ out['months']=[]
 for m in sorted({r['t'].month for r in rows}):
     rs=[r for r in rows if r['t'].month==m]
     days=len([d for d in sessions if d.month==m])
-    out['months'].append(dict(month=dt.date(2026,m,1).strftime("%b"), **blk(rs,days)))
+    out['months'].append(dict(month=dt.date(ctx.FROM.year,m,1).strftime("%b"), **blk(rs,days)))
 # exits
 c=Counter()
 for r in rows:
@@ -147,26 +148,28 @@ for k,n in c.most_common():
                             avg=round(sum(g)/len(g),2),total=round(sum(g),1)))
 # pass rates
 def pr(risk,paths=40000):
+    B=ctx.BENCH
     def ph(t):
         ok=0;days=[]
         for _ in range(paths):
             eq=0.0;d=0
             while d<2000:
                 d+=1; eq+=risk*random.choice(R)
-                if eq<=-10.0: break
-                if eq>=t and d>=3: ok+=1;days.append(d);break
+                if eq<=-B['maxloss']: break
+                if eq>=t and d>=max(B['mindays'],1): ok+=1;days.append(d);break
         return 100.0*ok/paths,(statistics.median(days) if days else 0)
-    p1,m1=ph(8.0); p2,m2=ph(5.0)
+    p1,m1=ph(B['p1'])
+    p2,m2=ph(B['p2']) if B['p2'] else (100.0,0)      # a one-step challenge has no second phase
     freq=len(R)/float(len(sessions))
     return dict(risk=risk,p1=round(p1,1),p2=round(p2,1),both=round(p1*p2/100.0,1),
                 trades=int(m1+m2), days=int(round((m1+m2)/freq)))
-out['pass']=[pr(x) for x in (1.0,1.5,2.0,3.0)]
+out['pass']=[pr(x) for x in sorted(set((1.0,1.5,2.0,3.0)) | {RISK})]
 
 # the half-of-the-range rule, measured against the same config with the filter off
 def halves():
     v=[]
-    for r in csv.DictReader(open(os.path.join(D,"live_cp0.00.csv"))):
-        if r['entry_time'][:4]!='2026': continue
+    for r in csv.DictReader(open(ctx.CSV_ALL)):
+        if not ctx.row_in_range(r): continue
         v.append((float(r['close_pos']), float(r['R'])))
     def st(x):
         n=len(x); w=len([y for y in x if y>0])
@@ -189,8 +192,10 @@ out['quadrants']=[dict(band="above 75%",n=68,ev=0.529,wr=50.0),
                   dict(band="50 - 75%",n=25,ev=0.210,wr=36.0),
                   dict(band="25 - 50%",n=19,ev=0.217,wr=36.8),
                   dict(band="below 25%",n=7,ev=-0.816,wr=0.0)]
-json.dump(out,open("report_data.json","w"),indent=1)
-json.dump(out['halves'],open("halves.json","w"),indent=1)
+out['ctx']=dict(name=ctx.NAME,symbol=ctx.SYMBOL,risk=RISK,rr=ctx.RR,hold=ctx.HOLD,deposit=ctx.DEPOSIT,
+                period=ctx.PERIOD,bench=ctx.BENCH,spec=ctx.SPEC_PATH or "strategies/asia-gold.toml")
+json.dump(out,open(ctx.DATA_JSON,"w"),indent=1)
+json.dump(out['halves'],open(ctx.HALVES_JSON,"w"),indent=1)
 h=out['headline']
 print("trades %d of %d sessions | WR %.1f%% | EV %+.3f | total %+.1f R = %+.0f%%"
       % (h['trades'],h['sessions'],h['wr'],h['ev'],h['total'],h['ret']))

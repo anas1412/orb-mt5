@@ -20,9 +20,16 @@ LOT = {"lots": 0, "percent": 1, "money": 2}
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"]
 BENCHMARKS = {
     # name: (phase 1 target %, phase 2 target %, max loss %, daily loss %, min days)
-    "fundingpips-2step": (8.0, 5.0, 10.0, 5.0, 3),
-    "ftmo-2step":        (10.0, 5.0, 10.0, 5.0, 4),
-    "none":              None,
+    "fundingpips-2step":      (8.0, 5.0, 10.0, 5.0, 3),
+    "fundingpips-1step-flex": (12.0, None, 12.0, 3.0, 0),   # one phase, no minimum days
+    "ftmo-2step":             (10.0, 5.0, 10.0, 5.0, 4),
+    "none":                   None,
+}
+BENCH_TEXT = {
+    "fundingpips-2step":      ("FundingPips two-step", "Targets +8% then +5%, 10% maximum loss, 5% daily"),
+    "fundingpips-1step-flex": ("FundingPips 1 Step Flex", "Target +12%, 12% maximum loss, 3% daily, no minimum days"),
+    "ftmo-2step":             ("FTMO two-step", "Targets +10% then +5%, 10% maximum loss, 5% daily"),
+    "none":                   ("no challenge", "No pass-rate simulation"),
 }
 
 DEFAULTS = {
@@ -36,7 +43,7 @@ DEFAULTS = {
     "risk":    {"mode": "percent", "per_trade": 2.0, "deposit": 10000, "leverage": 100,
                 "max_daily_loss_pct": 3.5},
     "dates":   {"from": dt.date(2026, 1, 1), "to": "today"},
-    "report":  {"benchmark": "fundingpips-2step", "title": ""},
+    "report":  {"benchmark": "fundingpips-2step", "title": "", "output": ""},
     "magic":   20260821,
 }
 
@@ -92,6 +99,7 @@ def validate(s):
     need(isinstance(da["from"], dt.date), "dates.from must be a date (YYYY-MM-DD, unquoted)")
     need(da["to"] == "today" or isinstance(da["to"], dt.date), "dates.to must be a date or \"today\"")
     need(re_["benchmark"] in BENCHMARKS, "report.benchmark must be one of %s" % ", ".join(BENCHMARKS))
+    need(not re_["output"] or re_["output"].endswith(".html"), "report.output must end in .html")
 
 
 def inputs(s):

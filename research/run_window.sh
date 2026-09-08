@@ -80,7 +80,7 @@ done
 
 # The clamped end is the honest record of what has actually been tested, and it
 # is what the next incremental run resumes from.
-echo "$ACTUAL" > "$D/tested_through.txt"
+[ -n "${SPEC:-}" ] || echo "$ACTUAL" > "$D/tested_through.txt"
 if [ "$ACTUAL" != "$TO" ]; then
   echo "  note: asked for $TO, the tester would only go to $ACTUAL"
 fi

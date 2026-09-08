@@ -7,17 +7,18 @@ new trade costs one drawing rather than seventy-six. Pass --all to force the
 lot, which is what an unrelated style change needs.
 """
 import csv, hashlib, os, sys, datetime as dt, json
+import ctx
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from mt5paths import COMMON as D, bars as barsfile
 
-HOLD = 90   # InpMaxHoldMinutes -- must match the run that produced the CSV
+HOLD = ctx.HOLD; RR = ctx.RR
 FORCE = "--all" in sys.argv
 # Hashing this file means a change to the drawing code redraws everything by
 # itself, so the cache can never serve a chart the current code would not draw.
 CODE = hashlib.sha1(open(os.path.abspath(__file__), "rb").read()).hexdigest()[:12]
-OUT=os.path.expanduser("~/orb/trades"); os.makedirs(OUT,exist_ok=True)
+OUT=ctx.TRADES_DIR; os.makedirs(OUT,exist_ok=True)
 INK="#141310"; MUT="#8a837a"; POS="#12694a"; NEG="#a8352a"; ACC="#8a6d3b"; GRID="#ece7dd"
 def nth(y,m,dow,n):
     if n>0:
@@ -34,7 +35,7 @@ for src in ("bars_XAUUSD.csv","bars_XAUUSD_extra.csv"):
         t=dt.datetime.strptime(row["time"],"%Y.%m.%d %H:%M")
         bars.setdefault(t.date(),{})[t.hour*60+t.minute]=(
             float(row["open"]),float(row["high"]),float(row["low"]),float(row["close"]))
-rows=[r for r in csv.DictReader(open(os.path.join(D,"live_cp0.50.csv"))) if r['entry_time'][:4]=='2026']
+rows=[r for r in csv.DictReader(open(ctx.CSV_LIVE)) if ctx.row_in_range(r)]
 for r in rows:
     r['t']=dt.datetime.strptime(r['entry_time'],"%Y.%m.%d %H:%M"); r['R']=float(r['R'])
 rows.sort(key=lambda r:r['t'])
@@ -57,8 +58,8 @@ def signature(tr, daybars, i):
     return h.hexdigest()[:16]
 
 old={}
-if os.path.exists("trade_index.json"):
-    for e in json.load(open("trade_index.json")):
+if os.path.exists(ctx.INDEX_JSON):
+    for e in json.load(open(ctx.INDEX_JSON)):
         old[e['date']]=e
 
 index=[]; drawn=0; reused=0
@@ -78,7 +79,7 @@ for i,tr in enumerate(rows,1):
     buy = tr['dir']=="buy"
     score = cp if buy else 1-cp
     e=float(tr['entry']); sl=float(tr['sl']); risk=abs(e-sl)
-    tp = e+2*risk if buy else e-2*risk
+    tp = e+RR*risk if buy else e-RR*risk
     win = tr['R']>0
     em = tr['t'].hour*60+tr['t'].minute - st
 
@@ -138,7 +139,7 @@ for i,tr in enumerate(rows,1):
     span=max(hi,sl,tp)-min(lo,sl,tp)
     lv=place([(hi,MUT,"range high",False),(lo,MUT,"range low",False),
               (e,ACC,"entry  %.2f"%e,True),(sl,NEG,"stop  %.2f   −1R"%sl,True),
-              (tp,POS,"target  %.2f   +2R"%tp,True)],span)
+              (tp,POS,"target  %.2f   +%gR"%(tp,RR),True)],span)
     xr=xs[-1]-st
     for y0,ytxt,col,lab,bold in lv:
         ax.plot([-4.6,xr+.4],[y0,y0],color=col,ls="--" if bold else "-",
@@ -175,5 +176,5 @@ for i,tr in enumerate(rows,1):
                       R=round(tr['R'],3),score=round(score,3),range_pts=round(width/0.01),
                       held=exit_m-em,file=fn,sig=sig))
     drawn+=1
-json.dump(index,open("trade_index.json","w"),indent=1)
+json.dump(index,open(ctx.INDEX_JSON,"w"),indent=1)
 print("%d charts: drew %d, reused %d" % (len(index),drawn,reused))

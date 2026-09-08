@@ -1,0 +1,10 @@
+# The published rules at 2.5% risk, judged against FundingPips 1 Step Flex.
+name = "1step-gold-2r"
+
+[risk]
+per_trade = 2.5
+
+[report]
+benchmark = "fundingpips-1step-flex"
+output    = "1-step-full-report.html"
+title     = "ORB Asia Gold, 1 Step Flex, 2.5% risk, 2R"

@@ -2,15 +2,16 @@
 import rules_svg, halves_svg
 from curve import curve_svg
 import json, os, datetime as dt
-d=json.load(open("report_data.json"))
-idx=json.load(open("trade_index.json"))
-RISK=2.0   # % of the initial balance per trade, no compounding
-HOLD=90    # InpMaxHoldMinutes, must match the run that produced report_data.json
+import ctx
+d=json.load(open(ctx.DATA_JSON))
+idx=json.load(open(ctx.INDEX_JSON))
+RISK=ctx.RISK
+HOLD=ctx.HOLD
 H=d['headline']
-OUT   = os.path.expanduser("~/orb/ORB-asia-report.html")   # local deliverable
-PAGES = os.path.expanduser("~/orb/strategy/full-report.html")   # linked from the deck
-TRADES_SRC = os.path.expanduser("~/orb/trades")
-TRADES_DST = os.path.expanduser("~/orb/strategy/trades")
+OUT   = ctx.REPORT_LOCAL
+PAGES = ctx.REPORT_PAGES
+TRADES_SRC = ctx.TRADES_DIR
+TRADES_DST = os.path.join(ctx.REPO, ctx.TRADES_WEB)
 
 def pfc(v, cls=""):
     """One cell. A period with no losses has no meaningful ratio, so it shows a
@@ -126,7 +127,7 @@ def gallery():
                        t['file'],t['date'],t['dir'],
                        d.strftime("%d %b"),t['day'],
                        t['dir'].upper(),"top" if t['dir']=="buy" else "bottom",t['R']))
-    return "".join(cards)
+    return "".join(cards).replace('"trades/', '"%s/' % ctx.TRADES_WEB)   # charts live in trades-<name>/ for a spec
 
 def filters():
     """Chips built from the trades that exist, so no chip can match nothing."""
@@ -146,8 +147,8 @@ def filters():
              + "".join(chip("day",d,"%s %d"%(d,len([t for t in idx if t['day']==d])))
                        for d in days) + '</div>')
     g.append('<div class="fgroup"><b>Month</b>' + chip("month","*","All")
-             + "".join(chip("month",dt.date(2026,m,1).strftime("%b"),
-                            "%s %d"%(dt.date(2026,m,1).strftime("%b"),
+             + "".join(chip("month",dt.date(ctx.FROM.year,m,1).strftime("%b"),
+                            "%s %d"%(dt.date(ctx.FROM.year,m,1).strftime("%b"),
                                      len([t for t in idx
                                           if dt.date.fromisoformat(t['date']).month==m])))
                        for m in months) + '</div>')
@@ -155,6 +156,22 @@ def filters():
     return '<div class="filters">' + "".join(g) + '</div>'
 
 wins=H['wins']; losses=H['trades']-wins
+def qblock():
+    """The quarters box used to be typed by hand and went stale (Q3 read +13.6 R
+    after it had fallen). Generated from the same numbers as the table."""
+    qs=d['quarters']; pos=[q for q in qs if q['total']>0]
+    title="Every quarter positive" if len(pos)==len(qs) else "%d of %d quarters positive"%(len(pos),len(qs))
+    body=", ".join("%s <b>%+.1f R</b>"%(q['q'],q['total']) for q in qs)
+    return '<div class="%s"><div class="t">%s</div><p>%s.</p></div>'%("good" if len(pos)==len(qs) else "note",title,body)
+
+def runprose():
+    run=d['streaks']['worst_loss']; times=dict((k,n) for k,n in d['streaks']['loss_hist']).get(run,1)
+    cost=run*RISK; lim=ctx.BENCH['maxloss']
+    vs=("the whole limit" if abs(cost-lim)<0.05 else
+        "past the %g%% limit"%lim if cost>lim else "%g points inside the %g%% limit"%(round(lim-cost,2),lim))
+    return ('A <strong>%d-loss run happened %s</strong>, and at %s risk it costs %g%% — %s.'
+            %(run,"once" if times==1 else "%d times"%times,ctx.RISK_TXT,round(cost,2),vs))
+
 tpl=open("template.html").read()
 html=(tpl
  .replace("{{TRADES}}",str(H['trades'])).replace("{{WINS}}",str(wins)).replace("{{LOSSES}}",str(losses))
@@ -196,7 +213,14 @@ html=(tpl
  .replace("{{WORSTLOSSPCT}}","-%.0f"%(RISK*d["streaks"]["worst_loss"]))
  .replace("{{GAIN}}","%+.1f"%H["gain"]).replace("{{LOSS}}","%.1f"%abs(H["loss"]))
  .replace("{{LASTDATE}}",dt.date.fromisoformat(d["coverage"]["last"]).strftime("%d %B %Y")).replace("{{GALLERY}}",gallery()).replace("{{FILTERS}}",filters())
- .replace("{{GENERATED}}","2026-08-22"))
+
+ .replace("{{GENERATED}}", dt.date.today().isoformat())
+ .replace("{{TITLE}}", ctx.TITLE or "ORB Asia — Gold")
+ .replace("{{RISKPCT}}", ctx.RISK_TXT).replace("{{RRTXT}}", ctx.RR_TXT).replace("{{RRWORD}}", ctx.RR_WORD)
+ .replace("{{HOLDMIN}}", str(HOLD)).replace("{{PERIOD}}", ctx.PERIOD)
+ .replace("{{MAXLOSS}}", "%g" % ctx.BENCH["maxloss"]).replace("{{BENCHTEXT}}", ctx.BENCH["text"])
+ .replace("{{DEPOSIT}}", "$%s" % format(int(ctx.DEPOSIT), ",")).replace("{{RISKMONEY}}", "$%s" % format(int(round(ctx.RISK_MONEY)), ","))
+ .replace("{{QBLOCK}}", qblock()).replace("{{RUNPROSE}}", runprose()))
 open(OUT,"w").write(html)
 open(PAGES,"w").write(html)
 

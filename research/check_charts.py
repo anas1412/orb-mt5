@@ -11,23 +11,23 @@ spotted by eye.
 import csv, json, os, re, sys, datetime as dt
 from mt5paths import COMMON as D
 from sim_offline import load_bars, broker_offset
+import ctx
 
 REPO   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TRADES = os.path.expanduser("~/orb/trades")
-HOLD   = 90
+TRADES = ctx.TRADES_DIR
+HOLD   = ctx.HOLD
 
 bad = []
 def fail(what, msg):
     bad.append("%-12s %s" % (what, msg))
 
-rows = [r for r in csv.DictReader(open(os.path.join(D, "live_cp0.50.csv")))
-        if r["entry_time"][:4] == "2026"]
+rows = [r for r in csv.DictReader(open(ctx.CSV_LIVE)) if ctx.row_in_range(r)]
 for r in rows:
     r["t"] = dt.datetime.strptime(r["entry_time"], "%Y.%m.%d %H:%M")
     r["Rf"] = float(r["R"])
 rows.sort(key=lambda r: r["t"])
-index = json.load(open(os.path.join(REPO, "research", "trade_index.json")))
-data  = json.load(open(os.path.join(REPO, "research", "report_data.json")))
+index = json.load(open(ctx.INDEX_JSON))
+data  = json.load(open(ctx.DATA_JSON))
 bars  = load_bars()
 
 # 1. the index and the run describe the same trades
@@ -94,7 +94,7 @@ if H["wins"] != wins:
     fail("total", "report says %d wins, run has %d" % (H["wins"], wins))
 
 # 7. every trade appears in the gallery, and its caption states the right R
-page = open(os.path.join(REPO, "full-report.html")).read()
+page = open(ctx.REPORT_PAGES).read()
 for i in index:
     if i["file"] not in page:
         fail("gallery", "%s is not on the page" % i["file"])

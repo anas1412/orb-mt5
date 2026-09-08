@@ -1110,5 +1110,25 @@
    "ev": -0.816,
    "wr": 0.0
   }
- ]
+ ],
+ "ctx": {
+  "name": "asia-gold",
+  "symbol": "XAUUSD",
+  "risk": 2.0,
+  "rr": 2.0,
+  "hold": 90,
+  "deposit": 10000.0,
+  "period": "2026",
+  "bench": {
+   "key": "fundingpips-2step",
+   "label": "FundingPips two-step",
+   "text": "Targets +8% then +5%, 10% maximum loss, 5% daily",
+   "p1": 8.0,
+   "p2": 5.0,
+   "maxloss": 10.0,
+   "daily": 5.0,
+   "mindays": 3
+  },
+  "spec": "strategies/asia-gold.toml"
+ }
 }
