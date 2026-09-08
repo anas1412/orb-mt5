@@ -17,18 +17,33 @@ FROM="${1:?usage: run_window.sh FROM TO}"
 TO="${2:?usage: run_window.sh FROM TO}"
 
 si () { sed -i "s|^$1=.*|$1=$2|" "$INI"; }
-sed -i 's|^Symbol=.*|Symbol=XAUUSD|' "$INI"
+SYM=XAUUSD
+if [ -n "${SPEC:-}" ]; then
+  # A spec drives the run instead of the pinned published config. Every key it
+  # emits already exists in tester.ini -- a key that does not would be silently
+  # ignored by the tester, which is the sweep trap in CLAUDE.md -- so check.
+  while IFS='=' read -r k v; do
+    grep -q "^$k=" "$INI" || { echo "tester.ini has no $k line; add it or the spec value is ignored" >&2; exit 1; }
+    si "$k" "$v"
+  done < <(python3 "$(dirname "$0")/spec.py" inputs "$SPEC")
+  while IFS='=' read -r k v; do case "$k" in Symbol|Deposit|Leverage) si "$k" "$v";; esac; done < <(python3 "$(dirname "$0")/spec.py" tester "$SPEC")
+  SYM=$(grep '^Symbol=' "$INI" | cut -d= -f2)
+  echo "  spec: $SPEC on $SYM"
+else
+  sed -i 's|^Symbol=.*|Symbol=XAUUSD|' "$INI"
+fi
 si FromDate "$FROM"; si ToDate "$TO"
+if [ -z "${SPEC:-}" ]; then
 si InpTimeZone 0; si InpStartHour 0; si InpStartMinute 0
-si InpRangeMinutes 15; si InpSignalTF 1; si InpEntryMode 0
-si InpNoEntryAfterMin 15; si InpMaxHoldMinutes 90; si InpForceCloseMin 360
-si InpSLPercentOfRange 50; si InpRR 2.0
-si InpStopMoveAtR 0.5; si InpStopMoveToR -0.5
-si InpRangeLookback 0; si InpRiskPercent 2.0
-si InpTradeMon true; si InpTradeTue true; si InpTradeWed true; si InpTradeThu true
-si InpTradeFri false
-si InpYdayFilter "${YDAY:-false}"; si InpYdayMinBody 30
-
+  si InpRangeMinutes 15; si InpSignalTF 1; si InpEntryMode 0
+  si InpNoEntryAfterMin 15; si InpMaxHoldMinutes 90; si InpForceCloseMin 360
+  si InpSLPercentOfRange 50; si InpRR 2.0
+  si InpStopMoveAtR 0.5; si InpStopMoveToR -0.5
+  si InpRangeLookback 0; si InpRiskPercent 2.0
+  si InpTradeMon true; si InpTradeTue true; si InpTradeWed true; si InpTradeThu true
+  si InpTradeFri false
+  si InpYdayFilter "${YDAY:-false}"; si InpYdayMinBody 30
+fi
 # An empty result file is a legitimate answer -- a window can genuinely hold no
 # trades -- so row count cannot tell a real run from one that never started. A
 # second terminal launching while one is still shutting down exits immediately
@@ -46,7 +61,7 @@ started () {
 
 for CP in 0.00 0.50; do
   si InpMinClosePos "$CP"        # 0.00 keeps every break, for the half-vs-half table
-  rm -f "$D"/ORB_XAUUSD_*_tester.csv
+  rm -f "$D"/ORB_"$SYM"_*_tester.csv
   : > "$LOG" 2>/dev/null || true
   mt5_config "$INI" "$MT5/run.ini"
   mt5_run run.ini 900; rc=$?
@@ -58,7 +73,7 @@ for CP in 0.00 0.50; do
     exit 1
   fi
   ACTUAL=${LINE##* }
-  mv "$D"/ORB_XAUUSD_*_tester.csv "$D/new_cp${CP}.csv" 2>/dev/null || \
+  mv "$D"/ORB_"$SYM"_*_tester.csv "$D/new_cp${CP}.csv" 2>/dev/null || \
     printf 'entry_time,range_pts,spread_pts,mins_after_range,dir,entry,sl,risk_money,profit_money,R,exit,close_pos\n' > "$D/new_cp${CP}.csv"
   echo "  close-pos $CP  $FROM..$ACTUAL -> $(( $(wc -l < "$D/new_cp${CP}.csv") - 1 )) trades"
 done

@@ -1,0 +1,9 @@
+name = "london-gold-30m"
+
+[session]
+tz        = "London"
+start     = "08:00"
+range_min = 30
+
+[rules]
+rr = 1.5
