@@ -1,0 +1,34 @@
+# The published configuration. Every other spec only needs the lines that differ.
+name   = "asia-gold"
+symbol = "XAUUSD"
+server = "FTMO-Demo"
+
+[session]
+tz               = "UTC"      # UTC | London | NewYork | Tokyo | Sydney | Broker
+start            = "00:00"
+range_min        = 15
+entry_window_min = 15         # breaks count this long after the range closes; 0 = no limit
+hold_min         = 90         # flat after this; 0 = off
+signal_tf        = "M1"
+
+[rules]
+rr              = 2.0
+sl_pct_of_range = 50          # 50 = stop at the midpoint
+stop_move_at_r  = 0.5         # 0 = never move the stop
+stop_move_to_r  = -0.5
+half_filter     = true        # trade only the half the range closed in
+yday_filter     = false       # skip breaks against yesterday's daily candle
+yday_min_body   = 30          # ...when its body is at least this, in price
+days            = ["Mon", "Tue", "Wed", "Thu"]
+
+[risk]
+mode      = "percent"         # percent | money | lots
+per_trade = 2.0
+deposit   = 10000
+
+[dates]
+from = 2026-01-01
+to   = "today"
+
+[report]
+benchmark = "fundingpips-2step"   # fundingpips-2step | ftmo-2step | none

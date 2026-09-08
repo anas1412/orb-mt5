@@ -50,7 +50,7 @@ def load_bars():
     return bars
 
 
-def session(bars, d, half_filter=True, require_closed=True):
+def session(bars, d, half_filter=True, require_closed=True, sl_pct=50.0):
     """Return the trade for one date, or a string saying why there wasn't one.
 
     require_closed refuses a trade the bars have not carried to an exit. Without
@@ -100,8 +100,10 @@ def session(bars, d, half_filter=True, require_closed=True):
     sgn   = 1 if buy else -1
     entry_min = m + 1 - st                           # minutes past the session open
     entry = b[m + 1][0] + (SPREAD if buy else 0.0)   # market: ask to buy, bid to sell
-    risk  = abs(entry - mid)
-    sl    = mid
+    # sl_pct is InpSLPercentOfRange: 50 = midpoint, 100 = far side of the range,
+    # 0 = the level that broke. Measured back into the range from the break side.
+    sl    = (hi - sl_pct / 100.0 * (hi - lo)) if buy else (lo + sl_pct / 100.0 * (hi - lo))
+    risk  = abs(entry - sl)
     tp    = entry + sgn * RR * risk
 
     moved, cur, ran_out = False, sl, False
