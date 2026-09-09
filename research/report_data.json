@@ -1011,48 +1011,6 @@
    "total": 3.3
   }
  ],
- "pass": [
-  {
-   "risk": 1.0,
-   "p1": 99.9,
-   "p2": 100.0,
-   "both": 99.9,
-   "trades": 20,
-   "days": 36
-  },
-  {
-   "risk": 1.5,
-   "p1": 99.4,
-   "p2": 100.0,
-   "both": 99.4,
-   "trades": 13,
-   "days": 24
-  },
-  {
-   "risk": 2.0,
-   "p1": 98.0,
-   "p2": 100.0,
-   "both": 98.0,
-   "trades": 9,
-   "days": 16
-  },
-  {
-   "risk": 2.5,
-   "p1": 96.3,
-   "p2": 100.0,
-   "both": 96.3,
-   "trades": 7,
-   "days": 13
-  },
-  {
-   "risk": 3.0,
-   "p1": 29.9,
-   "p2": 100.0,
-   "both": 29.9,
-   "trades": 2,
-   "days": 4
-  }
- ],
  "run_worst": {
   "1": 1.094,
   "2": 2.105,
@@ -1074,6 +1032,7 @@
    "money": 50,
    "worst_trade": -0.55,
    "daily_share": 0.0,
+   "dd_breaks": false,
    "run_cost": 2.6,
    "run_breaks": false
   },
@@ -1087,6 +1046,7 @@
    "money": 75,
    "worst_trade": -0.82,
    "daily_share": 0.0,
+   "dd_breaks": false,
    "run_cost": 3.8,
    "run_breaks": false
   },
@@ -1100,6 +1060,7 @@
    "money": 100,
    "worst_trade": -1.09,
    "daily_share": 0.0,
+   "dd_breaks": false,
    "run_cost": 5.1,
    "run_breaks": false
   },
@@ -1113,6 +1074,7 @@
    "money": 125,
    "worst_trade": -1.37,
    "daily_share": 0.0,
+   "dd_breaks": false,
    "run_cost": 6.4,
    "run_breaks": false
   },
@@ -1120,12 +1082,13 @@
    "risk": 1.5,
    "ret": 66.0,
    "maxdd": 7.7,
-   "pass_pct": 99.3,
+   "pass_pct": 99.4,
    "trades": 13,
    "days": 24,
    "money": 150,
    "worst_trade": -1.64,
    "daily_share": 0.0,
+   "dd_breaks": false,
    "run_cost": 7.7,
    "run_breaks": false
   },
@@ -1139,6 +1102,7 @@
    "money": 175,
    "worst_trade": -1.91,
    "daily_share": 0.0,
+   "dd_breaks": false,
    "run_cost": 8.9,
    "run_breaks": false
   },
@@ -1152,6 +1116,7 @@
    "money": 200,
    "worst_trade": -2.19,
    "daily_share": 0.0,
+   "dd_breaks": false,
    "run_cost": 10.2,
    "run_breaks": false
   },
@@ -1159,12 +1124,13 @@
    "risk": 2.25,
    "ret": 99.0,
    "maxdd": 11.5,
-   "pass_pct": 97.4,
+   "pass_pct": 97.5,
    "trades": 8,
    "days": 14,
    "money": 225,
    "worst_trade": -2.46,
    "daily_share": 0.0,
+   "dd_breaks": false,
    "run_cost": 11.5,
    "run_breaks": false
   },
@@ -1178,10 +1144,15 @@
    "money": 250,
    "worst_trade": -2.74,
    "daily_share": 0.0,
+   "dd_breaks": true,
    "run_cost": 12.8,
    "run_breaks": true
   }
  ],
+ "cliffs": {
+  "maxloss": 2.35,
+  "daily": 2.74
+ },
  "halves": {
   "same": {
    "n": 78,
@@ -1215,40 +1186,13 @@
   "n": 38,
   "halved": 13,
   "avg": -0.86,
-  "saved": 5.3,
-  "saved_pct": 13
+  "saved": 5.3
  },
  "coverage": {
   "first": "2026-01-02",
   "last": "2026-09-07",
   "dates": 176
  },
- "quadrants": [
-  {
-   "band": "above 75%",
-   "n": 68,
-   "ev": 0.529,
-   "wr": 50.0
-  },
-  {
-   "band": "50 - 75%",
-   "n": 25,
-   "ev": 0.21,
-   "wr": 36.0
-  },
-  {
-   "band": "25 - 50%",
-   "n": 19,
-   "ev": 0.217,
-   "wr": 36.8
-  },
-  {
-   "band": "below 25%",
-   "n": 7,
-   "ev": -0.816,
-   "wr": 0.0
-  }
- ],
  "ctx": {
   "name": "asia-gold",
   "symbol": "XAUUSD",

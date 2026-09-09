@@ -173,6 +173,14 @@ def filters():
     return '<div class="filters">' + "".join(g) + '</div>'
 
 wins=H['wins']; losses=H['trades']-wins
+def riskselect():
+    """The options ARE the simulated rows, built from the same list the script
+    keys on, so an option can never name a risk the simulation never walked."""
+    return '<select id="riskin" aria-label="Risk per trade">%s</select>' % "".join(
+        '<option value="%.2f"%s>%g%%</option>'
+        % (s["risk"], " selected" if abs(s["risk"] - RISK) < 1e-9 else "", s["risk"])
+        for s in d["sweep"])
+
 def riskdata():
     """What the page needs to answer "what changes if I risk X?" offline.
 
@@ -182,7 +190,7 @@ def riskdata():
     """
     hist=dict(d['streaks']['loss_hist'])
     run=d['streaks']['worst_loss']
-    return dict(sweep=d['sweep'], chips=[0.5,1,1.5,2,2.5], maxrisk=2.5,
+    return dict(sweep=d['sweep'], chips=[0.5,1,1.5,2,2.5], maxrisk=2.5, risk=RISK,
                 maxloss=ctx.BENCH['maxloss'], daily=ctx.BENCH['daily'],
                 target=ctx.BENCH['p1'], worst_run=run,
                 worst_run_times="once" if hist.get(run,1)==1 else "%d times"%hist.get(run,1),
@@ -234,7 +242,6 @@ html=(tpl
  .replace("{{LAVG}}","%+.2f"%d["losses"]["avg"])
  .replace("{{LAVGABS}}","%.2f"%abs(d["losses"]["avg"]))
  .replace("{{LSAVED}}","%+.1f"%d["losses"]["saved"])
- .replace("{{LSAVEDPCT}}","%+d%%"%d["losses"]["saved_pct"])
  .replace("{{NTARGET}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="target"))
  .replace("{{NSTOP}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="stop"))
  .replace("{{SELFPCT}}","%.0f%%"%(100.0*(H["trades"]-next(e["n"] for e in d["exits"] if e["kind"]=="time cap"))/H["trades"]))
@@ -255,7 +262,11 @@ html=(tpl
  .replace("{{MAXLOSS}}", "%g" % ctx.BENCH["maxloss"]).replace("{{BENCHTEXT}}", ctx.BENCH["text"])
  .replace("{{DEPOSIT}}", "$%s" % format(int(ctx.DEPOSIT), ",")).replace("{{RISKMONEY}}", "$%s" % format(int(round(ctx.RISK_MONEY)), ","))
  .replace("{{QBLOCK}}", qblock()).replace("{{RUNPROSE}}", runprose())
- .replace("{{RISKNUM}}", ("%g" % ctx.RISK))
+ .replace("{{RISKSELECT}}", riskselect())
+ .replace("{{TARGET}}", "%g" % ctx.BENCH["p1"])
+ .replace("{{CLIFFLOSS}}", "%g" % (d["cliffs"]["maxloss"] or 0))
+ .replace("{{CLIFFDAILY}}", "%g" % (d["cliffs"]["daily"] or 0))
+ .replace("{{LSAVEDR}}", "%.4f" % d["losses"]["saved"])
  .replace("{{PHASETXT}}", "one phase" if not ctx.BENCH["p2"] else "both phases")
  .replace("{{RISKDATA}}", json.dumps(riskdata(), separators=(",", ":"))))
 # Fill every live span with its value at the default risk. The page overwrites
@@ -283,7 +294,27 @@ def fill_defaults(html):
     html = html.replace('<span data-risk></span>', '<span data-risk>%g%%</span>' % RISK)
     return html
 
-html = fill_defaults(html)
+def fill_warning(html):
+    """Server-render the banner at the default risk. Left to the script it is
+    hidden and empty in the file, so with JS off -- or in print, or to a crawler
+    -- the finding that the worst run breaks the limit at the default risk would
+    be invisible. That is the one thing the page exists to say."""
+    row = next(s for s in d['sweep'] if abs(s['risk'] - RISK) < 1e-9)
+    daily = ctx.BENCH['daily'] or 0
+    bad = []
+    if row['run_breaks']:
+        bad.append('A run of <b>%d losses</b> costs <b>%.1f%%</b>, past the %g%% maximum loss. '
+                   'That run is in this data.'
+                   % (d['streaks']['worst_loss'], row['run_cost'], ctx.BENCH['maxloss']))
+    if daily and abs(row['worst_trade']) > daily:
+        bad.append('The worst single loss on record is <b>%.2f%%</b>, past the %g%% daily limit '
+                   '&mdash; one trade could end it.' % (abs(row['worst_trade']), daily))
+    if not bad:
+        return html
+    return html.replace('<div id="riskwarn" class="riskwarn" hidden></div>',
+                        '<div id="riskwarn" class="riskwarn">%s</div>' % " ".join(bad))
+
+html = fill_warning(fill_defaults(html))
 open(OUT,"w").write(html)
 open(PAGES,"w").write(html)
 

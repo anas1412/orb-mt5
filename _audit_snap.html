@@ -723,14 +723,6 @@ demo test thoroughly before risking capital.</p>
 
   function shown(){ return all.filter(function(c){ return !c.hidden; }); }
 
-  // The risk script is defined after this one, so at init orbRisk() does not
-  // exist yet. The select carries the default in the markup, so read that.
-  function riskNow(){
-    if(window.orbRisk) return window.orbRisk();
-    var s = document.getElementById('riskin');
-    return s ? parseFloat(s.value) || 1 : 1;
-  }
-
   function apply(){
     all.forEach(function(c){
       var ok=['outcome','day','month'].every(function(g){
@@ -747,9 +739,10 @@ demo test thoroughly before risking capital.</p>
       count.innerHTML+=' &nbsp;·&nbsp; <b>'+w+'</b> W / <b>'+(n-w)+'</b> L'
         +' &nbsp;·&nbsp; <b>'+(100*w/n).toFixed(1)+'%</b> win rate'
         +' &nbsp;·&nbsp; <b>'+(tot>=0?'+':'')+tot.toFixed(1)+' R</b>'
-        +' &nbsp;·&nbsp; <b data-pct="'+tot.toFixed(4)+'">'+(tot>=0?'+':'')+(tot*riskNow()).toFixed(1)+'%</b>';
+        +' &nbsp;·&nbsp; <b data-pct="'+tot.toFixed(4)+'">'+(tot>=0?'+':'')+(tot*window.orbRisk()).toFixed(1)+'%</b>';
     }
     none.hidden = n>0;
+    window.orbGalleryRefresh = apply;
     chips.forEach(function(b){
       var g=b.dataset.f, v=b.dataset.v;
       b.setAttribute('aria-pressed', v==='*' ? sets[g].size===0 : sets[g].has(v));
@@ -798,7 +791,6 @@ demo test thoroughly before risking capital.</p>
     else if(e.key==='ArrowLeft') show(i-1);
     else if(e.key==='ArrowRight') show(i+1);
   });
-  window.orbGalleryRefresh = apply;   // the risk script calls this when risk changes
 })();
 </script>
 <script id="riskdata" type="application/json">{"sweep":[{"risk":0.5,"ret":22.0,"maxdd":2.6,"pass_pct":100.0,"trades":41,"days":74,"money":50,"worst_trade":-0.55,"daily_share":0.0,"dd_breaks":false,"run_cost":2.6,"run_breaks":false},{"risk":0.75,"ret":33.0,"maxdd":3.8,"pass_pct":100.0,"trades":27,"days":49,"money":75,"worst_trade":-0.82,"daily_share":0.0,"dd_breaks":false,"run_cost":3.8,"run_breaks":false},{"risk":1.0,"ret":44.0,"maxdd":5.1,"pass_pct":100.0,"trades":20,"days":36,"money":100,"worst_trade":-1.09,"daily_share":0.0,"dd_breaks":false,"run_cost":5.1,"run_breaks":false},{"risk":1.25,"ret":55.0,"maxdd":6.4,"pass_pct":99.8,"trades":16,"days":29,"money":125,"worst_trade":-1.37,"daily_share":0.0,"dd_breaks":false,"run_cost":6.4,"run_breaks":false},{"risk":1.5,"ret":66.0,"maxdd":7.7,"pass_pct":99.4,"trades":13,"days":24,"money":150,"worst_trade":-1.64,"daily_share":0.0,"dd_breaks":false,"run_cost":7.7,"run_breaks":false},{"risk":1.75,"ret":77.0,"maxdd":9.0,"pass_pct":99.0,"trades":11,"days":20,"money":175,"worst_trade":-1.91,"daily_share":0.0,"dd_breaks":false,"run_cost":8.9,"run_breaks":false},{"risk":2.0,"ret":88.0,"maxdd":10.3,"pass_pct":98.1,"trades":9,"days":16,"money":200,"worst_trade":-2.19,"daily_share":0.0,"dd_breaks":false,"run_cost":10.2,"run_breaks":false},{"risk":2.25,"ret":99.0,"maxdd":11.5,"pass_pct":97.5,"trades":8,"days":14,"money":225,"worst_trade":-2.46,"daily_share":0.0,"dd_breaks":false,"run_cost":11.5,"run_breaks":false},{"risk":2.5,"ret":110.0,"maxdd":12.8,"pass_pct":96.4,"trades":7,"days":13,"money":250,"worst_trade":-2.74,"daily_share":0.0,"dd_breaks":true,"run_cost":12.8,"run_breaks":true}],"chips":[0.5,1,1.5,2,2.5],"maxrisk":2.5,"risk":2.5,"maxloss":12.0,"daily":3.0,"target":12.0,"worst_run":5,"worst_run_times":"once","worst_run_r":5.104,"worst_trade_r":1.094,"deposit":10000.0}</script>

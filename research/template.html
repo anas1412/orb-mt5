@@ -45,9 +45,10 @@ h1 em{font-style:normal;color:var(--acc);}
 .lede{font-size:1.14rem;color:var(--ink2);max-width:60ch;margin:0}
 
 /* ---------- kpi ---------- */
-.kpi{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:13px;margin:36px 0 8px}
+.kpi{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px;margin:36px 0 8px}
 /* ten cards divide evenly by 5 and by 2, so neither layout leaves a stranded
    tile on its own row; 3 across would. */
+@media (max-width:1240px){.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:1000px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:420px) {.kpi{grid-template-columns:1fr}}
 .k{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;box-shadow:var(--sh);min-width:0}
@@ -196,8 +197,8 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
   margin:0 0 18px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
 .riskbar label{font-size:13px;font-weight:640;letter-spacing:.01em}
 .riskin{display:flex;align-items:center;gap:6px}
-.riskin input{width:5.2rem;font:inherit;font-weight:700;font-size:19px;padding:6px 8px;
-  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;text-align:right}
+.riskin select{font:inherit;font-weight:700;font-size:19px;padding:6px 10px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit}
 .riskin span{font-size:15px;color:var(--mut);font-weight:640}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{font:inherit;font-size:12.5px;padding:5px 11px;border:1px solid var(--line);
@@ -221,13 +222,15 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
 
   <div class="riskbar">
     <label for="riskin">Risk per trade</label>
-    <div class="riskin"><input id="riskin" type="number" min="0.25" max="2.5" step="0.25" value="{{RISKNUM}}" inputmode="decimal"><span>%</span></div>
+    <div class="riskin">{{RISKSELECT}}</div>
     <div class="chips" id="riskchips"></div>
     <p class="risknote">Every percentage on this page is <b>R &times; risk</b>. Change the number and
     the report follows &mdash; returns, drawdown, pass rate, position size. Trade count, win rate,
     expectancy in R and profit factor do not move: they are risk-independent. The scale stops at
-    <b>2.5%</b> because nothing above it is a real choice &mdash; the worst run on record already
-    breaks the maximum loss there, and past 2.74% one bad trade breaches the daily limit by itself.</p>
+    <b>2.5%</b> because nothing above it is a real choice: past <b>{{CLIFFLOSS}}%</b> the worst run
+    on record breaks the maximum loss, and past <b>{{CLIFFDAILY}}%</b> a single worst-case trade
+    breaches the daily limit on its own. Only the levels the simulation actually walked are
+    offered.</p>
   </div>
   <div id="riskwarn" class="riskwarn" hidden></div>
 
@@ -241,11 +244,15 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
     <div class="k"><div class="l">Profit factor</div><div class="v pos">{{PF}}</div>
       <div class="n">{{GAIN}} R won vs {{LOSS}} R lost</div></div>
     <div class="k"><div class="l">Average win</div><div class="v pos">{{AVGWIN}} R</div>
-      <div class="n">average loss {{AVGLOSS}} R</div></div>
+      <div class="n">{{NTARGET}} reached the target</div></div>
+    <div class="k"><div class="l">Average loss</div><div class="v neg">{{AVGLOSS}} R</div>
+      <div class="n">{{LHALVED}} of {{LN}} halved by the stop move</div></div>
 
     <div class="k"><div class="l">Challenge pass rate</div><div class="v pos">{{PASS2}}%</div>
-      <div class="n">{{PHASETXT}}, ~{{DAYS2}} days</div></div>
-    <div class="k"><div class="l">Worst drawdown</div><div class="v">{{MAXDD}}%</div>
+      <div class="n">{{PHASETXT}}, +{{TARGET}}% target</div></div>
+    <div class="k"><div class="l">Trades to pass</div><div class="v"><span data-sweep="trades"></span></div>
+      <div class="n">about <span data-sweep="days"></span> trading days</div></div>
+    <div class="k" id="ddcard"><div class="l">Worst drawdown</div><div class="v"><span data-sweep="maxdd"></span>%</div>
       <div class="n">the limit is {{MAXLOSS}}%</div></div>
     <div class="k"><div class="l">Longest win run</div><div class="v pos">{{BESTWIN}}</div>
       <div class="n">wins in a row</div></div>
@@ -421,7 +428,7 @@ is exactly what a pass-rate account wants.</p></div>
 <ul>
 <li><strong>{{LHALVED}} of the {{LN}} losses were halved.</strong></li>
 <li>Average loss <strong>{{LAVG}} R</strong>, not &minus;1.00 R.</li>
-<li>Saved <strong>{{LSAVED}} R</strong> &mdash; {{LSAVEDPCT}} of the account.</li>
+<li>Saved <strong>{{LSAVED}} R</strong> &mdash; <span data-pct="{{LSAVEDR}}"></span>% of the account.</li>
 </ul>
 
 <div class="scroll"><table>
@@ -578,6 +585,14 @@ demo test thoroughly before risking capital.</p>
 
   function shown(){ return all.filter(function(c){ return !c.hidden; }); }
 
+  // The risk script is defined after this one, so at init orbRisk() does not
+  // exist yet. The select carries the default in the markup, so read that.
+  function riskNow(){
+    if(window.orbRisk) return window.orbRisk();
+    var s = document.getElementById('riskin');
+    return s ? parseFloat(s.value) || 1 : 1;
+  }
+
   function apply(){
     all.forEach(function(c){
       var ok=['outcome','day','month'].every(function(g){
@@ -594,7 +609,7 @@ demo test thoroughly before risking capital.</p>
       count.innerHTML+=' &nbsp;·&nbsp; <b>'+w+'</b> W / <b>'+(n-w)+'</b> L'
         +' &nbsp;·&nbsp; <b>'+(100*w/n).toFixed(1)+'%</b> win rate'
         +' &nbsp;·&nbsp; <b>'+(tot>=0?'+':'')+tot.toFixed(1)+' R</b>'
-        +' &nbsp;·&nbsp; <b>'+(tot>=0?'+':'')+(tot*2).toFixed(1)+'%</b>';
+        +' &nbsp;·&nbsp; <b data-pct="'+tot.toFixed(4)+'">'+(tot>=0?'+':'')+(tot*riskNow()).toFixed(1)+'%</b>';
     }
     none.hidden = n>0;
     chips.forEach(function(b){
@@ -645,6 +660,7 @@ demo test thoroughly before risking capital.</p>
     else if(e.key==='ArrowLeft') show(i-1);
     else if(e.key==='ArrowRight') show(i+1);
   });
+  window.orbGalleryRefresh = apply;   // the risk script calls this when risk changes
 })();
 </script>
 <script id="riskdata" type="application/json">{{RISKDATA}}</script>
@@ -655,12 +671,12 @@ demo test thoroughly before risking capital.</p>
   var chips = document.getElementById('riskchips');
   var warn  = document.getElementById('riskwarn');
 
-  // Nearest precomputed row. Pass rate and time-to-pass come out of a simulation,
-  // so they are looked up, never scaled -- scaling them would invent numbers.
-  function rowFor(r){
-    return D.sweep.reduce(function(a,b){
-      return Math.abs(b.risk - r) < Math.abs(a.risk - r) ? b : a; });
-  }
+  // Exact lookup, never nearest. The options ARE the simulated rows, so the page
+  // structurally cannot pair a scaled percent with a pass rate measured at some
+  // other risk -- a combination that would look measured and be invented.
+  var ROWS = {};
+  D.sweep.forEach(function(s){ ROWS[s.risk.toFixed(2)] = s; });
+  function rowFor(r){ return ROWS[r.toFixed(2)]; }
   function num(r){ return (Math.round(r*100)/100).toString(); }
   function fmt(v, f){
     if(f === 'signint') return (v>=0?'+':'') + Math.round(v);
@@ -671,8 +687,13 @@ demo test thoroughly before risking capital.</p>
     if(f === 'plain2')  return v.toFixed(2);
     return (v>=0?'+':'') + v.toFixed(1);
   }
+  window.orbRisk = function(){ return CUR; };
+  var CUR = parseFloat(D.risk);
+
   function apply(r){
     var row = rowFor(r);
+    if(!row) return;                       // an unsimulated risk is not offered
+    CUR = r;
     document.querySelectorAll('[data-pct]').forEach(function(el){
       el.textContent = fmt(parseFloat(el.dataset.pct) * r, el.dataset.fmt || 'sign1');
     });
@@ -708,6 +729,9 @@ demo test thoroughly before risking capital.</p>
     warn.hidden = bad.length === 0;
     warn.innerHTML = bad.join(' ');
 
+    var dd = document.getElementById('ddcard');
+    if(dd) dd.querySelector('.v').className = 'v' + (row.dd_breaks ? ' neg' : '');
+
     var adv = document.getElementById('riskadvice');
     if(adv){
       var safe = D.sweep.filter(function(s){
@@ -721,30 +745,24 @@ demo test thoroughly before risking capital.</p>
           'which is the trade to make once the account is funded rather than being won.'
         : '';
     }
+    // The gallery footer has its own percent; recompute it against the new risk.
+    if(window.orbGalleryRefresh) window.orbGalleryRefresh();
     try { history.replaceState(null, '', '?risk=' + num(r)); } catch(e){}
   }
 
   D.chips.forEach(function(v){
     var b = document.createElement('button');
     b.type = 'button'; b.textContent = num(v) + '%'; b.dataset.v = v;
-    b.addEventListener('click', function(){ input.value = num(v); apply(v); });
+    b.addEventListener('click', function(){ input.value = v.toFixed(2); apply(v); });
     chips.appendChild(b);
   });
 
-  function read(){
-    var r = parseFloat(input.value);
-    if(!isFinite(r) || r <= 0) return;     // mid-edit garbage: leave the page as it stands
-    apply(Math.min(D.maxrisk, Math.max(0.25, r)));
-  }
-  input.addEventListener('input', read);
-  input.addEventListener('change', function(){
-    var r = parseFloat(input.value);
-    if(isFinite(r)) input.value = num(Math.min(D.maxrisk, Math.max(0.25, r)));
-    read();
-  });
+  input.addEventListener('change', function(){ apply(parseFloat(input.value)); });
 
+  // ?risk=2 is honoured only when it names a simulated level; anything else
+  // leaves the page at its default rather than snapping to a near neighbour.
   var q = parseFloat(new URLSearchParams(location.search).get('risk'));
-  if(isFinite(q) && q > 0) input.value = num(Math.min(D.maxrisk, Math.max(0.25, q)));
+  if(isFinite(q) && ROWS[q.toFixed(2)]) input.value = q.toFixed(2);
   apply(parseFloat(input.value));
 })();
 </script>

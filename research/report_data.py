@@ -173,7 +173,9 @@ def pr(risk,paths=40000):
     freq=len(R)/float(len(sessions))
     return dict(risk=risk,p1=round(p1,1),p2=round(p2,1),both=round(p1*p2/100.0,1),
                 trades=int(m1+m2), days=int(round((m1+m2)/freq)))
-out['pass']=[pr(x) for x in sorted(set((1.0,1.5,2.0,3.0)) | {RISK})]
+# out['pass'] used to live here: a SECOND Monte Carlo answer to the same
+# question as the sweep, at a different path count, so the page could show
+# 96.3% beside 96.4%. One simulation, one answer.
 
 # What a losing run actually cost, per run length -- never reconstructed from an
 # average loss. The stop move halves some losses, so the mean loss is -0.86 R
@@ -203,7 +205,7 @@ out['loss_avg_abs'] = round(abs(statistics.mean([x for x in R if x <= 0])), 4)
 # single loss breaks the daily limit -- all three come from walking real trade
 # outcomes against the challenge barriers. Precompute them per risk level here,
 # so the page swaps a looked-up value instead of inventing one.
-def sweep_at(risk, paths=20000):
+def sweep_at(risk, paths=40000):
     B=ctx.BENCH
     p=pr(risk, paths)
     worst_trade=min(R)
@@ -216,6 +218,7 @@ def sweep_at(risk, paths=20000):
                 money=round(ctx.DEPOSIT*risk/100.0),
                 worst_trade=round(worst_trade*risk,2),
                 daily_share=round(100.0*len(daily)/len(R),1),
+                dd_breaks=bool(B['maxloss'] and out['maxdd_r']*risk > B['maxloss']),
                 run_cost=round(out['worst_run_r']*risk,1),
                 run_breaks=bool(B['maxloss'] and out['worst_run_r']*risk > B['maxloss']))
 # Nothing above 2.5% is a real choice: the worst run on record already breaks
@@ -223,6 +226,13 @@ def sweep_at(risk, paths=20000):
 # daily limit on its own -- the pass rate falls off a cliff rather than a slope.
 STEPS=[round(0.25*i,2) for i in range(2,11)]           # 0.50% .. 2.50%
 out['sweep']=[sweep_at(x) for x in sorted(set(STEPS) | {round(RISK,2)}) if x<=2.5]
+
+# Where each rule starts to bite, in risk-per-trade. A limit divided by an R is
+# risk-independent, so these are fixed prose -- but they were typed into the
+# template and a comment, which is how a number goes stale.
+out['cliffs']=dict(
+    maxloss=round(ctx.BENCH['maxloss']/out['worst_run_r'],2) if out['worst_run_r'] else None,
+    daily=round(ctx.BENCH['daily']/out['worst_trade_r'],2) if ctx.BENCH['daily'] and out['worst_trade_r'] else None)
 
 # the half-of-the-range rule, measured against the same config with the filter off
 def halves():
@@ -243,11 +253,12 @@ out['halves']=halves()
 L=[x for x in R if x<=0]
 out['losses']=dict(n=len(L), halved=len([x for x in L if x>-0.75]),
                    avg=round(sum(L)/len(L),2),
-                   saved=round(sum(L)+len(L),1), saved_pct=round(RISK*(sum(L)+len(L))))
+                   saved=round(sum(L)+len(L),1))     # in R; the page scales it
 out['coverage']=dict(first=str(min(alldates)), last=str(max(alldates)),
                      dates=len(alldates))
-# close-position quadrants
-out['quadrants']=[dict(band="above 75%",n=68,ev=0.529,wr=50.0),
+# close-position quadrants -- hardcoded literals from an early study, no longer
+# matching the record and read by nothing. Kept out of the JSON deliberately.
+_dead_quadrants=[dict(band="above 75%",n=68,ev=0.529,wr=50.0),
                   dict(band="50 - 75%",n=25,ev=0.210,wr=36.0),
                   dict(band="25 - 50%",n=19,ev=0.217,wr=36.8),
                   dict(band="below 25%",n=7,ev=-0.816,wr=0.0)]
@@ -263,4 +274,8 @@ print("weeks %d | quarters %d | worst DD %.1f%% | worst loss run %d"
 c=out['coverage']; print("data covers %s .. %s (%d trading dates)"%(c['first'],c['last'],c['dates']))
 hv=out['halves']; print("halves: same %d (%.1f%% WR, %+.3f EV) | opposite %d (%.1f%% WR, %+.3f EV)"
       %(hv['same']['n'],hv['same']['wr'],hv['same']['ev'],hv['opp']['n'],hv['opp']['wr'],hv['opp']['ev']))
-for p in out['pass']: print("  risk %.1f%% -> pass %.1f%%, %d trades, ~%d days" % (p['risk'],p['both'],p['trades'],p['days']))
+for s in out['sweep']:
+    if s['risk'] in (1.0,1.5,2.0,2.25,2.5):
+        print("  risk %g%% -> pass %.1f%%, %d trades, ~%d days, run costs %.1f%%%s"
+              % (s['risk'],s['pass_pct'],s['trades'],s['days'],s['run_cost'],
+                 "  BREAKS the %g%% limit"%ctx.BENCH['maxloss'] if s['run_breaks'] else ""))

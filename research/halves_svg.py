@@ -107,8 +107,8 @@ def build(hv=None):
           'fill-opacity="%s">%s</text>' % (y, col, op, lab))
         a('<text x="290" y="%d" font-size="13" fill="currentColor" fill-opacity="%s">'
           '%d trades &#183; %.1f%% win rate &#183; %+.3f R each &#183; %+.1f R total '
-          '&#183; %+.1f%% of the account</text>' % (y, op, q['n'], q['wr'], q['ev'],
-                                                    q['total'], q['ret']))
+          '&#183; <tspan data-pct="%.4f">%+.1f%%</tspan> of the account</text>' % (y, op, q['n'], q['wr'], q['ev'],
+                                                    q['total'], q['total'], q['ret']))
     a('</svg>')
     return "\n".join(s)
 

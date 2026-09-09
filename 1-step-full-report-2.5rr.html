@@ -45,9 +45,10 @@ h1 em{font-style:normal;color:var(--acc);}
 .lede{font-size:1.14rem;color:var(--ink2);max-width:60ch;margin:0}
 
 /* ---------- kpi ---------- */
-.kpi{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:13px;margin:36px 0 8px}
+.kpi{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px;margin:36px 0 8px}
 /* ten cards divide evenly by 5 and by 2, so neither layout leaves a stranded
    tile on its own row; 3 across would. */
+@media (max-width:1240px){.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:1000px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:420px) {.kpi{grid-template-columns:1fr}}
 .k{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;box-shadow:var(--sh);min-width:0}
@@ -196,8 +197,8 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
   margin:0 0 18px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
 .riskbar label{font-size:13px;font-weight:640;letter-spacing:.01em}
 .riskin{display:flex;align-items:center;gap:6px}
-.riskin input{width:5.2rem;font:inherit;font-weight:700;font-size:19px;padding:6px 8px;
-  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;text-align:right}
+.riskin select{font:inherit;font-weight:700;font-size:19px;padding:6px 10px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit}
 .riskin span{font-size:15px;color:var(--mut);font-weight:640}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{font:inherit;font-size:12.5px;padding:5px 11px;border:1px solid var(--line);
@@ -221,15 +222,17 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
 
   <div class="riskbar">
     <label for="riskin">Risk per trade</label>
-    <div class="riskin"><input id="riskin" type="number" min="0.25" max="2.5" step="0.25" value="2.5" inputmode="decimal"><span>%</span></div>
+    <div class="riskin"><select id="riskin" aria-label="Risk per trade"><option value="0.50">0.5%</option><option value="0.75">0.75%</option><option value="1.00">1%</option><option value="1.25">1.25%</option><option value="1.50">1.5%</option><option value="1.75">1.75%</option><option value="2.00">2%</option><option value="2.25">2.25%</option><option value="2.50" selected>2.5%</option></select></div>
     <div class="chips" id="riskchips"></div>
     <p class="risknote">Every percentage on this page is <b>R &times; risk</b>. Change the number and
     the report follows &mdash; returns, drawdown, pass rate, position size. Trade count, win rate,
     expectancy in R and profit factor do not move: they are risk-independent. The scale stops at
-    <b>2.5%</b> because nothing above it is a real choice &mdash; the worst run on record already
-    breaks the maximum loss there, and past 2.74% one bad trade breaches the daily limit by itself.</p>
+    <b>2.5%</b> because nothing above it is a real choice: past <b>2.36%</b> the worst run
+    on record breaks the maximum loss, and past <b>2.74%</b> a single worst-case trade
+    breaches the daily limit on its own. Only the levels the simulation actually walked are
+    offered.</p>
   </div>
-  <div id="riskwarn" class="riskwarn" hidden></div>
+  <div id="riskwarn" class="riskwarn">A run of <b>5 losses</b> costs <b>12.7%</b>, past the 12% maximum loss. That run is in this data.</div>
 
   <div class="kpi">
     <div class="k big"><div class="l">Total return</div><div class="v pos"><span data-pct="46.0000" data-fmt="signint">+115</span>%</div>
@@ -241,11 +244,15 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
     <div class="k"><div class="l">Profit factor</div><div class="v pos">2.34</div>
       <div class="n">+80.2 R won vs 34.2 R lost</div></div>
     <div class="k"><div class="l">Average win</div><div class="v pos">+2.17 R</div>
-      <div class="n">average loss -0.83 R</div></div>
+      <div class="n">28 reached the target</div></div>
+    <div class="k"><div class="l">Average loss</div><div class="v neg">-0.83 R</div>
+      <div class="n">16 of 41 halved by the stop move</div></div>
 
     <div class="k"><div class="l">Challenge pass rate</div><div class="v pos"><span data-sweep="pass_pct">94.7</span>%</div>
-      <div class="n">one phase, ~<span data-sweep="days">13</span> days</div></div>
-    <div class="k"><div class="l">Worst drawdown</div><div class="v"><span data-sweep="maxdd">12.7</span>%</div>
+      <div class="n">one phase, +12% target</div></div>
+    <div class="k"><div class="l">Trades to pass</div><div class="v"><span data-sweep="trades">7</span></div>
+      <div class="n">about <span data-sweep="days">13</span> trading days</div></div>
+    <div class="k" id="ddcard"><div class="l">Worst drawdown</div><div class="v"><span data-sweep="maxdd">12.7</span>%</div>
       <div class="n">the limit is 12%</div></div>
     <div class="k"><div class="l">Longest win run</div><div class="v pos">6</div>
       <div class="n">wins in a row</div></div>
@@ -459,9 +466,9 @@ today.</p>
 <text x="969" y="310" font-size="12" fill="currentColor" fill-opacity=".6">break below</text>
 <line x1="30" y1="344" x2="1050" y2="344" stroke="currentColor" stroke-opacity=".12"/>
 <text x="30" y="374" font-size="13" font-weight="700" fill="var(--pos)" fill-opacity="1">Broke the half it closed in</text>
-<text x="290" y="374" font-size="13" fill="currentColor" fill-opacity="1">78 trades &#183; 47.4% win rate &#183; +0.589 R each &#183; +46.0 R total &#183; +114.9% of the account</text>
+<text x="290" y="374" font-size="13" fill="currentColor" fill-opacity="1">78 trades &#183; 47.4% win rate &#183; +0.589 R each &#183; +46.0 R total &#183; <tspan data-pct="46.0000">+114.9%</tspan> of the account</text>
 <text x="30" y="400" font-size="13" font-weight="700" fill="var(--neg)" fill-opacity=".72">Broke the opposite half</text>
-<text x="290" y="400" font-size="13" fill="currentColor" fill-opacity=".72">24 trades &#183; 25.0% win rate &#183; +0.052 R each &#183; +1.2 R total &#183; +3.1% of the account</text>
+<text x="290" y="400" font-size="13" fill="currentColor" fill-opacity=".72">24 trades &#183; 25.0% win rate &#183; +0.052 R each &#183; +1.2 R total &#183; <tspan data-pct="1.2000">+3.1%</tspan> of the account</text>
 </svg>
 </div>
 <figcaption>The half the range closed in is the half price was already leaning into. Breaking that way continues the move; breaking the other way means price crossed the whole box first.</figcaption></figure>
@@ -559,7 +566,7 @@ is exactly what a pass-rate account wants.</p></div>
 <ul>
 <li><strong>16 of the 41 losses were halved.</strong></li>
 <li>Average loss <strong>-0.83 R</strong>, not &minus;1.00 R.</li>
-<li>Saved <strong>+6.8 R</strong> &mdash; +17% of the account.</li>
+<li>Saved <strong>+6.8 R</strong> &mdash; <span data-pct="6.8000">+17.0</span>% of the account.</li>
 </ul>
 
 <div class="scroll"><table>
@@ -644,7 +651,7 @@ a drawdown limit. That makes streaks matter more than averages.</p>
 <div class="scroll"><table>
 <caption>Simulated on the 2026 outcome distribution. Target +12%, 12% maximum loss, 3% daily, no minimum days.</caption>
 <thead><tr><th>Risk per trade</th><th>Pass</th><th>Trades needed</th><th>~Days</th><th>Total return</th><th>Worst drawdown</th><th>5 losses cost</th><th>Worst single loss</th></tr></thead>
-<tbody><tr data-rowrisk="0.5"><td><b>0.5%</b></td><td class="pos"><b>100.0%</b></td><td>39</td><td>70</td><td class="pos"><b>+23%</b></td><td>2.5%</td><td class="">2.5%</td><td class="">-0.55%</td></tr><tr data-rowrisk="0.75"><td><b>0.75%</b></td><td class="pos"><b>100.0%</b></td><td>26</td><td>47</td><td class="pos"><b>+34%</b></td><td>3.8%</td><td class="">3.8%</td><td class="">-0.82%</td></tr><tr data-rowrisk="1.0"><td><b>1%</b></td><td class="pos"><b>99.9%</b></td><td>19</td><td>34</td><td class="pos"><b>+46%</b></td><td>5.1%</td><td class="">5.1%</td><td class="">-1.09%</td></tr><tr data-rowrisk="1.25"><td><b>1.25%</b></td><td class="pos"><b>99.6%</b></td><td>15</td><td>27</td><td class="pos"><b>+58%</b></td><td>6.4%</td><td class="">6.4%</td><td class="">-1.37%</td></tr><tr data-rowrisk="1.5"><td><b>1.5%</b></td><td class="pos"><b>99.1%</b></td><td>12</td><td>22</td><td class="pos"><b>+69%</b></td><td>7.6%</td><td class="">7.6%</td><td class="">-1.64%</td></tr><tr data-rowrisk="1.75"><td><b>1.75%</b></td><td class="pos"><b>98.3%</b></td><td>10</td><td>18</td><td class="pos"><b>+80%</b></td><td>8.9%</td><td class="">8.9%</td><td class="">-1.91%</td></tr><tr data-rowrisk="2.0"><td><b>2%</b></td><td class="pos"><b>97.5%</b></td><td>9</td><td>16</td><td class="pos"><b>+92%</b></td><td>10.2%</td><td class="">10.2%</td><td class="">-2.19%</td></tr><tr data-rowrisk="2.25"><td><b>2.25%</b></td><td class="pos"><b>96.2%</b></td><td>8</td><td>14</td><td class="pos"><b>+103%</b></td><td>11.5%</td><td class="">11.5%</td><td class="">-2.46%</td></tr><tr data-rowrisk="2.5" class="neg"><td><b>2.5%</b></td><td class="pos"><b>94.7%</b></td><td>7</td><td>13</td><td class="pos"><b>+115%</b></td><td>12.7%</td><td class="neg">12.7%</td><td class="">-2.74%</td></tr></tbody></table></div>
+<tbody><tr data-rowrisk="0.5"><td><b>0.5%</b></td><td class="pos"><b>100.0%</b></td><td>39</td><td>70</td><td class="pos"><b>+23%</b></td><td>2.5%</td><td class="">2.5%</td><td class="">-0.55%</td></tr><tr data-rowrisk="0.75"><td><b>0.75%</b></td><td class="pos"><b>100.0%</b></td><td>26</td><td>47</td><td class="pos"><b>+34%</b></td><td>3.8%</td><td class="">3.8%</td><td class="">-0.82%</td></tr><tr data-rowrisk="1.0"><td><b>1%</b></td><td class="pos"><b>99.9%</b></td><td>19</td><td>34</td><td class="pos"><b>+46%</b></td><td>5.1%</td><td class="">5.1%</td><td class="">-1.09%</td></tr><tr data-rowrisk="1.25"><td><b>1.25%</b></td><td class="pos"><b>99.6%</b></td><td>15</td><td>27</td><td class="pos"><b>+58%</b></td><td>6.4%</td><td class="">6.4%</td><td class="">-1.37%</td></tr><tr data-rowrisk="1.5"><td><b>1.5%</b></td><td class="pos"><b>99.1%</b></td><td>12</td><td>22</td><td class="pos"><b>+69%</b></td><td>7.6%</td><td class="">7.6%</td><td class="">-1.64%</td></tr><tr data-rowrisk="1.75"><td><b>1.75%</b></td><td class="pos"><b>98.5%</b></td><td>10</td><td>18</td><td class="pos"><b>+80%</b></td><td>8.9%</td><td class="">8.9%</td><td class="">-1.91%</td></tr><tr data-rowrisk="2.0"><td><b>2%</b></td><td class="pos"><b>97.3%</b></td><td>9</td><td>16</td><td class="pos"><b>+92%</b></td><td>10.2%</td><td class="">10.2%</td><td class="">-2.19%</td></tr><tr data-rowrisk="2.25"><td><b>2.25%</b></td><td class="pos"><b>96.2%</b></td><td>8</td><td>14</td><td class="pos"><b>+103%</b></td><td>11.5%</td><td class="">11.5%</td><td class="">-2.46%</td></tr><tr data-rowrisk="2.5" class="neg"><td><b>2.5%</b></td><td class="pos"><b>94.7%</b></td><td>7</td><td>13</td><td class="pos"><b>+115%</b></td><td>12.7%</td><td class="neg">12.7%</td><td class="">-2.74%</td></tr></tbody></table></div>
 <p class="sub">The highlighted row is the risk set at the top. Pass rate, trades and days come from
 walking the real trade outcomes against the barriers 20&nbsp;000 times per row &mdash; simulated,
 not arithmetic, which is why they are precomputed rather than scaled.</p>
@@ -716,6 +723,14 @@ demo test thoroughly before risking capital.</p>
 
   function shown(){ return all.filter(function(c){ return !c.hidden; }); }
 
+  // The risk script is defined after this one, so at init orbRisk() does not
+  // exist yet. The select carries the default in the markup, so read that.
+  function riskNow(){
+    if(window.orbRisk) return window.orbRisk();
+    var s = document.getElementById('riskin');
+    return s ? parseFloat(s.value) || 1 : 1;
+  }
+
   function apply(){
     all.forEach(function(c){
       var ok=['outcome','day','month'].every(function(g){
@@ -732,7 +747,7 @@ demo test thoroughly before risking capital.</p>
       count.innerHTML+=' &nbsp;·&nbsp; <b>'+w+'</b> W / <b>'+(n-w)+'</b> L'
         +' &nbsp;·&nbsp; <b>'+(100*w/n).toFixed(1)+'%</b> win rate'
         +' &nbsp;·&nbsp; <b>'+(tot>=0?'+':'')+tot.toFixed(1)+' R</b>'
-        +' &nbsp;·&nbsp; <b>'+(tot>=0?'+':'')+(tot*2).toFixed(1)+'%</b>';
+        +' &nbsp;·&nbsp; <b data-pct="'+tot.toFixed(4)+'">'+(tot>=0?'+':'')+(tot*riskNow()).toFixed(1)+'%</b>';
     }
     none.hidden = n>0;
     chips.forEach(function(b){
@@ -783,9 +798,10 @@ demo test thoroughly before risking capital.</p>
     else if(e.key==='ArrowLeft') show(i-1);
     else if(e.key==='ArrowRight') show(i+1);
   });
+  window.orbGalleryRefresh = apply;   // the risk script calls this when risk changes
 })();
 </script>
-<script id="riskdata" type="application/json">{"sweep":[{"risk":0.5,"ret":23.0,"maxdd":2.5,"pass_pct":100.0,"trades":39,"days":70,"money":50,"worst_trade":-0.55,"daily_share":0.0,"run_cost":2.5,"run_breaks":false},{"risk":0.75,"ret":34.5,"maxdd":3.8,"pass_pct":100.0,"trades":26,"days":47,"money":75,"worst_trade":-0.82,"daily_share":0.0,"run_cost":3.8,"run_breaks":false},{"risk":1.0,"ret":46.0,"maxdd":5.1,"pass_pct":99.9,"trades":19,"days":34,"money":100,"worst_trade":-1.09,"daily_share":0.0,"run_cost":5.1,"run_breaks":false},{"risk":1.25,"ret":57.5,"maxdd":6.4,"pass_pct":99.6,"trades":15,"days":27,"money":125,"worst_trade":-1.37,"daily_share":0.0,"run_cost":6.4,"run_breaks":false},{"risk":1.5,"ret":68.9,"maxdd":7.6,"pass_pct":99.1,"trades":12,"days":22,"money":150,"worst_trade":-1.64,"daily_share":0.0,"run_cost":7.6,"run_breaks":false},{"risk":1.75,"ret":80.4,"maxdd":8.9,"pass_pct":98.3,"trades":10,"days":18,"money":175,"worst_trade":-1.91,"daily_share":0.0,"run_cost":8.9,"run_breaks":false},{"risk":2.0,"ret":91.9,"maxdd":10.2,"pass_pct":97.5,"trades":9,"days":16,"money":200,"worst_trade":-2.19,"daily_share":0.0,"run_cost":10.2,"run_breaks":false},{"risk":2.25,"ret":103.4,"maxdd":11.5,"pass_pct":96.2,"trades":8,"days":14,"money":225,"worst_trade":-2.46,"daily_share":0.0,"run_cost":11.5,"run_breaks":false},{"risk":2.5,"ret":114.9,"maxdd":12.7,"pass_pct":94.7,"trades":7,"days":13,"money":250,"worst_trade":-2.74,"daily_share":0.0,"run_cost":12.7,"run_breaks":true}],"chips":[0.5,1,1.5,2,2.5],"maxrisk":2.5,"maxloss":12.0,"daily":3.0,"target":12.0,"worst_run":5,"worst_run_times":"once","worst_run_r":5.091,"worst_trade_r":1.094,"deposit":10000.0}</script>
+<script id="riskdata" type="application/json">{"sweep":[{"risk":0.5,"ret":23.0,"maxdd":2.5,"pass_pct":100.0,"trades":39,"days":70,"money":50,"worst_trade":-0.55,"daily_share":0.0,"dd_breaks":false,"run_cost":2.5,"run_breaks":false},{"risk":0.75,"ret":34.5,"maxdd":3.8,"pass_pct":100.0,"trades":26,"days":47,"money":75,"worst_trade":-0.82,"daily_share":0.0,"dd_breaks":false,"run_cost":3.8,"run_breaks":false},{"risk":1.0,"ret":46.0,"maxdd":5.1,"pass_pct":99.9,"trades":19,"days":34,"money":100,"worst_trade":-1.09,"daily_share":0.0,"dd_breaks":false,"run_cost":5.1,"run_breaks":false},{"risk":1.25,"ret":57.5,"maxdd":6.4,"pass_pct":99.6,"trades":15,"days":27,"money":125,"worst_trade":-1.37,"daily_share":0.0,"dd_breaks":false,"run_cost":6.4,"run_breaks":false},{"risk":1.5,"ret":68.9,"maxdd":7.6,"pass_pct":99.1,"trades":12,"days":22,"money":150,"worst_trade":-1.64,"daily_share":0.0,"dd_breaks":false,"run_cost":7.6,"run_breaks":false},{"risk":1.75,"ret":80.4,"maxdd":8.9,"pass_pct":98.5,"trades":10,"days":18,"money":175,"worst_trade":-1.91,"daily_share":0.0,"dd_breaks":false,"run_cost":8.9,"run_breaks":false},{"risk":2.0,"ret":91.9,"maxdd":10.2,"pass_pct":97.3,"trades":9,"days":16,"money":200,"worst_trade":-2.19,"daily_share":0.0,"dd_breaks":false,"run_cost":10.2,"run_breaks":false},{"risk":2.25,"ret":103.4,"maxdd":11.5,"pass_pct":96.2,"trades":8,"days":14,"money":225,"worst_trade":-2.46,"daily_share":0.0,"dd_breaks":false,"run_cost":11.5,"run_breaks":false},{"risk":2.5,"ret":114.9,"maxdd":12.7,"pass_pct":94.7,"trades":7,"days":13,"money":250,"worst_trade":-2.74,"daily_share":0.0,"dd_breaks":true,"run_cost":12.7,"run_breaks":true}],"chips":[0.5,1,1.5,2,2.5],"maxrisk":2.5,"risk":2.5,"maxloss":12.0,"daily":3.0,"target":12.0,"worst_run":5,"worst_run_times":"once","worst_run_r":5.091,"worst_trade_r":1.094,"deposit":10000.0}</script>
 <script>
 (function(){
   var D = JSON.parse(document.getElementById('riskdata').textContent);
@@ -793,12 +809,12 @@ demo test thoroughly before risking capital.</p>
   var chips = document.getElementById('riskchips');
   var warn  = document.getElementById('riskwarn');
 
-  // Nearest precomputed row. Pass rate and time-to-pass come out of a simulation,
-  // so they are looked up, never scaled -- scaling them would invent numbers.
-  function rowFor(r){
-    return D.sweep.reduce(function(a,b){
-      return Math.abs(b.risk - r) < Math.abs(a.risk - r) ? b : a; });
-  }
+  // Exact lookup, never nearest. The options ARE the simulated rows, so the page
+  // structurally cannot pair a scaled percent with a pass rate measured at some
+  // other risk -- a combination that would look measured and be invented.
+  var ROWS = {};
+  D.sweep.forEach(function(s){ ROWS[s.risk.toFixed(2)] = s; });
+  function rowFor(r){ return ROWS[r.toFixed(2)]; }
   function num(r){ return (Math.round(r*100)/100).toString(); }
   function fmt(v, f){
     if(f === 'signint') return (v>=0?'+':'') + Math.round(v);
@@ -809,8 +825,13 @@ demo test thoroughly before risking capital.</p>
     if(f === 'plain2')  return v.toFixed(2);
     return (v>=0?'+':'') + v.toFixed(1);
   }
+  window.orbRisk = function(){ return CUR; };
+  var CUR = parseFloat(D.risk);
+
   function apply(r){
     var row = rowFor(r);
+    if(!row) return;                       // an unsimulated risk is not offered
+    CUR = r;
     document.querySelectorAll('[data-pct]').forEach(function(el){
       el.textContent = fmt(parseFloat(el.dataset.pct) * r, el.dataset.fmt || 'sign1');
     });
@@ -846,6 +867,9 @@ demo test thoroughly before risking capital.</p>
     warn.hidden = bad.length === 0;
     warn.innerHTML = bad.join(' ');
 
+    var dd = document.getElementById('ddcard');
+    if(dd) dd.querySelector('.v').className = 'v' + (row.dd_breaks ? ' neg' : '');
+
     var adv = document.getElementById('riskadvice');
     if(adv){
       var safe = D.sweep.filter(function(s){
@@ -859,30 +883,24 @@ demo test thoroughly before risking capital.</p>
           'which is the trade to make once the account is funded rather than being won.'
         : '';
     }
+    // The gallery footer has its own percent; recompute it against the new risk.
+    if(window.orbGalleryRefresh) window.orbGalleryRefresh();
     try { history.replaceState(null, '', '?risk=' + num(r)); } catch(e){}
   }
 
   D.chips.forEach(function(v){
     var b = document.createElement('button');
     b.type = 'button'; b.textContent = num(v) + '%'; b.dataset.v = v;
-    b.addEventListener('click', function(){ input.value = num(v); apply(v); });
+    b.addEventListener('click', function(){ input.value = v.toFixed(2); apply(v); });
     chips.appendChild(b);
   });
 
-  function read(){
-    var r = parseFloat(input.value);
-    if(!isFinite(r) || r <= 0) return;     // mid-edit garbage: leave the page as it stands
-    apply(Math.min(D.maxrisk, Math.max(0.25, r)));
-  }
-  input.addEventListener('input', read);
-  input.addEventListener('change', function(){
-    var r = parseFloat(input.value);
-    if(isFinite(r)) input.value = num(Math.min(D.maxrisk, Math.max(0.25, r)));
-    read();
-  });
+  input.addEventListener('change', function(){ apply(parseFloat(input.value)); });
 
+  // ?risk=2 is honoured only when it names a simulated level; anything else
+  // leaves the page at its default rather than snapping to a near neighbour.
   var q = parseFloat(new URLSearchParams(location.search).get('risk'));
-  if(isFinite(q) && q > 0) input.value = num(Math.min(D.maxrisk, Math.max(0.25, q)));
+  if(isFinite(q) && ROWS[q.toFixed(2)]) input.value = q.toFixed(2);
   apply(parseFloat(input.value));
 })();
 </script>
