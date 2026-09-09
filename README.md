@@ -157,6 +157,9 @@ bash research/report.sh strategies/<name>.toml 2026.01.01 2026.09.09   # any spe
 - Results: `Common\Files\ORB_XAUUSD_*.csv`, one row per trade. Needs M1
   real-tick history.
 
+The account rules every figure is measured against are in
+[`fundingpips-1step-flex.md`](fundingpips-1step-flex.md).
+
 The study is in [`research/`](research/); the one-off scripts behind
 [`FINDINGS.md`](research/FINDINGS.md) are in [`research/studies/`](research/studies/).
 

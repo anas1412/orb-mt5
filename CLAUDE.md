@@ -53,6 +53,7 @@ Pages, which left two of each and no way to tell which was current.
     ├── index.html          THE report and the Pages landing page (generated)
     ├── full-report.html    a redirect to index.html, kept because the old URL is linked
     ├── client-example.html the $1,000-account explainer (generated)
+    ├── fundingpips-1step-flex.md  the account rules the benchmark models
     ├── trades/             one chart per trade (generated, drawn straight here)
     ├── trades-<spec>/      the same for a spec report
     ├── accounts/           broker logins, one .env per account (ignored; example.env tracked)
