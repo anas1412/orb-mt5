@@ -32,11 +32,11 @@ the other way is skipped.
 
 ## Results
 
-XAUUSD, real ticks, 2026 (2 Jan – 7 Sep), 2.5% risk per trade.
+XAUUSD, real ticks, 2026 (2 Jan – 9 Sep), 2.5% risk per trade.
 
 | | |
 |---|---|
-| Trades | **78** from 141 eligible sessions |
+| Trades | **78** from 143 eligible sessions |
 | Win rate | **51.3%** — 40 wins, 38 losses |
 | Expectancy | **+0.564 R** per trade (±0.161 standard error) |
 | Profit factor | **2.35** — won +76.7 R against -32.7 R lost |
@@ -51,11 +51,11 @@ record would break the maximum loss.
 
 | Risk per trade | Pass | Trades | Days | Return | Worst drawdown | Worst run costs |
 |---|---|---|---|---|---|---|
-| 1% | 99.9% | 20 | ~36 | +44% | 5.1% | 5.1% |
-| 1.5% | 99.5% | 13 | ~24 | +66% | 7.7% | 7.7% |
-| 2% | 98.2% | 9 | ~16 | +88% | 10.3% | 10.2% |
-| 2.25% | 97.4% | 8 | ~14 | +99% | 11.5% | 11.5% |
-| **2.5%** | **96.3%** | **7** | **~13** | **+110%** | **12.8%** | **12.8% ⚠** |
+| 1% | 100.0% | 20 | ~37 | +44% | 5.1% | 5.1% |
+| 1.5% | 99.5% | 13 | ~24 | +66% | 7.7% | 7.6% |
+| 2% | 98.2% | 9 | ~16 | +88% | 10.2% | 10.2% |
+| 2.25% | 97.4% | 8 | ~15 | +99% | 11.5% | 11.5% |
+| **2.5%** | **96.3%** | **7** | **~13** | **+110%** | **12.8%** | **12.7% ⚠** |
 
 How the 78 trades ended:
 
