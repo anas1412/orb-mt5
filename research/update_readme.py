@@ -4,13 +4,15 @@ Every figure on the README, the report and the client page comes from that one
 file. Hand-editing is how the exits table once summed to +44.3 R under a
 +47.1 R headline.
 """
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ctx
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-d = json.load(open(os.path.join(HERE, "report_data.json")))
+d = json.load(open(os.path.join(HERE, "data", "report_data.json")))
 H = d["headline"]
 r = open(os.path.join(REPO, "README.md")).read()
 before = r

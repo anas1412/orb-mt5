@@ -6,6 +6,8 @@ that day's bars, its position in the year and this file's own contents, so a
 new trade costs one drawing rather than seventy-six. Pass --all to force the
 lot, which is what an unrelated style change needs.
 """
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import csv, hashlib, os, sys, datetime as dt, json
 import ctx
 import matplotlib; matplotlib.use("Agg")

@@ -3,6 +3,8 @@
 Writes one file, ctx.REPORT_PAGES, and the charts are already where the page
 links to them -- all_trades.py draws them straight into that folder.
 """
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import rules_svg, halves_svg
 from curve import curve_svg
 import json, os, re, datetime as dt
@@ -252,7 +254,7 @@ def runprose():
     return ('A <strong>%d-loss run happened %s</strong>, and at %s risk it costs %g%% — %s.'
             %(run,"once" if times==1 else "%d times"%times,ctx.RISK_TXT,round(cost,1),vs))
 
-tpl=open("template.html").read()
+tpl=open(os.path.join(ctx.RESEARCH, "template.html")).read()
 html=(tpl
  .replace("{{TRADES}}",str(H['trades'])).replace("{{WINS}}",str(wins)).replace("{{LOSSES}}",str(losses))
  .replace("{{WR}}","%.1f"%H['wr']).replace("{{EV}}","%+.3f"%H['ev']).replace("{{SE}}","%.3f"%H['se'])

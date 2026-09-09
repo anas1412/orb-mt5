@@ -8,6 +8,8 @@ spotted by eye.
 
     python3 check_charts.py        exits non-zero on any disagreement
 """
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import csv, json, os, re, sys, datetime as dt
 from mt5paths import COMMON as D
 from sim_offline import load_bars, broker_offset

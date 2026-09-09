@@ -168,7 +168,7 @@ COVER=$(cat "$D/tested_through.txt")
 # takes over the moment the tester can see that day.
 DROP=$(python3 -c "
 import json, os
-p = 'research/replayed.json'
+p = 'research/data/replayed.json'
 print(' '.join(repr(r['entry_time']) for r in json.load(open(p))['rows'])
       if os.path.exists(p) else '')" 2>/dev/null || true)
 ( cd research && eval python3 merge_trades.py new_cp0.50.csv live_cp0.50.csv $DROP )
@@ -198,7 +198,7 @@ cp -f "$D/live_cp0.50.csv"   research/trades_live_config.csv
 cp -f "$D/live_cp0.00.csv"   research/trades_all_breaks.csv
 python3 - <<'PY'
 import json
-d = json.load(open('research/report_data.json')); H = d['headline']
+d = json.load(open('research/data/report_data.json')); H = d['headline']
 print("  %d trades | WR %.1f%% | EV %+.3f | total %+.1f R (%+.0f%%) | PF %.2f | DD %.1f%%"
       % (H['trades'], H['wr'], H['ev'], H['total'], H['ret'], H['pf'], d['maxdd']))
 PY
@@ -208,8 +208,7 @@ say "9/9  commit"
 # commit twice -- once an EA feature, once a CLI flag -- under a message about
 # the study. Anything else that is dirty is left for a commit of its own.
 git add README.md index.html full-report.html tester.ini dump.ini trades \
-        research/report_data.json research/trade_index.json research/replayed.json \
-        research/halves.json research/client_data.json research/DATA.md \
+        research/data research/DATA.md \
         research/sessions_2024_2026.csv research/trades_live_config.csv \
         research/trades_all_breaks.csv "research/bars_${SYMBOL}_2024_2026.csv" 2>/dev/null || true
 if [ -n "$(git status --short | grep -v '^[MADR] ')" ]; then
@@ -222,10 +221,10 @@ if git diff --cached --quiet; then
 fi
 git status --short | sed 's/^/  /' | head -12
 git commit -q -m "Update the study through $(python3 -c "
-import json; print(json.load(open('research/report_data.json'))['coverage']['last'])")" \
+import json; print(json.load(open('research/data/report_data.json'))['coverage']['last'])")" \
   -m "$(python3 - <<'PY'
 import json
-d = json.load(open('research/report_data.json')); H = d['headline']
+d = json.load(open('research/data/report_data.json')); H = d['headline']
 print("%d trades of %d sessions | win rate %.1f%% | expectancy %+.3f R\n"
       "total %+.1f R = %+.0f%% | profit factor %.2f | worst drawdown %.1f%% | "
       "longest losing run %d\n\nRegenerated from the tester run: report_data, every "

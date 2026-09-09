@@ -1,3 +1,5 @@
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 #!/usr/bin/env python3
 """One row per Asia session, 2024-2026, for session-quality modelling.
 

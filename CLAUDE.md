@@ -58,8 +58,21 @@ Pages, which left two of each and no way to tell which was current.
     ├── trades-<spec>/      the same for a spec report
     ├── accounts/           broker logins, one .env per account (ignored; example.env tracked)
     └── research/           the pipeline, the builders and the data
+        ├── *.py            the scripts you run: report_data, all_trades, build_*,
+        │                   check_charts, coverage, merge_*, replay_today, spec, sim_offline
+        ├── lib/            modules they import, never run: ctx, mt5paths, curve,
+        │                   rules_svg, halves_svg
+        ├── data/           generated json: report_data, trade_index, halves, replayed, client_data
+        ├── out/<spec>/     everything a spec report produces
+        ├── *.csv           the shipped datasets, at top level because they are linked externally
         ├── mt5.sh          the ONLY MetaTrader launcher: login block, journal watch, reset
+        ├── report.sh, run_window.sh, run_cp050_mt5.sh
         └── studies/        the one-off scripts behind FINDINGS.md, not part of the pipeline
+
+A script in `research/` puts `lib/` on the path with two lines at the top; `lib`
+modules import each other by bare name. `ctx.py` knows it sits one level down --
+`HERE` is `research/lib`, `RESEARCH` and `REPO` are derived from it, and getting
+that wrong writes the report somewhere nobody looks.
 ```
 
 Symlinked to:

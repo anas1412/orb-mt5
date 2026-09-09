@@ -9,6 +9,8 @@ adds is the ability to include today.
 Run it with no arguments to check it against the tester: it replays every 2026
 session and compares trade for trade. Pass a date to print that one session.
 """
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import csv, os, sys, datetime as dt
 from mt5paths import COMMON as D
 

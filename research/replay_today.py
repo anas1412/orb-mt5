@@ -11,6 +11,8 @@ so a replayed row disappears the moment the tester can see that day for real.
 
     python3 replay_today.py 2026.08.28      tester covered through this date
 """
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import csv, json, math, os, sys, datetime as dt
 from mt5paths import COMMON as D
 from sim_offline import load_bars, session, broker_offset
@@ -116,7 +118,7 @@ def main():
             w.writerows(rows)
 
     json.dump(dict(tested_before=untested_from.isoformat(), rows=replayed),
-              open(os.path.join(HERE, "replayed.json"), "w"), indent=1)
+              open(os.path.join(HERE, "data", "replayed.json"), "w"), indent=1)
     write_note(replayed)
     print("%d replayed row(s)" % len(replayed))
 

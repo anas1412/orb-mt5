@@ -7,9 +7,14 @@ same scripts read that spec, keep their files under research/out/<name>/, put
 charts in trades-<name>/ and write the report the spec names.
 """
 import os, sys, datetime as dt
-HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.dirname(HERE)
-sys.path.insert(0, HERE)
+# This module lives in research/lib, so HERE is that folder: the research tree
+# is one level up and the repo two. Getting it wrong silently writes the report
+# somewhere nobody looks.
+HERE     = os.path.dirname(os.path.abspath(__file__))   # research/lib
+RESEARCH = os.path.dirname(HERE)                        # research
+REPO     = os.path.dirname(RESEARCH)                    # the repo
+DATA     = os.path.join(RESEARCH, "data")               # generated json
+sys.path.insert(0, HERE); sys.path.insert(0, RESEARCH)
 import spec as S
 from mt5paths import COMMON as D
 
@@ -46,7 +51,7 @@ BENCH = dict(key=SPEC["report"]["benchmark"], label=_label, text=_text,
 # write into ~/orb and then copy into the repo for GitHub Pages, which left two
 # of every report and two of every chart and no way to tell which was current.
 if DEFAULT:
-    OUT_DIR      = HERE
+    OUT_DIR      = DATA
     CSV_LIVE     = os.path.join(D, "live_cp0.50.csv")
     CSV_ALL      = os.path.join(D, "live_cp0.00.csv")
     TRADES_DIR   = os.path.join(REPO, "trades")
@@ -54,7 +59,7 @@ if DEFAULT:
     REPORT_PAGES = os.path.join(REPO, "index.html")      # the GitHub Pages landing page
     REPORT_LOCAL = None
 else:
-    OUT_DIR      = os.path.join(HERE, "out", NAME)
+    OUT_DIR      = os.path.join(RESEARCH, "out", NAME)
     CSV_LIVE     = os.path.join(OUT_DIR, "live_cp0.50.csv")
     CSV_ALL      = os.path.join(OUT_DIR, "live_cp0.00.csv")
     TRADES_DIR   = os.path.join(OUT_DIR, "trades")

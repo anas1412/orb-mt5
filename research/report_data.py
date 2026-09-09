@@ -1,4 +1,6 @@
 """Everything the final report needs, as JSON. Totals everywhere except EV."""
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import csv, os, json, datetime as dt, statistics, math, random
 from collections import Counter
 from mt5paths import COMMON as D, bars as barsfile

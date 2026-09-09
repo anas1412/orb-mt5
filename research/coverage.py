@@ -12,6 +12,8 @@ A day with no trade leaves no row, so the trade files cannot answer this on
 their own -- coverage comes from the tester's own reported range plus whatever
 was replayed on top of it.
 """
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import datetime as dt, json, os, sys
 from mt5paths import COMMON as D
 
@@ -26,7 +28,7 @@ def covered_through():
         txt = open(p).read().strip()
         if txt:
             d = dt.datetime.strptime(txt, "%Y.%m.%d").date()
-    r = os.path.join(HERE, "replayed.json")
+    r = os.path.join(HERE, "data", "replayed.json")
     if os.path.exists(r):
         rows = json.load(open(r)).get("rows", [])
         if rows:

@@ -13,6 +13,8 @@ tester and the dollars are re-derived here from the continuing balance.
 
     python3 merge_trades.py new_cp0.50.csv live_cp0.50.csv
 """
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import csv, math, os, sys
 from mt5paths import COMMON as D
 

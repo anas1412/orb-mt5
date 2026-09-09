@@ -7,7 +7,7 @@ import json, os
 HERE = os.path.dirname(os.path.abspath(__file__))
 # In the repo, so it is versioned and reachable from the published site.
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "client-example.html")
-d = json.load(open(os.path.join(HERE, "client_data.json")))
+d = json.load(open(os.path.join(HERE, "data", "client_data.json")))
 
 def money(v):
     return "${:,.0f}".format(v)

@@ -3,7 +3,7 @@ numbers are read from halves.json, so the picture cannot drift from the data.
 
     y(v) = 250 - 130*v      v is position in the range: 0 = low, 1 = high
 """
-import json
+import json, os
 
 W, H = 1080, 430
 PW, PH = 495, 270          # panel size
@@ -80,7 +80,8 @@ def panel(px, head, sub, cndl, take, col):
     return "\n".join(s)
 
 def build(hv=None):
-    hv = hv or json.load(open("halves.json"))
+    hv = hv or json.load(open(os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "halves.json")))
     s = []
     a = s.append
     a('<svg viewBox="0 0 %d %d" width="100%%" role="img">' % (W, H))

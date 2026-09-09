@@ -7,6 +7,8 @@ other.
 
     python3 merge_bars.py bars_main.csv sync_XAUUSD.csv -> bars_XAUUSD.csv
 """
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import csv, os, sys
 from mt5paths import COMMON as D
 
