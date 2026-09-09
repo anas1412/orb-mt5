@@ -15,20 +15,13 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from mt5paths import COMMON as D, bars as barsfile
 
-HOLD = ctx.HOLD; RR = ctx.RR
+HOLD = ctx.HOLD; RR = ctx.RR; RM = ctx.RANGE_MIN; EW = ctx.ENTRY_MIN
 FORCE = "--all" in sys.argv
 # Hashing this file means a change to the drawing code redraws everything by
 # itself, so the cache can never serve a chart the current code would not draw.
 CODE = hashlib.sha1(open(os.path.abspath(__file__), "rb").read()).hexdigest()[:12]
 OUT=ctx.TRADES_DIR; os.makedirs(OUT,exist_ok=True)
 INK="#141310"; MUT="#8a837a"; POS="#12694a"; NEG="#a8352a"; ACC="#8a6d3b"; GRID="#ece7dd"
-def nth(y,m,dow,n):
-    if n>0:
-        d=dt.date(y,m,1); return d+dt.timedelta(days=(dow-d.weekday()-1)%7+(n-1)*7)
-    d=dt.date(y,m,28)
-    while (d+dt.timedelta(days=1)).month==m: d+=dt.timedelta(days=1)
-    return d-dt.timedelta(days=(d.weekday()+1-dow)%7)
-def off(d): return 3 if nth(d.year,3,0,2)<=d<nth(d.year,11,0,1) else 2
 bars={}
 for src in ("bars_XAUUSD.csv","bars_XAUUSD_extra.csv"):
     p=os.path.join(D,src)
@@ -73,9 +66,9 @@ for i,tr in enumerate(rows,1):
     if not FORCE and prev and prev.get('sig')==sig and \
        os.path.exists(os.path.join(OUT,prev['file'])):
         index.append(prev); reused+=1; continue
-    st=off(d)*60
-    rng=[b[m] for m in range(st,st+15) if m in b]
-    if len(rng)<15: continue
+    st=ctx.session_start(d)
+    rng=[b[m] for m in range(st,st+RM) if m in b]
+    if len(rng)<RM: continue
     hi=max(x[1] for x in rng); lo=min(x[2] for x in rng); width=hi-lo
     cp=(rng[-1][3]-lo)/width
     buy = tr['dir']=="buy"
@@ -134,9 +127,9 @@ for i,tr in enumerate(rows,1):
         ax.plot([x,x],[l,h],color=col,lw=.9,solid_capstyle="butt",zorder=2)
         ax.add_patch(Rectangle((x-.33,min(o,c)),.66,max(abs(c-o),width*.0025),
                     facecolor=col if up else "white",edgecolor=col,lw=.9,zorder=3))
-    ax.add_patch(Rectangle((-0.5,lo),15,width,facecolor=ACC,alpha=.08,zorder=1))
-    ax.axvline(14.5,color=ACC,ls=":",lw=1.1,zorder=1)
-    ax.axvline(29.5,color=MUT,ls=":",lw=.9,zorder=1)
+    ax.add_patch(Rectangle((-0.5,lo),RM,width,facecolor=ACC,alpha=.08,zorder=1))
+    ax.axvline(RM-0.5,color=ACC,ls=":",lw=1.1,zorder=1)
+    ax.axvline(RM+EW-0.5,color=MUT,ls=":",lw=.9,zorder=1)
 
     span=max(hi,sl,tp)-min(lo,sl,tp)
     lv=place([(hi,MUT,"range high",False),(lo,MUT,"range low",False),
@@ -154,19 +147,25 @@ for i,tr in enumerate(rows,1):
     if exit_p is not None:
         ax.plot([exit_m],[exit_p],marker="X",ms=11,color=POS if win else NEG,zorder=6,
                 markeredgecolor="white",markeredgewidth=.9)
-    ax.text(7,hi+span*.055,"15-min range",color=ACC,fontsize=9.5,ha="center",weight="bold")
-    ax.text(22,lo-span*.055,"entries until 00:29",color=MUT,fontsize=8.5,ha="center")
+    # A level line running through these captions is not a rare collision: the
+    # entry sits just outside the box by construction, so it lands on one or
+    # the other constantly. Knock the line out behind the text.
+    box=dict(facecolor="white",edgecolor="none",pad=1.5)
+    ax.text(RM/2.-0.5,hi+span*.055,"%d-min range"%RM,color=ACC,fontsize=9.5,
+            ha="center",weight="bold",bbox=box,zorder=5)
+    ax.text(RM+EW/2.-0.5,lo-span*.055,"entries until %s"%ctx.clock(RM+EW-1),
+            color=MUT,fontsize=8.5,ha="center",bbox=box,zorder=5)
 
     res = "%s   %+.2f R" % ("WIN" if win else "LOSS", tr['R'])
     ax.set_title("%s   ·   %s   ·   %s   —   %s"
                  % (d.strftime("%d %B %Y"),d.strftime("%A"),
                     "LONG" if buy else "SHORT",res),
                  fontsize=14,color=POS if win else NEG,weight="bold",loc="left",pad=16)
-    ax.text(0,1.02,"00:14 closed in the %s half     range %.0f pts     held %d min     trade %d"
-            % ("top" if buy else "bottom",width/0.01,exit_m-em,i),
+    ax.text(0,1.02,"%s closed in the %s half     range %.0f pts     held %d min     trade %d"
+            % (ctx.clock(RM-1),"top" if buy else "bottom",width/0.01,exit_m-em,i),
             transform=ax.transAxes,fontsize=9,color=MUT)
     tick=[t_ for t_ in range(0,xr+1,15)]
-    ax.set_xticks(tick); ax.set_xticklabels(["%02d:%02d"%(t_//60,t_%60) for t_ in tick],fontsize=9)
+    ax.set_xticks(tick); ax.set_xticklabels([ctx.clock(t_) for t_ in tick],fontsize=9)
     ax.set_xlabel("UTC",fontsize=9,color=MUT); ax.set_ylabel("XAUUSD",fontsize=9,color=MUT)
     ax.set_xlim(-5,xr+15)
     ax.set_ylim(min(lo,sl,tp)-span*.10,max(hi,sl,tp)+span*.13)

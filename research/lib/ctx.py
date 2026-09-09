@@ -31,6 +31,39 @@ _r = SPEC["risk"]
 RISK = float(_r["per_trade"]) if _r["mode"] == "percent" else 100.0 * float(_r["per_trade"]) / DEPOSIT
 RISK_MONEY = DEPOSIT * RISK / 100.0
 
+# --- the session window, in the clock the bar files use -------------------
+# Bars are stamped in broker time; the spec names the session in UTC. The
+# research scripts used to assume midnight UTC, so every 13:30 chart drew the
+# Asia range and called it the range -- wrong box, wrong high/low, wrong half.
+SES       = SPEC["session"]
+RANGE_MIN = int(SES["range_min"])
+ENTRY_MIN = int(SES["entry_window_min"])
+if SES["tz"] != "UTC":
+    raise SystemExit("ctx: session.tz %s -- the research scripts only know the "
+                     "broker's offset from UTC" % SES["tz"])
+_sh, _sm  = (int(x) for x in SES["start"].split(":"))
+START     = _sh * 60 + _sm                    # minutes past midnight, session tz
+
+def _nth(y, m, dow, n):
+    if n > 0:
+        d = dt.date(y, m, 1); return d + dt.timedelta(days=(dow - d.weekday() - 1) % 7 + (n - 1) * 7)
+    d = dt.date(y, m, 28)
+    while (d + dt.timedelta(days=1)).month == m: d += dt.timedelta(days=1)
+    return d - dt.timedelta(days=(d.weekday() + 1 - dow) % 7)
+
+def broker_offset(d):
+    """Broker is UTC+3 on US daylight-saving dates, UTC+2 otherwise."""
+    return 3 if _nth(d.year, 3, 0, 2) <= d < _nth(d.year, 11, 0, 1) else 2
+
+def session_start(d):
+    """Minute-of-day in the bar file's clock where this spec's range opens."""
+    return START + broker_offset(d) * 60
+
+def clock(mins_after_open):
+    """Wall clock in the session's own timezone, N minutes after it opens."""
+    t = (START + mins_after_open) % 1440
+    return "%02d:%02d" % (t // 60, t % 60)
+
 FROM = SPEC["dates"]["from"]
 TO   = (dt.date.today() + dt.timedelta(days=1)) if SPEC["dates"]["to"] == "today" else SPEC["dates"]["to"]
 def in_range(t):

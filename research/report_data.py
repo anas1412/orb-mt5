@@ -7,15 +7,7 @@ from mt5paths import COMMON as D, bars as barsfile
 import ctx
 random.seed(31337); RISK=ctx.RISK
 
-def nth(y,m,dow,n):
-    if n>0:
-        d=dt.date(y,m,1); return d+dt.timedelta(days=(dow-d.weekday()-1)%7+(n-1)*7)
-    d=dt.date(y,m,28)
-    while (d+dt.timedelta(days=1)).month==m: d+=dt.timedelta(days=1)
-    return d-dt.timedelta(days=(d.weekday()+1-dow)%7)
-def off(d): return 3 if nth(d.year,3,0,2)<=d<nth(d.year,11,0,1) else 2
-
-# every Mon-Thu session that had a complete 15-minute range = a tradeable day
+# every Mon-Thu session that had a complete range = a tradeable day
 bars={}
 for row in csv.DictReader(open(barsfile(ctx.SYMBOL))):
     t=dt.datetime.strptime(row["time"],"%Y.%m.%d %H:%M")
@@ -27,8 +19,8 @@ alldates=sorted(bars)
 sessions=set()
 for d,b in bars.items():
     if d.weekday()>3: continue
-    st=off(d)*60
-    if len([m for m in range(st,st+15) if m in b])>=15: sessions.add(d)
+    st=ctx.session_start(d)
+    if len([m for m in range(st,st+ctx.RANGE_MIN) if m in b])>=ctx.RANGE_MIN: sessions.add(d)
 
 rows=[r for r in csv.DictReader(open(ctx.CSV_LIVE)) if ctx.row_in_range(r)]
 for r in rows:
