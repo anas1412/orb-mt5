@@ -1,10 +1,12 @@
 """Rewrite the README's numbers from report_data.json.
 
-Every figure on the README, the report, the deck and the client page comes from
-that one file. Hand-editing is how the exits table once summed to +44.3 R under
-a +47.1 R headline.
+Every figure on the README, the report and the client page comes from that one
+file. Hand-editing is how the exits table once summed to +44.3 R under a
++47.1 R headline.
 """
 import json, os, re, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import ctx
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
@@ -17,8 +19,9 @@ last = d["coverage"]["last"] if isinstance(d.get("coverage"), dict) else None
 if last:
     import datetime as dt
     day = dt.date.fromisoformat(last)
-    r = re.sub(r"XAUUSD, real ticks, 2026 \(2 Jan – [^)]+\)",
-               "XAUUSD, real ticks, 2026 (2 Jan – %s)" % day.strftime("%-d %b"), r)
+    r = re.sub(r"XAUUSD, real ticks, 2026 \(2 Jan – [^)]+\), [\d.]+% risk per trade\.",
+               "XAUUSD, real ticks, 2026 (2 Jan – %s), %g%% risk per trade."
+               % (day.strftime("%-d %b"), ctx.RISK), r)
 
 res = ("| | |\n|---|---|\n"
        "| Trades | **%d** from %d eligible sessions |\n"
@@ -34,15 +37,25 @@ res = ("| | |\n|---|---|\n"
 r = re.sub(r"\| \| \|\n\|---\|---\|\n\| Trades \|.*?\| Longest losing run \| \*\*\d+\*\* \|",
            res, r, flags=re.S)
 
-pas = "| Risk per trade | Pass both phases | Trades needed | Trading days |\n|---|---|---|---|\n"
-for p in d["pass"]:
-    f = (lambda s: "**%s**" % s) if p["risk"] == 2.0 else (lambda s: s)
-    pas += "| %s | %s | %s | %s |\n" % (f("%.1f%%" % p["risk"]), f("%.1f%%" % p["both"]),
-                                        f(str(p["trades"])), f("~%d" % p["days"]))
-r = re.sub(r"\| Risk per trade \| Pass both phases \| Trades needed \| Trading days \|\n"
-           r"\|---\|---\|---\|---\|\n(\|.*\n)+", pas, r)
+# The report lets the reader pick risk; the README shows the same sweep so both
+# tell one story. Rows come from report_data's precomputed simulation, never
+# from scaling a pass rate.
+SHOW = (1.0, 1.5, 2.0, 2.25, 2.5)
+pas = ("| Risk per trade | Pass | Trades | Days | Return | Worst drawdown | Worst run costs |\n"
+       "|---|---|---|---|---|---|---|\n")
+for s in d["sweep"]:
+    if s["risk"] not in SHOW:
+        continue
+    f = (lambda x: "**%s**" % x) if abs(s["risk"] - ctx.RISK) < 1e-9 else (lambda x: x)
+    breaks = " ⚠" if s["run_breaks"] else ""
+    pas += "| %s | %s | %s | %s | %s | %s | %s |\n" % (
+        f("%g%%" % s["risk"]), f("%.1f%%" % s["pass_pct"]), f(str(s["trades"])),
+        f("~%d" % s["days"]), f("%+.0f%%" % s["ret"]), f("%.1f%%" % s["maxdd"]),
+        f("%.1f%%%s" % (s["run_cost"], breaks)))
+r = re.sub(r"\| Risk per trade \| Pass[^\n]*\|\n\|[-|]+\|\n(\|.*\n)+", pas, r)
 
-name = {"target": "Target hit (+2R)", "stop": "Stopped out", "time cap": "90-minute cap"}
+name = {"target": "Target hit (+%gR)" % ctx.RR, "stop": "Stopped out",
+        "time cap": "%d-minute cap" % ctx.HOLD}
 ex = "| Exit | Trades | Total |\n|---|---|---|\n" + "".join(
     "| %s | %d | %+.1f R |\n" % (name[e["kind"]], e["n"], e["total"]) for e in d["exits"])
 r = re.sub(r"How the \d+ trades ended:\n\n\| Exit \| Trades \| Total \|\n\|---\|---\|---\|\n(\|.*\n)+",
@@ -62,8 +75,7 @@ want = ["**%d** from %d eligible sessions" % (H["trades"], H["sessions"]),
         "**%.2f**" % H["pf"],
         "**%+.1f R**" % H["total"],
         "| %d | %+.1f R |" % (d["exits"][0]["n"], d["exits"][0]["total"]),
-        "**%.1f%%** | **%d**" % ([p for p in d["pass"] if p["risk"] == 2.0][0]["both"],
-                                 [p for p in d["pass"] if p["risk"] == 2.0][0]["trades"])]
+        "**%.1f%%**" % next(s["pass_pct"] for s in d["sweep"] if abs(s["risk"] - ctx.RISK) < 1e-9)]
 missing = [w for w in want if w not in r]
 if missing:
     sys.exit("README did not take these -- a regex stopped matching:\n  " +

@@ -184,12 +184,10 @@ cd research
 python3 report_data.py
 python3 all_trades.py
 python3 build_report.py
-python3 build_slides.py
 python3 build_client.py
 python3 build_sessions.py
 python3 update_readme.py
 cd ..
-cp -f "$HOME/orb/ORB-asia-report.html" full-report.html
 
 say "7/9  audit"
 ( cd research && python3 check_charts.py ) || die "the audit failed. Nothing published. Fix the disagreement above and re-run."
@@ -209,7 +207,7 @@ say "9/9  commit"
 # Only what this run generates. `git add -A` swept unrelated edits into the data
 # commit twice -- once an EA feature, once a CLI flag -- under a message about
 # the study. Anything else that is dirty is left for a commit of its own.
-git add README.md full-report.html index.html tester.ini dump.ini trades \
+git add README.md index.html full-report.html tester.ini dump.ini trades \
         research/report_data.json research/trade_index.json research/replayed.json \
         research/halves.json research/client_data.json research/DATA.md \
         research/sessions_2024_2026.csv research/trades_live_config.csv \

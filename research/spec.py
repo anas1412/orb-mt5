@@ -40,10 +40,10 @@ DEFAULTS = {
     "rules":   {"rr": 2.0, "sl_pct_of_range": 50.0, "stop_move_at_r": 0.5, "stop_move_to_r": -0.5,
                 "half_filter": True, "yday_filter": False, "yday_min_body": 30.0,
                 "days": ["Mon", "Tue", "Wed", "Thu"], "max_trades_per_day": 1},
-    "risk":    {"mode": "percent", "per_trade": 2.0, "deposit": 10000, "leverage": 100,
+    "risk":    {"mode": "percent", "per_trade": 2.5, "deposit": 10000, "leverage": 100,
                 "max_daily_loss_pct": 3.5},
     "dates":   {"from": dt.date(2026, 1, 1), "to": "today"},
-    "report":  {"benchmark": "fundingpips-2step", "title": "", "output": ""},
+    "report":  {"benchmark": "fundingpips-1step-flex", "title": "", "output": ""},
     "magic":   20260821,
 }
 
@@ -140,6 +140,19 @@ def tester(s):
             "Deposit": ri["deposit"], "Currency": "USD", "Leverage": "1:%d" % ri["leverage"]}
 
 
+def fmt(v):
+    """One rendering per value, whatever the TOML wrote.
+
+    `yday_min_body = 30` and the 30.0 default are the same setting, but printed
+    as "30" and "30.0" they make `diff` claim two identical specs differ.
+    """
+    if isinstance(v, bool):
+        return "true" if v else "false"
+    if isinstance(v, float) and v == int(v):
+        return str(int(v))
+    return str(v)
+
+
 def main():
     if len(sys.argv) != 3 or sys.argv[1] not in ("validate", "inputs", "tester"):
         sys.exit(__doc__)
@@ -153,7 +166,7 @@ def main():
               s["session"]["tz"], s["dates"]["from"], s["dates"]["to"]))
     else:
         for k, v in (inputs(s) if cmd == "inputs" else tester(s)).items():
-            print("%s=%s" % (k, v))
+            print("%s=%s" % (k, fmt(v)))
 
 
 if __name__ == "__main__":

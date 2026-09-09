@@ -46,6 +46,8 @@ verified working under Wine, so there is no copy step and no `docker cp`.
     ├── DumpD1.mq5          exports the daily candles the EA reads (yesterday filter)
     ├── ORB.mq5             the EA
     ├── update.sh           the one command; tester.ini / dump.ini / sync.ini / d1.ini beside it
+    ├── index.html          THE report and the Pages landing page (generated)
+    ├── full-report.html    a redirect to index.html, kept because the old URL is linked
     ├── accounts/           broker logins, one .env per account (ignored; example.env tracked)
     └── research/           the pipeline, the builders and the data
         ├── mt5.sh          the ONLY MetaTrader launcher: login block, journal watch, reset
@@ -343,9 +345,38 @@ the recorded result. Check it before trusting a replayed day.
 
 ### Numbers live in report_data.json
 
-Never hand-write a figure into README, the report, the deck or the client page.
-They are all generated from `report_data.json`, which is how the exits table
-once ended up summing to +44.3 R under a +47.1 R headline.
+Never hand-write a figure into README, the report or the client page. They are
+all generated from `report_data.json`, which is how the exits table once ended
+up summing to +44.3 R under a +47.1 R headline.
+
+### The report's risk selector
+
+`index.html` carries an input for risk per trade, default 2.5%, capped at 2.5%.
+Percent is `R x risk`, so the page does that arithmetic itself: every live
+figure is a `<span data-pct="<R>">` and one loop multiplies. Three things it
+must never compute -- pass rate, trades-to-pass, days-to-pass -- come out of a
+barrier simulation and are **precomputed per risk** into `out['sweep']`, looked
+up by `data-sweep="<key>"`. Interpolating a probability would be inventing one.
+
+Rules that keep it honest, each of which was violated first:
+
+- **Never reconstruct a losing run from an average loss.** The stop move halves
+  some losses, so the mean loss is -0.86 R while the five that actually landed
+  in a row summed **-5.10 R**. Averaging reports 10.7% at 2.5% and calls it
+  safe; the real run is 12.8% and breaks a 12% limit. `out['run_worst']` holds
+  the worst real sequence per length.
+- **The daily limit is a barrier, not a footnote.** One trade a day means one
+  trade *is* the day, so a loss past the daily cap ends the attempt whatever the
+  running total says. Omitting it put the pass rate at 3% risk at 93.8% when the
+  honest figure is 30%.
+- **Never rescale a rounded percent.** Store R (`maxdd_r`, `curve` in R,
+  `loss_avg_abs` unrounded) and multiply once at the end.
+- **Nothing on the page may depend on risk without a `data-*` hook**, and every
+  hook is filled server-side at the default so a JS-disabled reader gets a real
+  report rather than blanks.
+- The scale stops at 2.5% because above it there is nothing to choose: the worst
+  run already breaks the maximum loss, and past 2.74% one worst-case trade
+  breaches the daily limit alone.
 
 ## Docker
 

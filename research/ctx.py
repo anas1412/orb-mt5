@@ -49,7 +49,7 @@ if DEFAULT:
     TRADES_DIR   = os.path.expanduser("~/orb/trades")
     TRADES_WEB   = "trades"
     REPORT_LOCAL = os.path.expanduser("~/orb/ORB-asia-report.html")
-    REPORT_PAGES = os.path.join(REPO, "full-report.html")
+    REPORT_PAGES = os.path.join(REPO, "index.html")      # the GitHub Pages landing page
 else:
     OUT_DIR      = os.path.join(HERE, "out", NAME)
     CSV_LIVE     = os.path.join(OUT_DIR, "live_cp0.50.csv")

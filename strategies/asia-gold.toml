@@ -23,7 +23,7 @@ days            = ["Mon", "Tue", "Wed", "Thu"]
 
 [risk]
 mode      = "percent"         # percent | money | lots
-per_trade = 2.0
+per_trade = 2.5               # the report's default; the reader can change it on the page
 deposit   = 10000
 
 [dates]
@@ -31,4 +31,5 @@ from = 2026-01-01
 to   = "today"
 
 [report]
-benchmark = "fundingpips-2step"   # fundingpips-2step | ftmo-2step | none
+benchmark = "fundingpips-1step-flex"   # fundingpips-1step-flex | fundingpips-2step | ftmo-2step | none
+output    = "index.html"               # the GitHub Pages landing page

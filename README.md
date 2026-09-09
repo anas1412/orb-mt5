@@ -3,14 +3,10 @@
 Trades the first breakout of the Asia session range on gold. One trade a day,
 flat within 90 minutes, Monday to Thursday.
 
-**[🖥 Slide deck →](https://anas1412.github.io/orb-mt5/)**
-&nbsp;&nbsp;·&nbsp;&nbsp;
-**[📊 Full report and every trade →](https://anas1412.github.io/orb-mt5/full-report.html)**
+**[📊 Full report, every trade, and a risk selector →](https://anas1412.github.io/orb-mt5/)**
 
-Same rules, other accounts:
-[1 Step Flex · 2.5% risk · 2R](https://anas1412.github.io/orb-mt5/1-step-full-report.html)
-&nbsp;·&nbsp;
-[1 Step Flex · 2.5% risk · 2.5R](https://anas1412.github.io/orb-mt5/1-step-full-report-2.5rr.html)
+Set risk per trade at the top of the report and every percentage on the page
+follows. Variant: [the same rules at a 2.5R target](https://anas1412.github.io/orb-mt5/1-step-full-report-2.5rr.html).
 
 ---
 
@@ -36,7 +32,7 @@ the other way is skipped.
 
 ## Results
 
-XAUUSD, real ticks, 2026 (2 Jan – 7 Sep), 2% risk per trade.
+XAUUSD, real ticks, 2026 (2 Jan – 7 Sep), 2.5% risk per trade.
 
 | | |
 |---|---|
@@ -44,19 +40,22 @@ XAUUSD, real ticks, 2026 (2 Jan – 7 Sep), 2% risk per trade.
 | Win rate | **51.3%** — 40 wins, 38 losses |
 | Expectancy | **+0.564 R** per trade (±0.161 standard error) |
 | Profit factor | **2.35** — won +76.7 R against -32.7 R lost |
-| Total | **+44.0 R** = **+88%** of the account |
-| Worst drawdown | **10.3%** |
+| Total | **+44.0 R** = **+110%** of the account |
+| Worst drawdown | **12.8%** |
 | Longest losing run | **5** |
 
-**Challenge pass rate** — FundingPips two-step, +8% then +5%, 10% max loss,
-simulated 40 000 times on the 2026 outcomes:
+**Challenge pass rate** — FundingPips 1 Step Flex: +12% target, 12% max loss,
+3% daily loss, no minimum days. Each row is a barrier simulation over the real
+trade outcomes, not arithmetic. ⚠ marks a risk where the worst losing run on
+record would break the maximum loss.
 
-| Risk per trade | Pass both phases | Trades needed | Trading days |
-|---|---|---|---|
-| 1.0% | 99.7% | 21 | ~38 |
-| 1.5% | 97.4% | 13 | ~24 |
-| **2.0%** | **93.5%** | **10** | **~18** |
-| 3.0% | 84.4% | 6 | ~11 |
+| Risk per trade | Pass | Trades | Days | Return | Worst drawdown | Worst run costs |
+|---|---|---|---|---|---|---|
+| 1% | 100.0% | 20 | ~36 | +44% | 5.1% | 5.1% |
+| 1.5% | 99.3% | 13 | ~24 | +66% | 7.7% | 7.7% |
+| 2% | 98.1% | 9 | ~16 | +88% | 10.3% | 10.2% |
+| 2.25% | 97.4% | 8 | ~14 | +99% | 11.5% | 11.5% |
+| **2.5%** | **96.4%** | **7** | **~13** | **+110%** | **12.8%** | **12.8% ⚠** |
 
 How the 78 trades ended:
 
@@ -179,6 +178,10 @@ The study is in [`research/`](research/); the one-off scripts behind
   $280 fall. Breaks *with* the previous daily candle won 59%, against it 33%.
   The yesterday filter exists for that; it is off until it has out-of-sample
   evidence.
+- **That run breaks the account at the default risk.** Those five losses summed
+  −5.10 R: **12.8% at 2.5% risk, past the 12% limit**. 2.25% is the most that
+  survives it. Above 2.74% a single worst-case loss breaches the 3% daily limit
+  on its own, which is why the selector stops at 2.5%.
 - - **78 trades is a small sample.** The standard error on expectancy is in the
   table above, and so is the chance that 2026 was kind.
 

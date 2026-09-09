@@ -192,6 +192,23 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
   section{margin-top:56px}
 }
 .seq{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em;letter-spacing:.03em;white-space:nowrap}
+.riskbar{display:grid;grid-template-columns:auto auto 1fr;gap:10px 14px;align-items:center;
+  margin:0 0 18px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.riskbar label{font-size:13px;font-weight:640;letter-spacing:.01em}
+.riskin{display:flex;align-items:center;gap:6px}
+.riskin input{width:5.2rem;font:inherit;font-weight:700;font-size:19px;padding:6px 8px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;text-align:right}
+.riskin span{font-size:15px;color:var(--mut);font-weight:640}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:12.5px;padding:5px 11px;border:1px solid var(--line);
+  border-radius:999px;background:transparent;color:var(--mut);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:640}
+.risknote{grid-column:1/-1;margin:2px 0 0;font-size:12.5px;line-height:1.6;color:var(--mut)}
+.riskwarn{margin:0 0 18px;padding:12px 16px;border-radius:12px;font-size:13.5px;line-height:1.6;
+  border:1px solid var(--neg);background:color-mix(in srgb,var(--neg) 9%,transparent)}
+.riskwarn b{color:var(--neg)}
+tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:640}
+@media (max-width:640px){.riskbar{grid-template-columns:1fr auto}.chips{grid-column:1/-1}}
 </style></head><body>
 <div class="wrap">
 
@@ -202,9 +219,21 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
   minutes after midnight UTC. This is the complete rule set, why each rule is
   there, and every trade it produced in 2026.</p>
 
+  <div class="riskbar">
+    <label for="riskin">Risk per trade</label>
+    <div class="riskin"><input id="riskin" type="number" min="0.25" max="2.5" step="0.25" value="{{RISKNUM}}" inputmode="decimal"><span>%</span></div>
+    <div class="chips" id="riskchips"></div>
+    <p class="risknote">Every percentage on this page is <b>R &times; risk</b>. Change the number and
+    the report follows &mdash; returns, drawdown, pass rate, position size. Trade count, win rate,
+    expectancy in R and profit factor do not move: they are risk-independent. The scale stops at
+    <b>2.5%</b> because nothing above it is a real choice &mdash; the worst run on record already
+    breaks the maximum loss there, and past 2.74% one bad trade breaches the daily limit by itself.</p>
+  </div>
+  <div id="riskwarn" class="riskwarn" hidden></div>
+
   <div class="kpi">
     <div class="k big"><div class="l">Total return</div><div class="v pos">{{RET}}%</div>
-      <div class="n">{{TOTALR}} R banked</div></div>
+      <div class="n">{{TOTALR}} R banked at <span data-risk></span></div></div>
     <div class="k"><div class="l">Win rate</div><div class="v">{{WR}}%</div>
       <div class="n">{{WINS}} wins &middot; {{LOSSES}} losses</div></div>
     <div class="k"><div class="l">Per trade</div><div class="v pos">{{EV}} R</div>
@@ -215,7 +244,7 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
       <div class="n">average loss {{AVGLOSS}} R</div></div>
 
     <div class="k"><div class="l">Challenge pass rate</div><div class="v pos">{{PASS2}}%</div>
-      <div class="n">both phases, ~{{DAYS2}} days</div></div>
+      <div class="n">{{PHASETXT}}, ~{{DAYS2}} days</div></div>
     <div class="k"><div class="l">Worst drawdown</div><div class="v">{{MAXDD}}%</div>
       <div class="n">the limit is {{MAXLOSS}}%</div></div>
     <div class="k"><div class="l">Longest win run</div><div class="v pos">{{BESTWIN}}</div>
@@ -259,7 +288,7 @@ nothing that needs you awake at a screen.</p>
 <li><b>At +0.5R, move the stop to −0.5R</b><span>Once the trade is halfway to target, pull the stop so the worst case is half a loss instead of a full one. Once only — it never moves again.</span></li>
 <li><b>Flat after {{HOLDMIN}} minutes</b><span>If neither level is hit, close at market. {{SELFPCT}} of trades finish on their own before this.</span></li>
 <li><b>Monday to Thursday, one trade a day</b><span>Fridays off. One position, then done regardless of the outcome.</span></li>
-<li><b>Risk {{RISKPCT}} of the starting balance</b><span>Fixed, not compounding. Position size = {{RISKPCT}} ÷ the distance from entry to stop.</span></li>
+<li><b>Risk <span data-risk></span> of the starting balance</b><span>Fixed, not compounding. Position size = <span data-risk></span> ÷ the distance from entry to stop.</span></li>
 </ol>
 
 <div class="scroll"><table>
@@ -430,7 +459,7 @@ plain terms.</p>
 <section id="curve">
 <h2><span class="num">05</span>Results</h2>
 <p class="sub">2026, MetaTrader 5, real tick data, spread and commission
-included. Risk is a fixed {{RISKPCT}} of the starting balance on every trade — no
+included. Risk is a fixed <span data-risk></span> of the starting balance on every trade — no
 compounding, so each R is worth a constant two percentage points.</p>
 
 <figure><div class="fig">{{CURVE}}</div>
@@ -476,28 +505,31 @@ a drawdown limit. That makes streaks matter more than averages.</p>
 
 <div class="scroll"><table>
 <caption>Simulated on the {{PERIOD}} outcome distribution. {{BENCHTEXT}}.</caption>
-<thead><tr><th>Risk per trade</th><th>Phase 1</th><th>Phase 2</th><th>Both phases</th><th>Trades needed</th><th>~Days</th><th>Worst run costs</th></tr></thead>
-<tbody>{{PASSROWS}}</tbody></table></div>
+<thead><tr><th>Risk per trade</th><th>Pass</th><th>Trades needed</th><th>~Days</th><th>Total return</th><th>Worst drawdown</th><th>{{WORSTRUN}} losses cost</th><th>Worst single loss</th></tr></thead>
+<tbody>{{SWEEPROWS}}</tbody></table></div>
+<p class="sub">The highlighted row is the risk set at the top. Pass rate, trades and days come from
+walking the real trade outcomes against the barriers 20&nbsp;000 times per row &mdash; simulated,
+not arithmetic, which is why they are precomputed rather than scaled.</p>
 
 <div class="scroll"><table>
-<caption>Losing runs that actually happened in {{PERIOD}}, and what each costs at {{RISKPCT}} risk</caption>
-<thead><tr><th>Consecutive losses</th><th>Times</th><th>Cost</th></tr></thead>
+<caption>Losing runs that actually happened in {{PERIOD}}. The cost is the worst real sequence of that length, not a run of average losses &mdash; the stop move halves some losses, so averaging them understates the run that matters.</caption>
+<thead><tr><th>Consecutive losses</th><th>Times</th><th>Worst it actually cost</th><th>At the risk above</th></tr></thead>
 <tbody>{{STREAKROWS}}</tbody></table></div>
 
 <div class="note"><div class="t">The one risk that matters</div>
-<p>{{RUNPROSE}} Realised drawdown only reached {{MAXDD}}% because a winner
-landed before that run started from a peak. The same sequence hitting a fresh
-account is a fail.</p>
-<p><strong>1% risk removes it entirely:</strong> {{WORSTRUN}} losses costs half as much, the
-pass rate reaches 99.9%, and you would need ten straight losses to fail. The
-price is roughly double the calendar time.</p></div>
+<p id="runprose">{{RUNPROSE}}</p>
+<p>Realised drawdown reached <span data-sweep="maxdd"></span>% because a winner landed before that
+run started from a peak. The same sequence hitting a fresh account is the failure case, and it is
+the only one worth planning for &mdash; nearly every simulated failure is one long losing run
+rather than a slow bleed.</p>
+<p id="riskadvice"></p></div>
 
 <h3>Position sizing, worked</h3>
 <ul>
-<li>Account <strong>{{DEPOSIT}}</strong>, risk <strong>{{RISKPCT}}</strong> → <strong>{{RISKMONEY}}</strong> per trade, every trade.</li>
+<li>Account <strong>{{DEPOSIT}}</strong>, risk <strong><span data-risk></span></strong> → <strong><span data-sweep="money" data-fmt="money"></span></strong> per trade, every trade.</li>
 <li>Range is <strong>1,000 points</strong> ($10.00) → stop sits <strong>500 points</strong> ($5.00) away.</li>
 <li>Gold moves <strong>$1 per point per lot</strong>, so $5.00 of stop = <strong>$500 per lot</strong>.</li>
-<li>Size = $200 ÷ $500 = <strong>0.40 lots</strong>.</li>
+<li>Size = <span data-sweep="money" data-fmt="money"></span> &divide; $500 = <strong><span data-sweep="money" data-fmt="lots"></span> lots</strong>.</li>
 </ul>
 <p>A wider range means a wider stop and therefore a smaller position — the dollar
 risk stays at $200 regardless. That is what makes every result comparable in R.</p>
@@ -521,7 +553,7 @@ one to open it full size.</p>
 
 <footer>
 <p><b>ORB Asia — gold.</b> Generated {{GENERATED}} from {{TRADES}} MetaTrader 5
-real-tick trades across {{SESSIONS}} eligible sessions in {{PERIOD}}. Risk fixed at {{RISKPCT}}
+real-tick trades across {{SESSIONS}} eligible sessions in {{PERIOD}}. Risk fixed at <span data-risk></span>
 of the starting balance; spread and commission included in every R figure.</p>
 <p>Results are historical and specific to 2026 conditions. Not financial advice —
 demo test thoroughly before risking capital.</p>
@@ -613,6 +645,107 @@ demo test thoroughly before risking capital.</p>
     else if(e.key==='ArrowLeft') show(i-1);
     else if(e.key==='ArrowRight') show(i+1);
   });
+})();
+</script>
+<script id="riskdata" type="application/json">{{RISKDATA}}</script>
+<script>
+(function(){
+  var D = JSON.parse(document.getElementById('riskdata').textContent);
+  var input = document.getElementById('riskin');
+  var chips = document.getElementById('riskchips');
+  var warn  = document.getElementById('riskwarn');
+
+  // Nearest precomputed row. Pass rate and time-to-pass come out of a simulation,
+  // so they are looked up, never scaled -- scaling them would invent numbers.
+  function rowFor(r){
+    return D.sweep.reduce(function(a,b){
+      return Math.abs(b.risk - r) < Math.abs(a.risk - r) ? b : a; });
+  }
+  function num(r){ return (Math.round(r*100)/100).toString(); }
+  function fmt(v, f){
+    if(f === 'signint') return (v>=0?'+':'') + Math.round(v);
+    if(f === 'int')     return String(Math.round(v));
+    if(f === 'money')   return '$' + Math.round(v).toLocaleString();
+    if(f === 'lots')    return (v/500).toFixed(2);
+    if(f === 'plain1')  return v.toFixed(1);
+    if(f === 'plain2')  return v.toFixed(2);
+    return (v>=0?'+':'') + v.toFixed(1);
+  }
+  function apply(r){
+    var row = rowFor(r);
+    document.querySelectorAll('[data-pct]').forEach(function(el){
+      el.textContent = fmt(parseFloat(el.dataset.pct) * r, el.dataset.fmt || 'sign1');
+    });
+    document.querySelectorAll('[data-sweep]').forEach(function(el){
+      var v = row[el.dataset.sweep];
+      el.textContent = el.dataset.fmt ? fmt(v, el.dataset.fmt) : String(v);
+    });
+    document.querySelectorAll('[data-risk]').forEach(function(el){ el.textContent = num(r) + '%'; });
+
+    document.querySelectorAll('tr[data-rowrisk]').forEach(function(tr){
+      tr.classList.toggle('sel', Math.abs(parseFloat(tr.dataset.rowrisk) - row.risk) < 1e-9);
+    });
+    Array.prototype.forEach.call(chips.querySelectorAll('button'), function(b){
+      b.setAttribute('aria-pressed', Math.abs(parseFloat(b.dataset.v) - r) < 1e-9);
+    });
+
+    var run = document.getElementById('runprose');
+    if(run)
+      run.innerHTML = 'A <strong>' + D.worst_run + '-loss run happened ' + D.worst_run_times +
+        '</strong>, and at <span data-risk>' + num(r) + '%</span> it costs <strong>' +
+        row.run_cost.toFixed(1) + '%</strong> ' + (row.run_breaks
+          ? '&mdash; past the ' + D.maxloss + '% limit, so that sequence fails the account.'
+          : 'against the ' + D.maxloss + '% limit.');
+
+    // The two ways one number can end a challenge, stated whenever they apply.
+    var bad = [];
+    if(row.run_breaks)
+      bad.push('A run of <b>' + D.worst_run + ' losses</b> costs <b>' + row.run_cost.toFixed(1) +
+               '%</b>, past the ' + D.maxloss + '% maximum loss. That run is in this data.');
+    if(D.daily && Math.abs(row.worst_trade) > D.daily)
+      bad.push('The worst single loss on record is <b>' + Math.abs(row.worst_trade).toFixed(2) +
+               '%</b>, past the ' + D.daily + '% daily limit &mdash; one trade could end it.');
+    warn.hidden = bad.length === 0;
+    warn.innerHTML = bad.join(' ');
+
+    var adv = document.getElementById('riskadvice');
+    if(adv){
+      var safe = D.sweep.filter(function(s){
+        return s.risk <= D.maxrisk && !s.run_breaks && Math.abs(s.worst_trade) <= (D.daily || 99); });
+      var best = safe.length ? safe[safe.length-1] : null;
+      adv.innerHTML = best
+        ? 'The most you can risk and still survive that run is <b>' + num(best.risk) + '%</b>: ' +
+          best.pass_pct.toFixed(1) + '% pass rate, about ' + best.days + ' trading days, ' +
+          fmt(best.ret, 'signint') + '% on the year. Halving it to <b>' + num(best.risk/2) +
+          '%</b> roughly doubles the calendar time and takes the drawdown down with it &mdash; ' +
+          'which is the trade to make once the account is funded rather than being won.'
+        : '';
+    }
+    try { history.replaceState(null, '', '?risk=' + num(r)); } catch(e){}
+  }
+
+  D.chips.forEach(function(v){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = num(v) + '%'; b.dataset.v = v;
+    b.addEventListener('click', function(){ input.value = num(v); apply(v); });
+    chips.appendChild(b);
+  });
+
+  function read(){
+    var r = parseFloat(input.value);
+    if(!isFinite(r) || r <= 0) return;     // mid-edit garbage: leave the page as it stands
+    apply(Math.min(D.maxrisk, Math.max(0.25, r)));
+  }
+  input.addEventListener('input', read);
+  input.addEventListener('change', function(){
+    var r = parseFloat(input.value);
+    if(isFinite(r)) input.value = num(Math.min(D.maxrisk, Math.max(0.25, r)));
+    read();
+  });
+
+  var q = parseFloat(new URLSearchParams(location.search).get('risk'));
+  if(isFinite(q) && q > 0) input.value = num(Math.min(D.maxrisk, Math.max(0.25, q)));
+  apply(parseFloat(input.value));
 })();
 </script>
 </body></html>

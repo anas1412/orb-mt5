@@ -1,7 +1,7 @@
 """Generate ~/orb/ORB-asia-report.html from report_data.json + trade_index.json."""
 import rules_svg, halves_svg
 from curve import curve_svg
-import json, os, datetime as dt
+import json, os, re, datetime as dt
 import ctx
 d=json.load(open(ctx.DATA_JSON))
 idx=json.load(open(ctx.INDEX_JSON))
@@ -37,19 +37,19 @@ def weeks_rows():
         cls="pos" if w['total']>0 else ("neg" if w['total']<0 else "")
         out.append('<tr><td>%s</td><td>%d</td><td><b>%d</b></td><td>%d / %d</td><td>%s</td><td>%.0f%%</td>'
                    '%s<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td>'
-                   '<td class="%s"><b>%+.1f%%</b></td></tr>'
+                   '<td class="%s"><b><span data-pct="%.4f"></span>%%</b></td></tr>'
                    %(lab,w['sessions'],w['trades'],w['wins'],w['trades']-w['wins'],
                      seq_cell(w['seq']),w['wr'],
-                     pfc(w['pf']),cls,w['ev'],cls,w['total'],cls,w['ret']))
+                     pfc(w['pf']),cls,w['ev'],cls,w['total'],cls,w['total']))
     return "".join(out)
 
 def q_rows():
     out=[]
     for q in d['quarters']:
         out.append('<tr><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d / %d</td><td>%.1f%%</td>'
-                   '%s<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td><td class="pos"><b>%+.1f%%</b></td></tr>'
+                   '%s<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td><td class="pos"><b><span data-pct="%.4f"></span>%%</b></td></tr>'
                    %(q['q'],q['days'],q['trades'],q['wins'],q['losses'],q['wr'],
-                     pfc(q['pf']),q['ev'],q['total'],q['ret']))
+                     pfc(q['pf']),q['ev'],q['total'],q['total']))
     return "".join(out)
 
 def m_rows():
@@ -58,10 +58,10 @@ def m_rows():
         cls="pos" if m['total']>0 else ("neg" if m['total']<0 else "")
         out.append('<tr><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d / %d</td><td>%s</td><td>%.1f%%</td>'
                    '%s<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td>'
-                   '<td class="%s"><b>%+.1f%%</b></td></tr>'
+                   '<td class="%s"><b><span data-pct="%.4f"></span>%%</b></td></tr>'
                    %(m['month'],m['days'],m['trades'],m['wins'],m['losses'],
                      seq_cell(m['seq']),m['wr'],
-                     pfc(m['pf']),cls,m['ev'],cls,m['total'],cls,m['ret']))
+                     pfc(m['pf']),cls,m['ev'],cls,m['total'],cls,m['total']))
     return "".join(out)
 
 def exit_rows():
@@ -70,27 +70,44 @@ def exit_rows():
     for e in d['exits']:
         cls="pos" if e['total']>0 else "neg"
         out.append('<tr><td>%s</td><td><b>%d</b></td><td>%.1f%%</td><td class="%s">%+.2f R</td>'
-                   '<td class="%s"><b>%+.1f R</b></td><td class="%s"><b>%+.1f%%</b></td></tr>'
+                   '<td class="%s"><b>%+.1f R</b></td><td class="%s"><b><span data-pct="%.4f"></span>%%</b></td></tr>'
                    %(NAME[e['kind']],e['n'],e['share'],cls,e['avg'],cls,e['total'],
-                     cls,e['total']*RISK))
+                     cls,e['total']))
     return "".join(out)
 
-def pass_rows():
+def sweep_rows():
+    """One row per precomputed risk level. The page highlights the selected one
+    and never recomputes these -- the pass columns come from a simulation."""
+    lim=ctx.BENCH['maxloss'] or 0
+    daily=ctx.BENCH['daily'] or 0
     out=[]
-    for p in d['pass']:
-        hi=' class="hi"' if p['risk']==2.0 else ''
-        out.append('<tr%s><td><b>%.1f%%</b></td><td>%.1f%%</td><td>%.1f%%</td>'
-                   '<td class="pos"><b>%.1f%%</b></td><td>%d</td><td>%d</td><td>%.0f%%</td></tr>'
-                   %(hi,p['risk'],p['p1'],p['p2'],p['both'],p['trades'],p['days'],
-                     d['streaks']['worst_loss']*p['risk']))
+    for s in d['sweep']:
+        cls=[]
+        if s['run_breaks']: cls.append('neg')
+        if daily and abs(s['worst_trade'])>daily: cls.append('neg')
+        out.append('<tr data-rowrisk="%s"%s><td><b>%g%%</b></td><td class="pos"><b>%.1f%%</b></td>'
+                   '<td>%d</td><td>%d</td><td class="pos"><b>%+.0f%%</b></td><td>%.1f%%</td>'
+                   '<td class="%s">%.1f%%</td><td class="%s">%.2f%%</td></tr>'
+                   %(s['risk'], ' class="%s"'%cls[0] if cls else '', s['risk'], s['pass_pct'],
+                     s['trades'], s['days'], s['ret'], s['maxdd'],
+                     'neg' if s['run_breaks'] else '', s['run_cost'],
+                     'neg' if daily and abs(s['worst_trade'])>daily else '', s['worst_trade']))
     return "".join(out)
 
 def streak_rows():
+    """Cost of a k-loss run at the chosen risk. k full stops, each costing the
+    average realised loss -- which is a little over 1 R once spread and
+    commission are in, so this is not simply k x risk."""
+    lim=ctx.BENCH['maxloss'] or 10.0
+    worst=d['run_worst']
     out=[]
     for k,n in d['streaks']['loss_hist']:
-        cost=k*2.0
-        cls="neg" if cost>=10 else ("warn" if cost>=6 else "")
-        out.append('<tr class="%s"><td>%d in a row</td><td>%d&times;</td><td>%.0f%% of the account</td></tr>'%(cls,k,n,cost))
+        r=worst.get(str(k), worst.get(k, k*d['loss_avg_abs']))   # what k in a row really cost
+        cost=r*RISK
+        cls="neg" if cost>=lim else ("warn" if cost>=lim*0.6 else "")
+        out.append('<tr class="%s"><td>%d in a row</td><td>%d&times;</td><td>%+.2f R</td>'
+                   '<td><span data-pct="%.4f" data-fmt="plain1"></span>%% of the account</td></tr>'
+                   %(cls,k,n,-r,r))
     return "".join(out)
 
 def half_rows():
@@ -156,6 +173,22 @@ def filters():
     return '<div class="filters">' + "".join(g) + '</div>'
 
 wins=H['wins']; losses=H['trades']-wins
+def riskdata():
+    """What the page needs to answer "what changes if I risk X?" offline.
+
+    Only the simulated quantities travel: everything else on the page is R and
+    the page multiplies. maxrisk is the largest risk this account permits, which
+    is a rule of the challenge rather than anything measured.
+    """
+    hist=dict(d['streaks']['loss_hist'])
+    run=d['streaks']['worst_loss']
+    return dict(sweep=d['sweep'], chips=[0.5,1,1.5,2,2.5], maxrisk=2.5,
+                maxloss=ctx.BENCH['maxloss'], daily=ctx.BENCH['daily'],
+                target=ctx.BENCH['p1'], worst_run=run,
+                worst_run_times="once" if hist.get(run,1)==1 else "%d times"%hist.get(run,1),
+                worst_run_r=d['worst_run_r'], worst_trade_r=d['worst_trade_r'],
+                deposit=ctx.DEPOSIT)
+
 def qblock():
     """The quarters box used to be typed by hand and went stale (Q3 read +13.6 R
     after it had fallen). Generated from the same numbers as the table."""
@@ -170,23 +203,24 @@ def runprose():
     vs=("the whole limit" if abs(cost-lim)<0.05 else
         "past the %g%% limit"%lim if cost>lim else "%g points inside the %g%% limit"%(round(lim-cost,2),lim))
     return ('A <strong>%d-loss run happened %s</strong>, and at %s risk it costs %g%% — %s.'
-            %(run,"once" if times==1 else "%d times"%times,ctx.RISK_TXT,round(cost,2),vs))
+            %(run,"once" if times==1 else "%d times"%times,ctx.RISK_TXT,round(cost,1),vs))
 
 tpl=open("template.html").read()
 html=(tpl
  .replace("{{TRADES}}",str(H['trades'])).replace("{{WINS}}",str(wins)).replace("{{LOSSES}}",str(losses))
  .replace("{{WR}}","%.1f"%H['wr']).replace("{{EV}}","%+.3f"%H['ev']).replace("{{SE}}","%.3f"%H['se'])
- .replace("{{TOTALR}}","%+.1f"%H['total']).replace("{{RET}}","%+.0f"%H['ret'])
+ .replace("{{TOTALR}}","%+.1f"%H['total'])
+ .replace("{{RET}}",'<span data-pct="%.4f" data-fmt="signint"></span>'%H['total'])
  .replace("{{SD}}","%.2f"%H['sd']).replace("{{SESSIONS}}",str(H['sessions']))
- .replace("{{MAXDD}}","%.1f"%d['maxdd'])
+ .replace("{{MAXDD}}",'<span data-sweep="maxdd"></span>')
  .replace("{{WORSTRUN}}",str(d['streaks']['worst_loss']))
  .replace("{{BESTRUN}}",str(d['streaks']['best_win']))
- .replace("{{PASS2}}","%.1f"%[p for p in d['pass'] if p['risk']==2.0][0]['both'])
- .replace("{{DAYS2}}",str([p for p in d['pass'] if p['risk']==2.0][0]['days']))
- .replace("{{CURVE}}",curve_svg(d['curve']))
+ .replace("{{PASS2}}",'<span data-sweep="pass_pct"></span>')
+ .replace("{{DAYS2}}",'<span data-sweep="days"></span>')
+ .replace("{{CURVE}}",curve_svg(d['curve'], RISK))
  .replace("{{WEEKROWS}}",weeks_rows()).replace("{{QROWS}}",q_rows())
  .replace("{{MROWS}}",m_rows()).replace("{{EXITROWS}}",exit_rows())
- .replace("{{PASSROWS}}",pass_rows()).replace("{{STREAKROWS}}",streak_rows())
+ .replace("{{SWEEPROWS}}",sweep_rows()).replace("{{STREAKROWS}}",streak_rows())
  .replace("{{HALFROWS}}",half_rows())
  .replace("{{RULESSVG}}",rules_svg.build())
  .replace("{{HALVESSVG}}",halves_svg.build(d["halves"]))
@@ -210,7 +244,7 @@ html=(tpl
  .replace("{{AVGLOSS}}","%+.2f"%(H["loss"]/(H["trades"]-H["wins"])))
  .replace("{{BESTWIN}}","%d"%d["streaks"]["best_win"])
  .replace("{{WORSTLOSS}}","%d"%d["streaks"]["worst_loss"])
- .replace("{{WORSTLOSSPCT}}","-%.0f"%(RISK*d["streaks"]["worst_loss"]))
+ .replace("{{WORSTLOSSPCT}}",'<span data-sweep="run_cost" data-fmt="plain1"></span>')
  .replace("{{GAIN}}","%+.1f"%H["gain"]).replace("{{LOSS}}","%.1f"%abs(H["loss"]))
  .replace("{{LASTDATE}}",dt.date.fromisoformat(d["coverage"]["last"]).strftime("%d %B %Y")).replace("{{GALLERY}}",gallery()).replace("{{FILTERS}}",filters())
 
@@ -220,7 +254,36 @@ html=(tpl
  .replace("{{HOLDMIN}}", str(HOLD)).replace("{{PERIOD}}", ctx.PERIOD)
  .replace("{{MAXLOSS}}", "%g" % ctx.BENCH["maxloss"]).replace("{{BENCHTEXT}}", ctx.BENCH["text"])
  .replace("{{DEPOSIT}}", "$%s" % format(int(ctx.DEPOSIT), ",")).replace("{{RISKMONEY}}", "$%s" % format(int(round(ctx.RISK_MONEY)), ","))
- .replace("{{QBLOCK}}", qblock()).replace("{{RUNPROSE}}", runprose()))
+ .replace("{{QBLOCK}}", qblock()).replace("{{RUNPROSE}}", runprose())
+ .replace("{{RISKNUM}}", ("%g" % ctx.RISK))
+ .replace("{{PHASETXT}}", "one phase" if not ctx.BENCH["p2"] else "both phases")
+ .replace("{{RISKDATA}}", json.dumps(riskdata(), separators=(",", ":"))))
+# Fill every live span with its value at the default risk. The page overwrites
+# these on load, so they only show when JavaScript does not run -- on GitHub
+# Pages with JS off, in print, in a reader view. A blank report is worse than a
+# report at one fixed risk, and the numbers are the same ones the script writes.
+def fill_defaults(html):
+    row = next(s for s in d['sweep'] if abs(s['risk'] - RISK) < 1e-9)
+    def f(v, k):
+        if k == 'signint': return "%+d" % round(v)
+        if k == 'int':     return "%d" % round(v)
+        if k == 'money':   return "$%s" % format(int(round(v)), ",")
+        if k == 'lots':    return "%.2f" % (v / 500.0)
+        if k == 'plain1':  return "%.1f" % v
+        if k == 'plain2':  return "%.2f" % v
+        return "%+.1f" % v
+    def pct(m):
+        return '%s%s</span>' % (m.group(0)[:-len('</span>')], f(float(m.group(1)) * RISK, m.group(2) or ''))
+    def swp(m):
+        v = row[m.group(1)]
+        txt = f(v, m.group(2)) if m.group(2) else str(v)
+        return '%s%s</span>' % (m.group(0)[:-len('</span>')], txt)
+    html = re.sub(r'<span data-pct="([-\d.]+)"(?: data-fmt="(\w+)")?></span>', pct, html)
+    html = re.sub(r'<span data-sweep="(\w+)"(?: data-fmt="(\w+)")?></span>', swp, html)
+    html = html.replace('<span data-risk></span>', '<span data-risk>%g%%</span>' % RISK)
+    return html
+
+html = fill_defaults(html)
 open(OUT,"w").write(html)
 open(PAGES,"w").write(html)
 

@@ -94,11 +94,14 @@ if cur: wseq.append(cur)
 out['streaks']=dict(worst_loss=max(seq), best_win=max(wseq),
                     loss_hist=sorted(Counter(seq).items()),
                     win_hist=sorted(Counter(wseq).items()))
-cum=peak=dd=0.0; curve=[]
+# Cumulative R, not percent: risk is chosen on the page, so a percent curve
+# would be wrong the moment the reader changes it. maxdd_r is the same quantity
+# in R; maxdd stays in percent at the default risk for anything still reading it.
+cum=peak=ddr=0.0; curve=[]
 for r in rows:
-    cum+=RISK*r['R']; peak=max(peak,cum); dd=max(dd,peak-cum)
-    curve.append([r['date'].isoformat(), round(cum,2)])
-out['curve']=curve; out['maxdd']=round(dd,1)
+    cum+=r['R']; peak=max(peak,cum); ddr=max(ddr,peak-cum)
+    curve.append([r['date'].isoformat(), round(cum,3)])
+out['curve']=curve; out['maxdd_r']=round(ddr,3); out['maxdd']=round(ddr*RISK,1)
 
 # weekly, literal
 weeks={}
@@ -154,7 +157,14 @@ def pr(risk,paths=40000):
         for _ in range(paths):
             eq=0.0;d=0
             while d<2000:
-                d+=1; eq+=risk*random.choice(R)
+                d+=1
+                x=random.choice(R)
+                # One trade a day, so a single trade IS the day. A loss past the
+                # daily limit ends the attempt whatever the running total says --
+                # above 2.74% risk the worst trade on record does exactly that,
+                # and ignoring it overstated the pass rate badly at high risk.
+                if B['daily'] and risk*x <= -B['daily']: break
+                eq+=risk*x
                 if eq<=-B['maxloss']: break
                 if eq>=t and d>=max(B['mindays'],1): ok+=1;days.append(d);break
         return 100.0*ok/paths,(statistics.median(days) if days else 0)
@@ -164,6 +174,55 @@ def pr(risk,paths=40000):
     return dict(risk=risk,p1=round(p1,1),p2=round(p2,1),both=round(p1*p2/100.0,1),
                 trades=int(m1+m2), days=int(round((m1+m2)/freq)))
 out['pass']=[pr(x) for x in sorted(set((1.0,1.5,2.0,3.0)) | {RISK})]
+
+# What a losing run actually cost, per run length -- never reconstructed from an
+# average loss. The stop move halves some losses, so the mean loss is -0.86 R
+# while the five that actually landed in a row summed -5.10 R. Averaging them
+# reports 10.7% at 2.5% risk and calls it safe; the real run is 12.8% and breaks
+# a 12% limit. Same mistake, opposite conclusion.
+def worst_runs(v):
+    out_={}
+    for i in range(len(v)):
+        s_=0.0
+        for k in range(1, len(v)-i+1):
+            x=v[i+k-1]
+            if x>=0: break
+            s_+=x
+            if k not in out_ or s_<out_[k]: out_[k]=s_
+    return {k: round(abs(x),4) for k,x in out_.items()}
+RUN_WORST = worst_runs(R)
+out['run_worst'] = RUN_WORST
+out['worst_run_r'] = RUN_WORST.get(out['streaks']['worst_loss'], 0.0)
+out['worst_trade_r'] = round(abs(min(R)), 4)
+out['loss_avg_abs'] = round(abs(statistics.mean([x for x in R if x <= 0])), 4)
+
+# --- the risk sweep -------------------------------------------------------
+# The report lets the reader set risk per trade. R is risk-independent, so a
+# percent is just R x risk and the page can do that arithmetic itself. Three
+# things it cannot: the pass rate, how long passing takes, and the chance a
+# single loss breaks the daily limit -- all three come from walking real trade
+# outcomes against the challenge barriers. Precompute them per risk level here,
+# so the page swaps a looked-up value instead of inventing one.
+def sweep_at(risk, paths=20000):
+    B=ctx.BENCH
+    p=pr(risk, paths)
+    worst_trade=min(R)
+    # A single loss past the daily limit ends the attempt on its own, whatever
+    # the running total says.
+    daily=[x for x in R if B['daily'] and x*risk <= -B['daily']]
+    run=out['streaks']['worst_loss']
+    return dict(risk=round(risk,2), ret=round(sum(R)*risk,1), maxdd=round(out['maxdd_r']*risk,1),
+                pass_pct=p['both'], trades=p['trades'], days=p['days'],
+                money=round(ctx.DEPOSIT*risk/100.0),
+                worst_trade=round(worst_trade*risk,2),
+                daily_share=round(100.0*len(daily)/len(R),1),
+                run_cost=round(out['worst_run_r']*risk,1),
+                run_breaks=bool(B['maxloss'] and out['worst_run_r']*risk > B['maxloss']))
+# Nothing above 2.5% is a real choice: the worst run on record already breaks
+# the maximum loss there, and past 2.74% a single worst-case trade breaches the
+# daily limit on its own -- the pass rate falls off a cliff rather than a slope.
+STEPS=[round(0.25*i,2) for i in range(2,11)]           # 0.50% .. 2.50%
+out['sweep']=[sweep_at(x) for x in sorted(set(STEPS) | {round(RISK,2)}) if x<=2.5]
 
 # the half-of-the-range rule, measured against the same config with the filter off
 def halves():
