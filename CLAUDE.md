@@ -320,6 +320,25 @@ Every one of these looked like something else first.
 | A fake login appears in the Navigator | **Never test with made-up credentials.** MetaTrader saves every attempted account to `accounts.dat`; a bogus `Login=1` shows up in the user's GUI and can become the terminal's last-used account, disconnecting the live EA |
 | The tester ignores the dates asked for | It **clamps `ToDate`** to its history and reports the clamped value. That clamped date is the coverage record, and it is an *exclusive* end -- the day it names is the day it did not test |
 
+### Bar coverage decides which holds are testable
+
+`dump.ini` records broker hours 1-18, which is why `bars_XAUUSD.csv` stopped at
+18:59 and why a 13:30 UTC session could not be tested past a 60-minute hold: a
+summer entry sits at broker 17:45 and the file ended 74 minutes later. Capping
+the hold there and calling it a rule was a data limit wearing a decision's
+clothes.
+
+`evening.ini` is the same dump for broker hours 19-23. `BarDump` appends to the
+same `bars_XAUUSD.csv`, so running it adds the evening without touching what is
+there. After that the 15:30 session tests cleanly to a five-hour hold, and the
+60-minute cap became a measured choice: expectancy peaks at 60-75 minutes and
+the worst losing run more than doubles without it.
+
+Before trusting any hold length, check the room: `s["last"] - entry` per trade,
+and report `n` every time. Requiring the full window and dropping the trades
+that do not fit keeps only the fast winners -- that is how an 87%-win-rate NY
+setup got invented once.
+
 ### The Strategy Tester cannot see today
 
 MetaTrader's history server only serves bars up to the last **completed**

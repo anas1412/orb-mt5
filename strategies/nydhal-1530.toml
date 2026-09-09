@@ -11,7 +11,7 @@ tz               = "UTC"
 start            = "13:30"      # 15:30 UTC+2
 range_min        = 15           # the single M15 candle, so the box closes 13:44
 entry_window_min = 75           # a break must close by 15:00 UTC = 17:00 UTC+2
-hold_min         = 60
+hold_min         = 60          # measured, not a data limit -- see [notes]
 signal_tf        = "M15"        # the break counts when an M15 candle CLOSES outside
 entry_mode       = "market_on_close"
 
@@ -62,7 +62,7 @@ why = [
   ["No stop move",
    "A 1R target is reached or not before a stop move at +0.5R would earn its keep."],
   ["60-minute cap",
-   "Not in his spec, which runs to stop or target. It is here for drawdown, not for profit: running to resolution earns the same +0.093 R a trade and a better 55.4% win rate, but the worst losing run doubles from -3.02 R to -5.03 R, which at 2.5% risk is 12.6% and breaches the 12% limit on its own. The cap turns would-be full stops into small exits. It is also the honest limit of the data — 32.5% of no-cap trades are closed by the bar file ending, not by the rule."],
+   "Not in his spec, which runs to stop or target, and the reason the average win is +0.77R rather than +1.2R. It earns its place twice over. The bar data now reaches broker 23:59, so caps up to five hours are testable: expectancy peaks at 60-75 minutes (+0.108 R) and falls to +0.077 R with no cap, while the worst losing run more than doubles from -3.02 R to -6.70 R — 16.8% at 2.5% risk, past the 12% limit. Letting a trade run does push the averages toward the full 1.2R and 1.0R, but it pushes the money the other way: after an hour the break has spent itself and the position drifts back. Even at five hours, 37 of 157 trades never reach either level."],
   ["Either direction",
    "His rules 1 and 2: the first M15 candle to close outside the box is taken whichever way it broke. 83 longs, 74 shorts."],
   ["2026 only — read this",

@@ -87,6 +87,16 @@ for r in rows:
             if not hit:
                 fail("stop", "%s recorded a stop the bars never reach (%.2f)" % (d, lvl))
 
+# 5b. a chart nobody links to is a chart from a previous run. Changing rr from
+#     1.0 to 1.2 flipped 2 June from a win to a loss and left the old
+#     2026-06-02_short_win.png in the folder and on the site.
+web_dir = os.path.join(ctx.REPO, ctx.TRADES_WEB)
+if os.path.isdir(web_dir):
+    orphans = sorted(set(os.listdir(web_dir)) - {i["file"] for i in index})
+    if orphans:
+        fail("orphan", "%s holds %d file(s) the page does not link: %s"
+             % (ctx.TRADES_WEB, len(orphans), ", ".join(orphans[:4])))
+
 # 6. the totals on the page are the totals in the run
 tot = sum(r["Rf"] for r in rows)
 H = data["headline"]

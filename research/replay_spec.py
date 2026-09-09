@@ -93,9 +93,15 @@ def session(d):
     tp = e + g * ctx.RR * risk
 
     cur, armed, res, kind, lvl = sl, False, None, None, sl
+    gap = None
     for m in range(st + off, st + off + ctx.HOLD + 1):
         if m not in b:
-            return None                  # refuse a trade the bars cannot carry
+            # The bars ran out before a level was reached. Close there and say
+            # so, rather than dropping the trade -- dropping only the ones that
+            # had not resolved keeps the fast winners and is how a 87%-win-rate
+            # setup got invented once already.
+            gap = m - 1
+            break
         o, h, l, c = b[m]
         adv = l if buy else h + SPREAD   # a short's stop sits on the ask
         fav = h if buy else l
@@ -108,9 +114,10 @@ def session(d):
         if (fav - tp) * g >= 0:
             res, kind, lvl = ctx.RR, "tp", tp; break
     if res is None:
-        if st + off + ctx.HOLD not in b:
+        last = gap if gap is not None else st + off + ctx.HOLD
+        if last not in b or last <= st + off:
             return None
-        lvl = b[st + off + ctx.HOLD][3]
+        lvl = b[last][3]
         res, kind = (lvl - e) * g / risk, "hold"
     return dict(t=dt.datetime.combine(d, dt.time(0, 0)) + dt.timedelta(minutes=st + off),
                 dir="buy" if buy else "sell", entry=e, sl=sl, risk=risk,
@@ -120,6 +127,9 @@ def session(d):
 
 
 rows = [t for t in (session(d) for d in sorted(bars) if ctx.in_range(d)) if t]
+kinds = {}
+for r in rows:
+    kinds[r["exit"].split()[0]] = kinds.get(r["exit"].split()[0], 0) + 1
 bal = ctx.DEPOSIT
 out = []
 for r in rows:
@@ -141,4 +151,5 @@ for path in (ctx.CSV_LIVE, ctx.CSV_ALL):
 print("replayed %s: %d trades, %+.1f R, %s .. %s"
       % (ctx.NAME, len(out), sum(r["R"] for r in out),
          out[0]["entry_time"][:10] if out else "-", out[-1]["entry_time"][:10] if out else "-"))
+print("  exits: " + ", ".join("%s %d" % kv for kv in sorted(kinds.items())))
 print("  wrote %s" % ctx.CSV_LIVE)
