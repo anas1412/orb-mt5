@@ -7,6 +7,11 @@ flat within 90 minutes, Monday to Thursday.
 &nbsp;&nbsp;·&nbsp;&nbsp;
 **[📊 Full report and every trade →](https://anas1412.github.io/orb-mt5/full-report.html)**
 
+Same rules, other accounts:
+[1 Step Flex · 2.5% risk · 2R](https://anas1412.github.io/orb-mt5/1-step-full-report.html)
+&nbsp;·&nbsp;
+[1 Step Flex · 2.5% risk · 2.5R](https://anas1412.github.io/orb-mt5/1-step-full-report-2.5rr.html)
+
 ---
 
 ## The rules
@@ -21,13 +26,11 @@ flat within 90 minutes, Monday to Thursday.
 | 6 | Target at **2R**, measured from the actual fill |
 | 7 | At **+0.5R**, pull the stop to **−0.5R**. Once only |
 | 8 | Still open after **90 minutes**? Close at market |
-| 9 | **Monday–Thursday only.** Friday is the only losing day |
+| 9 | **Monday–Thursday only** |
 | 10 | Risk the same amount every trade. No compounding |
 
-**The half-of-the-range rule (#2) in plain terms:** closed in the top half →
-you may only take an up-break. Closed in the bottom half → only a down-break.
-Breaks the other way are skipped. That single filter is worth 5 points of win
-rate for 1 R of give-up.
+Rule 2 in one line: top half → up-breaks only, bottom half → down-breaks only,
+the other way is skipped.
 
 ---
 
@@ -67,9 +70,8 @@ How the 78 trades ended:
 
 ## Install
 
-Download the latest **[release](../../releases/latest)** and unzip it. The
-folder mirrors the MetaTrader tree, so copy its contents straight into your
-terminal's `MQL5` folder:
+Download the latest **[release](../../releases/latest)**, unzip, copy the `MQL5`
+folder over your terminal's (**File → Open Data Folder**).
 
 | From the zip | Goes to |
 |---|---|
@@ -78,47 +80,38 @@ terminal's `MQL5` folder:
 | `MQL5/Include/TimeZones.mqh` | `MQL5/Include/` |
 | `MQL5/Include/Panel.mqh` | `MQL5/Include/` |
 
-Find that folder with **File → Open Data Folder** in MetaTrader.
+1. Open `ORB.mq5` in MetaEditor, press **F7**
+2. Open an **XAUUSD M1** chart, drag **ORB** onto it, tick **Allow Algo Trading**
+3. Turn on **AutoTrading** in the toolbar
+4. The panel starts **OFF** — press **TRADING ON** when ready
 
-Then:
-
-1. Open `ORB.mq5` in MetaEditor and press **F7** to compile
-2. Open an **XAUUSD M1** chart and drag **ORB** onto it
-3. Tick **Allow Algo Trading**, press OK
-4. Turn on **AutoTrading** in the toolbar (the button must be green)
-5. The panel appears. It starts **OFF** — press **TRADING ON** when ready
-
-> Releases ship **source, not a compiled `.ex5`**. Compiling takes one keystroke,
-> and it means the code you run is the code you can read — no binary to trust.
-> The resulting `.ex5` is platform-neutral and runs on Windows and Linux/Wine
-> alike.
+Releases ship source, not a compiled `.ex5`: the code you run is the code you
+can read. The `.ex5` runs on Windows and Linux/Wine alike.
 
 ---
 
 ## The on-chart panel
 
-Everything is adjustable without reopening the inputs dialog.
-
 | Control | What it does |
 |---|---|
-| **TRADING ON / OFF** | Master switch. Starts OFF. Turning it off stops new entries but keeps managing an open trade |
-| **Risk per trade** | The number, plus a `%` / currency button to switch between percent of balance and a fixed cash amount |
+| **TRADING ON / OFF** | Master switch. Starts OFF. Off stops new entries but keeps managing an open trade |
+| **Risk per trade** | The number, plus a `%` / currency button: percent of balance or fixed cash |
 | **Reward : risk** | The target, in R |
 | **Session start** | `HH:MM` UTC |
 | **Range length** | Minutes |
 | **Break window** | Minutes after the range closes that a break still counts |
 | **Stop move** | ON / OFF, with its two levels beneath |
-| **Yesterday filter** | ON / OFF. Skips a break against the previous daily candle when its body is at least **Min body**. Off by default and not in the published numbers |
+| **Yesterday filter** | ON / OFF. Skips a break against the previous daily candle when its body is at least **Min body**. Off by default, not in the published numbers |
 
-Settings are locked while trading is on or a position is open, and are
-remembered across restarts. The header reads **IDLE**, **ONLINE**, **IN TRADE**,
-or **BLOCKED** if the terminal will not let an order through.
+Settings lock while trading is on or a position is open, and persist across
+restarts. Header: **IDLE**, **ONLINE**, **IN TRADE**, or **BLOCKED** if the
+terminal refuses orders.
 
 ---
 
 ## Settings that matter
 
-The defaults are the tested configuration. These are the ones worth knowing:
+Defaults are the tested configuration.
 
 | Input | Default | Meaning |
 |---|---|---|
@@ -136,41 +129,37 @@ The defaults are the tested configuration. These are the ones worth knowing:
 | `InpRiskPercent` | `2.0` | Risk per trade |
 | `InpWinterOffset` | `2` | Your broker's winter offset from UTC |
 
-### Two you must check for your own broker
+**Check for your own broker:** `InpWinterOffset` (measured +2 on FTMO demo) and
+`InpFollowsUSDST` (US or EU switch dates; they differ ~3 weeks in March, ~1 in
+October). The included `CheckBrokerOffset` script measures both.
 
-- **`InpWinterOffset`** — the EA reads broker time and converts to UTC. Get this
-  wrong and it trades the wrong hour. Measured +2 on FTMO demo (so +3 in summer).
-- **`InpFollowsUSDST`** — whether your broker switches DST on US or EU dates.
-  They disagree for ~3 weeks in March and ~1 week in October. Run the included
-  `CheckBrokerOffset` script to settle it.
-
-Lot sizes round to the **nearest** step, not down, so realised risk lands within
-about 9% of your target instead of occasionally half of it. Note a full stop
-loses slightly more than your risk figure, the difference being commission.
-If the size needs more margin than the account has free -- a very tight stop on
-gold can -- the EA sizes down to fit and says so in the journal, rather than
-having the order rejected.
+Sizing: lots round to the **nearest** step, so realised risk lands within ~9% of
+target. A full stop costs slightly more than the risk figure (commission). If
+the size needs more margin than is free, the EA sizes down and says so in the
+journal.
 
 ---
 
 ## Reproduce the backtest
 
 ```bash
-bash update.sh                                # test new days, rebuild, audit, commit
-bash update.sh --account accounts/ftmo.env    # log into a specific broker account
-bash research/run_window.sh 2026.01.01 2026.09.08   # one window, both configurations
+bash update.sh                                     # new days only: test, rebuild, audit, commit
+bash update.sh --account accounts/ftmo.env         # with a specific broker login
+bash research/report.sh strategies/<name>.toml 2026.01.01 2026.09.09   # any spec → its own report
 ```
 
-`update.sh` runs MetaTrader headless, tests only the days not yet tested,
-redraws only the charts that changed, and refuses to publish if any chart
-disagrees with the trade data. Copy `accounts/example.env` to give it a broker
-login; without one it uses the terminal's saved session. Results land in
-`Common\Files\ORB_XAUUSD_*.csv`, one row per trade. Needs M1 real-tick history
-for XAUUSD.
+- A **spec** is one TOML file: symbol, session, rules, risk, dates, benchmark.
+  `strategies/asia-gold.toml` is the published configuration; a new one lists
+  only what differs. See [`strategies/`](strategies/).
+- The engine also runs in **Docker** — Wine, headless, EA compiled at build.
+  Commands in [`CLAUDE.md`](CLAUDE.md).
+- Broker login comes from `accounts/*.env` (ignored by git; see
+  `accounts/example.env`). Without one, the terminal's saved session is used.
+- Results: `Common\Files\ORB_XAUUSD_*.csv`, one row per trade. Needs M1
+  real-tick history.
 
-Research scripts and the full study are in [`research/`](research/); the
-one-off studies behind [`FINDINGS.md`](research/FINDINGS.md) are archived in
-[`research/studies/`](research/studies/).
+The study is in [`research/`](research/); the one-off scripts behind
+[`FINDINGS.md`](research/FINDINGS.md) are in [`research/studies/`](research/studies/).
 
 ---
 
@@ -182,14 +171,16 @@ one-off studies behind [`FINDINGS.md`](research/FINDINGS.md) are archived in
 
 ---
 
-## Honest limits
+## Limits
 
-- **One symbol, one session, one year.** The edge was measured on gold at the
-  Asia open in 2026. London and New York were tested and do not work.
-- **It is a regime bet.** The filter depends on ranges that trend rather than
-  chop. If the 15-minute range drops below 0.15% of price, the edge is gone.
-- **78 trades is a small sample.** The ±0.164 standard error on expectancy is
-  real, and so is the chance that 2026 was kind.
+- **One symbol, one session, one year.** Gold at the Asia open in 2026. London
+  and New York were tested and do not work.
+- **No trend awareness.** Five straight losses in Sep 2026 were buys into a
+  $280 fall. Breaks *with* the previous daily candle won 59%, against it 33%.
+  The yesterday filter exists for that; it is off until it has out-of-sample
+  evidence.
+- - **78 trades is a small sample.** The standard error on expectancy is in the
+  table above, and so is the chance that 2026 was kind.
 
 Not financial advice. Test on demo first.
 
