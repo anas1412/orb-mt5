@@ -255,7 +255,7 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
     <div class="k"><div class="l">Average win</div><div class="v pos">+1.96 R</div>
       <div class="n">27 reached the target</div></div>
     <div class="k"><div class="l">Average loss</div><div class="v neg">-0.99 R</div>
-      <div class="n">3 of 75 halved by the stop move</div></div>
+      <div class="n">every one a full 1R — the stop never moves</div></div>
 
     <div class="k"><div class="l">Challenge pass rate</div><div class="v pos"><span data-sweep="pass_pct">95.6</span>%</div>
       <div class="n">one phase, +12% target</div></div>
@@ -302,7 +302,7 @@ nothing that needs you awake at a screen.</p>
 <li><b>Enter at market</b><span>On the next candle, in the direction of the break.</span></li>
 <li><b>Stop at the range midpoint</b><span>Halfway between the high and the low. That distance is your 1R.</span></li>
 <li><b>Target at 3R</b><span>3× the distance from entry to stop, measured from the actual fill.</span></li>
-<li><b>At +0.5R, move the stop to −0.5R</b><span>Once the trade is halfway to target, pull the stop so the worst case is half a loss instead of a full one. Once only — it never moves again.</span></li>
+<li><b>The stop never moves</b><span>Set once at the range midpoint and left there. Every loss is a full 1R.</span></li>
 <li><b>Flat after 180 minutes</b><span>If neither level is hit, close at market. 69% of trades finish on their own before this.</span></li>
 <li><b>Monday to Friday, one trade a day</b><span>One position, then done regardless of the outcome.</span></li>
 <li><b>Risk <span data-risk>1.5%</span> of the starting balance</b><span>Fixed, not compounding. Position size = <span data-risk>1.5%</span> ÷ the distance from entry to stop.</span></li>
@@ -310,20 +310,7 @@ nothing that needs you awake at a screen.</p>
 
 <div class="scroll"><table>
 <caption>Settings, exactly as they appear in the EA</caption>
-<thead><tr><th>Input</th><th>Value</th><th>Meaning</th></tr></thead><tbody>
-<tr><td><code>InpTimeZone</code></td><td><b>TZ_UTC</b></td><td>session clock</td></tr>
-<tr><td><code>InpStartHour / Minute</code></td><td><b>0 / 0</b></td><td>00:00 UTC</td></tr>
-<tr><td><code>InpRangeMinutes</code></td><td><b>15</b></td><td>range length</td></tr>
-<tr><td><code>InpSignalTF</code></td><td><b>M1</b></td><td>confirmation candle</td></tr>
-<tr><td><code>InpNoEntryAfterMin</code></td><td><b>15</b></td><td>stop looking at 00:29</td></tr>
-<tr><td><code>InpMinClosePos</code></td><td><b>0.50</b></td><td>trade only the half it closed in</td></tr>
-<tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr>
-<tr><td><code>InpRR</code></td><td><b>2.0</b></td><td>target</td></tr>
-<tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0.5 / −0.5</b></td><td>the stop move</td></tr>
-<tr><td><code>InpMaxHoldMinutes</code></td><td><b>90</b></td><td>time cap</td></tr>
-<tr><td><code>InpTradeFri</code></td><td><b>false</b></td><td>Fridays off</td></tr>
-<tr><td><code>InpRiskPercent</code></td><td><b>2.0</b></td><td>risk per trade</td></tr>
-</tbody></table></div>
+<thead><tr><th>Input</th><th>Value</th><th>Meaning</th></tr></thead><tbody><tr><td><code>InpTimeZone</code></td><td><b>TZ_UTC</b></td><td>session clock</td></tr><tr><td><code>InpStartHour / Minute</code></td><td><b>5 / 30</b></td><td>05:30 UTC</td></tr><tr><td><code>InpRangeMinutes</code></td><td><b>60</b></td><td>range length, so the box closes 06:29</td></tr><tr><td><code>InpSignalTF</code></td><td><b>M1</b></td><td>confirmation candle</td></tr><tr><td><code>InpNoEntryAfterMin</code></td><td><b>15</b></td><td>stop looking at 06:44</td></tr><tr><td><code>InpMinClosePos</code></td><td><b>0.50</b></td><td>trade only the half it closed in</td></tr><tr><td><code>InpTradeLongs / Shorts</code></td><td><b>true / false</b></td><td>upside breaks only</td></tr><tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr><tr><td><code>InpRR</code></td><td><b>3</b></td><td>target</td></tr><tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0 / −0.5</b></td><td>off — the stop never moves</td></tr><tr><td><code>InpMaxHoldMinutes</code></td><td><b>180</b></td><td>time cap</td></tr><tr><td><code>InpTradeFri</code></td><td><b>true</b></td><td>Fridays traded</td></tr><tr><td><code>InpRiskPercent</code></td><td><b>1.5</b></td><td>risk per trade</td></tr></tbody></table></div>
 </section>
 
 <!-- ================= 02 FILTER ================= -->
@@ -428,79 +415,17 @@ is exactly what a pass-rate account wants.</p></div>
 <!-- ================= 03 STOP MOVE ================= -->
 <section id="stop">
 <h2><span class="num">03</span>The stop move</h2>
-<p class="sub">Once per trade, and only in one direction.</p>
-
-<figure><div class="fig">
-<svg viewBox="0 0 1080 380" width="100%" role="img">
-<title>The stop move, drawn to scale</title>
-<desc>Price levels drawn to scale from entry: plus two R at the top, plus half R, entry, minus half R, minus one R at the bottom. A price line leaves entry, rises to plus half R, and at that moment the stop jumps from minus one R up to minus half R. From there the line either carries on to the plus two R target or falls back to the new stop for half a loss. The band between minus half R and minus one R is greyed out because it can no longer be reached.</desc>
-<defs><marker id="ar3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round"/></marker></defs>
-
-<text x="40" y="26" font-size="14.5" font-weight="700" fill="currentColor">Risk $100. Once you are $50 up, the most you can lose is $50.</text>
-
-<!-- levels: 1R = 80px, entry at y=220 -->
-<line x1="90" y1="60"  x2="1000" y2="60"  stroke="var(--pos)" stroke-width="1.6" stroke-dasharray="7 5"/>
-<line x1="90" y1="180" x2="1000" y2="180" stroke="var(--acc2)" stroke-width="1.4" stroke-dasharray="6 4"/>
-<line x1="90" y1="220" x2="1000" y2="220" stroke="currentColor" stroke-opacity=".4" stroke-width="1.6"/>
-<text x="80" y="64"  font-size="13" font-weight="640" fill="var(--pos)" text-anchor="end">+3R</text>
-<text x="80" y="184" font-size="13" font-weight="640" fill="var(--acc)" text-anchor="end">+0.5R</text>
-<text x="80" y="224" font-size="13" fill="currentColor" fill-opacity=".65" text-anchor="end">entry</text>
-<text x="80" y="264" font-size="13" font-weight="640" fill="var(--neg)" text-anchor="end">&minus;0.5R</text>
-<text x="80" y="304" font-size="13" fill="var(--neg)" fill-opacity=".55" text-anchor="end">&minus;1R</text>
-
-<!-- the old stop: real until the move, dead after it -->
-<line x1="90" y1="300" x2="430" y2="300" stroke="var(--neg)" stroke-width="2" stroke-dasharray="9 5"/>
-<line x1="430" y1="300" x2="1000" y2="300" stroke="var(--neg)" stroke-opacity=".3" stroke-width="1.5" stroke-dasharray="3 6"/>
-<!-- the new stop: only exists after the move -->
-<line x1="430" y1="260" x2="1000" y2="260" stroke="var(--neg)" stroke-width="2.2" stroke-dasharray="9 5"/>
-<!-- dead zone -->
-<rect x="430" y="260" width="570" height="40" fill="var(--neg)" opacity=".08"/>
-<text x="700" y="286" font-size="12" fill="var(--neg)" fill-opacity=".6">no longer reachable</text>
-
-<!-- the stop jumping up -->
-<path d="M462 296 L462 266" fill="none" stroke="var(--neg)" stroke-width="3" marker-end="url(#ar3)"/>
-
-<!-- price, before the trigger -->
-<path d="M110 220 L170 212 L215 196 L265 205 L320 186 L370 190 L430 180"
-      fill="none" stroke="currentColor" stroke-opacity=".75" stroke-width="2.6" stroke-linejoin="round"/>
-<!-- the trigger -->
-<line x1="430" y1="180" x2="430" y2="256" stroke="var(--acc)" stroke-width="1.3" stroke-dasharray="3 4" stroke-opacity=".7"/>
-<circle cx="430" cy="180" r="7" fill="var(--acc2)"/>
-<text x="444" y="162" font-size="13.5" font-weight="700" fill="var(--acc)">stop moves here</text>
-
-<!-- branch A: keeps going -->
-<path d="M430 180 L490 168 L545 178 L600 140 L660 152 L720 110 L790 96 L860 60"
-      fill="none" stroke="var(--pos)" stroke-width="2.8" stroke-linejoin="round"/>
-<circle cx="860" cy="60" r="7" fill="var(--pos)"/>
-<text x="874" y="46" font-size="13.5" font-weight="700" fill="var(--pos)">win</text>
-
-<!-- branch B: falls back -->
-<path d="M430 180 L480 196 L530 188 L590 224 L650 240 L700 232 L750 260"
-      fill="none" stroke="var(--neg)" stroke-width="2.8" stroke-linejoin="round" stroke-opacity=".85"/>
-<circle cx="750" cy="260" r="7" fill="var(--neg)"/>
-<text x="764" y="244" font-size="13.5" font-weight="700" fill="var(--neg)">half loss</text>
-
-<text x="40" y="352" font-size="12.5" fill="currentColor" fill-opacity=".6">It moves once. It never moves back out.</text>
-</svg>
-</div>
-<figcaption>To scale &mdash; 1R is the same height everywhere.</figcaption>
-</figure>
-
-<ul>
-<li><strong>3 of the 75 losses were halved.</strong></li>
-<li>Average loss <strong>-0.99 R</strong>, not &minus;1.00 R.</li>
-<li>Saved <strong>+0.9 R</strong> &mdash; <span data-pct="0.9000">+1.4</span>% of the account.</li>
-</ul>
-
+<p class="sub">There isn't one. <code>InpStopMoveAtR</code> is <b>0</b> on this configuration: the stop is placed once at the range midpoint and stays there until the trade hits it, reaches the 3R target, or runs out of time.</p>
+<p>So every loss here is a full <b>1R</b> — 75 of 75, with none halved. The published Asia configuration moves the stop to &minus;0.5R once a trade is +0.5R up, which is why its losing runs cost less than a run of full stops. That protection is not present here, and the losing-run table below is not discounted for it. Section 04 gives the measured reason the move is off.</p>
 <div class="scroll"><table>
 <caption>How the 144 trades ended</caption>
 <thead><tr><th>Exit</th><th>Trades</th><th>Share</th><th>EV each</th><th>Total R</th><th>Total %</th></tr></thead>
-<tbody><tr><td>Stopped out</td><td><b>72</b></td><td>50.0%</td><td class="neg">-1.02 R</td><td class="neg"><b>-73.2 R</b></td><td class="neg"><b><span data-pct="-73.2000">-109.8</span>%</b></td></tr><tr><td>180-minute cap</td><td><b>45</b></td><td>31.2%</td><td class="pos">+1.18 R</td><td class="pos"><b>+53.3 R</b></td><td class="pos"><b><span data-pct="53.3000">+79.9</span>%</b></td></tr><tr><td>Target hit  (+2R)</td><td><b>27</b></td><td>18.8%</td><td class="pos">+2.99 R</td><td class="pos"><b>+80.9 R</b></td><td class="pos"><b><span data-pct="80.9000">+121.4</span>%</b></td></tr></tbody></table></div>
+<tbody><tr><td>Stopped out</td><td><b>72</b></td><td>50.0%</td><td class="neg">-1.02 R</td><td class="neg"><b>-73.2 R</b></td><td class="neg"><b><span data-pct="-73.2000">-109.8</span>%</b></td></tr><tr><td>180-minute cap</td><td><b>45</b></td><td>31.2%</td><td class="pos">+1.18 R</td><td class="pos"><b>+53.3 R</b></td><td class="pos"><b><span data-pct="53.3000">+79.9</span>%</b></td></tr><tr><td>Target hit  (+3R)</td><td><b>27</b></td><td>18.8%</td><td class="pos">+2.99 R</td><td class="pos"><b>+80.9 R</b></td><td class="pos"><b><span data-pct="80.9000">+121.4</span>%</b></td></tr></tbody></table></div>
 
 <p>Nearly even on count &mdash; 27 targets, 72 stops. The edge is
 <strong>size</strong>: a win pays 3R, a loss costs 0.99R.</p>
 </section>
+
 
 <!-- ================= 04 WHY ================= -->
 <section id="why">
@@ -571,7 +496,7 @@ barriers, not from scaling.</p>
 
 
 <div class="scroll"><table>
-<caption>Losing runs that actually happened in 2024–2026. The cost is the worst real sequence of that length, not a run of average losses &mdash; the stop move halves some losses, so averaging them understates the run that matters.</caption>
+<caption>Losing runs that actually happened in 2024–2026. The cost is the worst real sequence of that length, not a run of average losses &mdash; every loss here is a full stop, since the stop never moves.</caption>
 <thead><tr><th>Consecutive losses</th><th>Times</th><th>Worst it actually cost</th><th>At the risk above</th></tr></thead>
 <tbody><tr class=""><td>1 in a row</td><td>19&times;</td><td>-1.05 R</td><td><span data-pct="1.0460" data-fmt="plain1">1.6</span>% of the account</td></tr><tr class=""><td>2 in a row</td><td>9&times;</td><td>-2.09 R</td><td><span data-pct="2.0870" data-fmt="plain1">3.1</span>% of the account</td></tr><tr class=""><td>3 in a row</td><td>8&times;</td><td>-3.10 R</td><td><span data-pct="3.0950" data-fmt="plain1">4.6</span>% of the account</td></tr><tr class=""><td>4 in a row</td><td>2&times;</td><td>-4.11 R</td><td><span data-pct="4.1050" data-fmt="plain1">6.2</span>% of the account</td></tr><tr class="warn"><td>6 in a row</td><td>1&times;</td><td>-6.07 R</td><td><span data-pct="6.0670" data-fmt="plain1">9.1</span>% of the account</td></tr></tbody></table></div>
 
@@ -620,7 +545,7 @@ below; the numbers come from 40&nbsp;000.</p>
 <section id="trades">
 <h2><span class="num">09</span>Every trade</h2>
 <p class="sub">All 144 trades of 2024–2026, in order. Each chart shows the range,
-the entry, the stop, the target, where the stop moved to, and the exit. Click any
+the entry, the stop, the target, and the exit. Click any
 one to open it full size.</p>
 <div class="legend">
   <span><span class="sw" style="background:var(--pos)"></span> win — target reached</span>

@@ -388,7 +388,7 @@ nothing that needs you awake at a screen.</p>
 <li><b>Enter at market</b><span>On the next candle, in the direction of the break.</span></li>
 <li><b>Stop at the range midpoint</b><span>Halfway between the high and the low. That distance is your 1R.</span></li>
 <li><b>Target at 2R</b><span>Twice the distance from entry to stop, measured from the actual fill.</span></li>
-<li><b>At +0.5R, move the stop to −0.5R</b><span>Once the trade is halfway to target, pull the stop so the worst case is half a loss instead of a full one. Once only — it never moves again.</span></li>
+<li><b>At +0.5R, move the stop to −0.5R</b><span>Once the trade is that far toward target, pull the stop so the worst case is a part loss instead of a full one. Once only — it never moves again.</span></li>
 <li><b>Flat after 90 minutes</b><span>If neither level is hit, close at market. 96% of trades finish on their own before this.</span></li>
 <li><b>Monday to Thursday, one trade a day</b><span>Fridays off. One position, then done regardless of the outcome.</span></li>
 <li><b>Risk <span data-risk>2.5%</span> of the starting balance</b><span>Fixed, not compounding. Position size = <span data-risk>2.5%</span> ÷ the distance from entry to stop.</span></li>
@@ -396,20 +396,7 @@ nothing that needs you awake at a screen.</p>
 
 <div class="scroll"><table>
 <caption>Settings, exactly as they appear in the EA</caption>
-<thead><tr><th>Input</th><th>Value</th><th>Meaning</th></tr></thead><tbody>
-<tr><td><code>InpTimeZone</code></td><td><b>TZ_UTC</b></td><td>session clock</td></tr>
-<tr><td><code>InpStartHour / Minute</code></td><td><b>0 / 0</b></td><td>00:00 UTC</td></tr>
-<tr><td><code>InpRangeMinutes</code></td><td><b>15</b></td><td>range length</td></tr>
-<tr><td><code>InpSignalTF</code></td><td><b>M1</b></td><td>confirmation candle</td></tr>
-<tr><td><code>InpNoEntryAfterMin</code></td><td><b>15</b></td><td>stop looking at 00:29</td></tr>
-<tr><td><code>InpMinClosePos</code></td><td><b>0.50</b></td><td>trade only the half it closed in</td></tr>
-<tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr>
-<tr><td><code>InpRR</code></td><td><b>2.0</b></td><td>target</td></tr>
-<tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0.5 / −0.5</b></td><td>the stop move</td></tr>
-<tr><td><code>InpMaxHoldMinutes</code></td><td><b>90</b></td><td>time cap</td></tr>
-<tr><td><code>InpTradeFri</code></td><td><b>false</b></td><td>Fridays off</td></tr>
-<tr><td><code>InpRiskPercent</code></td><td><b>2.0</b></td><td>risk per trade</td></tr>
-</tbody></table></div>
+<thead><tr><th>Input</th><th>Value</th><th>Meaning</th></tr></thead><tbody><tr><td><code>InpTimeZone</code></td><td><b>TZ_UTC</b></td><td>session clock</td></tr><tr><td><code>InpStartHour / Minute</code></td><td><b>13 / 30</b></td><td>13:30 UTC</td></tr><tr><td><code>InpRangeMinutes</code></td><td><b>15</b></td><td>range length, so the box closes 13:44</td></tr><tr><td><code>InpSignalTF</code></td><td><b>M3</b></td><td>confirmation candle</td></tr><tr><td><code>InpNoEntryAfterMin</code></td><td><b>15</b></td><td>stop looking at 13:59</td></tr><tr><td><code>InpMinClosePos</code></td><td><b>0.50</b></td><td>trade only the half it closed in</td></tr><tr><td><code>InpTradeLongs / Shorts</code></td><td><b>true / true</b></td><td>either direction</td></tr><tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr><tr><td><code>InpRR</code></td><td><b>2</b></td><td>target</td></tr><tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0.5 / −0.5</b></td><td>the stop move</td></tr><tr><td><code>InpMaxHoldMinutes</code></td><td><b>90</b></td><td>time cap</td></tr><tr><td><code>InpTradeFri</code></td><td><b>false</b></td><td>Fridays off</td></tr><tr><td><code>InpRiskPercent</code></td><td><b>2.5</b></td><td>risk per trade</td></tr></tbody></table></div>
 </section>
 
 <!-- ================= 02 FILTER ================= -->
@@ -587,6 +574,7 @@ is exactly what a pass-rate account wants.</p></div>
 <p>Nearly even on count &mdash; 15 targets, 49 stops. The edge is
 <strong>size</strong>: a win pays 2R, a loss costs 0.81R.</p>
 </section>
+
 
 <!-- ================= 04 WHY ================= -->
 <section id="why">

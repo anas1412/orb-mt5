@@ -9,6 +9,7 @@ import rules_svg, halves_svg
 from curve import curve_svg
 import json, os, re, datetime as dt
 import ctx
+import spec as S
 d=json.load(open(ctx.DATA_JSON))
 idx=json.load(open(ctx.INDEX_JSON))
 RISK=ctx.RISK
@@ -68,7 +69,7 @@ def m_rows():
     return "".join(out)
 
 def exit_rows():
-    NAME={'target':'Target hit  (+2R)','stop':'Stopped out','time cap':'%d-minute cap'%HOLD}
+    NAME={'target':'Target hit  (+%gR)'%ctx.RR,'stop':'Stopped out','time cap':'%d-minute cap'%HOLD}
     out=[]
     for e in d['exits']:
         cls="pos" if e['total']>0 else "neg"
@@ -256,6 +257,64 @@ def runprose():
             %(run,"once" if times==1 else "%d times"%times,ctx.RISK_TXT,round(cost,1),vs))
 
 tpl=open(os.path.join(ctx.RESEARCH, "template.html")).read()
+def minus(x):
+    """A real minus sign, U+2212 -- the template used one and a hyphen reads wrong
+    beside it."""
+    return ("%g" % x).replace("-", "\u2212")
+
+MOVE_AT = float(ctx.SPEC["rules"]["stop_move_at_r"])
+MOVE_TO = float(ctx.SPEC["rules"]["stop_move_to_r"])
+MOVES   = MOVE_AT > 0
+
+def settings_rows():
+    """The EA inputs this spec actually emits. The table used to be typed out --
+    Asia's twelve values, printed under every report, including one whose stop
+    never moves and whose target is 3R."""
+    inp = S.inputs(ctx.SPEC)
+    tz  = next(k for k, v in S.TZ.items() if v == inp["InpTimeZone"])
+    tf  = next(k for k, v in S.TF.items() if v == inp["InpSignalTF"])
+    dirn = {"both": "either direction", "long": "upside breaks only",
+            "short": "downside breaks only"}[ctx.DIRECTION]
+    rows = [
+        ("InpTimeZone", "TZ_%s" % tz.upper(), "session clock"),
+        ("InpStartHour / Minute", "%d / %d" % (inp["InpStartHour"], inp["InpStartMinute"]), ctx.OPEN_TXT),
+        ("InpRangeMinutes", inp["InpRangeMinutes"], "range length, so the box closes %s" % ctx.LAST_CANDLE),
+        ("InpSignalTF", tf, "confirmation candle"),
+        ("InpNoEntryAfterMin", inp["InpNoEntryAfterMin"], "stop looking at %s" % ctx.ENTRY_LAST),
+        ("InpMinClosePos", "%.2f" % inp["InpMinClosePos"] if ctx.HALF_FILTER else "0",
+         "trade only the half it closed in" if ctx.HALF_FILTER else "off — either half may break"),
+        ("InpTradeLongs / Shorts", "%s / %s" % (inp["InpTradeLongs"], inp["InpTradeShorts"]), dirn),
+        ("InpSLPercentOfRange", "%g" % inp["InpSLPercentOfRange"],
+         "stop at the midpoint" if inp["InpSLPercentOfRange"] == 50 else "stop at %g%% of the range"
+         % inp["InpSLPercentOfRange"]),
+        ("InpRR", "%g" % ctx.RR, "target"),
+        ("InpStopMoveAtR / ToR", "%s / %s" % (minus(MOVE_AT), minus(MOVE_TO)),
+         "the stop move" if MOVES else "off — the stop never moves"),
+        ("InpMaxHoldMinutes", HOLD, "time cap"),
+        ("InpTradeFri", inp["InpTradeFri"], "Fridays traded" if inp["InpTradeFri"] == "true" else "Fridays off"),
+        ("InpRiskPercent", "%g" % ctx.RISK, "risk per trade"),
+    ]
+    return "".join("<tr><td><code>%s</code></td><td><b>%s</b></td><td>%s</td></tr>" % r for r in rows)
+
+def stop_section():
+    """Section 03. The drawn-to-scale diagram belongs to a spec that moves its
+    stop; the exits table below it belongs to every spec, and dropping it with
+    the diagram lost "How the N trades ended" from the 05:30 report."""
+    lib = os.path.join(ctx.RESEARCH, "lib")
+    exits = open(os.path.join(lib, "exits_block.html")).read()
+    if MOVES:
+        return open(os.path.join(lib, "stop_section.html")).read() + "\n" + exits
+    return (('<section id="stop">\n<h2><span class="num">03</span>The stop move</h2>\n'
+            '<p class="sub">There isn\'t one. <code>InpStopMoveAtR</code> is <b>0</b> on this '
+            'configuration: the stop is placed once at the range midpoint and stays there until '
+            'the trade hits it, reaches the %s target, or runs out of time.</p>\n'
+            '<p>So every loss here is a full <b>1R</b> — %d of %d, with none halved. '
+            'The published Asia configuration moves the stop to &minus;0.5R once a trade is '
+            '+0.5R up, which is why its losing runs cost less than a run of full stops. '
+            'That protection is not present here, and the losing-run table below is not '
+            'discounted for it. Section 04 gives the measured reason the move is off.</p>\n'
+            % (ctx.RR_TXT, d["losses"]["n"], d["losses"]["n"])) + exits)
+
 def rules_block():
     """The schematic when it depicts this spec, otherwise a table that does.
 
@@ -298,6 +357,20 @@ def why_rows():
 
 html=(tpl
  .replace("{{WHYROWS}}", why_rows())
+ .replace("{{SETTINGS}}", settings_rows())
+ .replace("{{STOPSECTION}}", stop_section())
+ .replace("{{LOSSNOTE}}", ("%d of %d halved by the stop move" % (d["losses"]["halved"], d["losses"]["n"]))
+                          if MOVES else "every one a full 1R — the stop never moves")
+ .replace("{{STOPRULE}}", ("<li><b>At +%gR, move the stop to %sR</b><span>Once the trade is that far "
+                           "toward target, pull the stop so the worst case is a part loss instead of a "
+                           "full one. Once only — it never moves again.</span></li>" % (MOVE_AT, minus(MOVE_TO)))
+                          if MOVES else
+                          "<li><b>The stop never moves</b><span>Set once at the range midpoint and left "
+                          "there. Every loss is a full 1R.</span></li>")
+ .replace("{{RUNCAPTION}}", (" &mdash; the stop move halves some losses, so averaging them understates "
+                             "the run that matters.") if MOVES else
+                            " &mdash; every loss here is a full stop, since the stop never moves.")
+ .replace("{{MOVEDCLAUSE}}", " where the stop moved to," if MOVES else "")
  .replace("{{TRADES}}",str(H['trades'])).replace("{{WINS}}",str(wins)).replace("{{LOSSES}}",str(losses))
  .replace("{{WR}}","%.1f"%H['wr']).replace("{{EV}}","%+.3f"%H['ev']).replace("{{SE}}","%.3f"%H['se'])
  .replace("{{TOTALR}}","%+.1f"%H['total'])
