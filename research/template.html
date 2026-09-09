@@ -209,6 +209,13 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
 .riskwarn{margin:0 0 18px;padding:12px 16px;border-radius:12px;font-size:13.5px;line-height:1.6;
   border:1px solid var(--neg);background:color-mix(in srgb,var(--neg) 9%,transparent)}
 .riskwarn b{color:var(--neg)}
+.mclegend{display:flex;flex-wrap:wrap;gap:18px;margin:0 0 10px;font-size:12.5px;color:var(--mut)}
+.mclegend span{display:inline-flex;align-items:center;gap:7px}
+.mclegend .sw{width:15px;height:2.5px;border-radius:2px;background:currentColor}
+.mclegend .sw.pos{color:var(--pos)}
+.mclegend .sw.neg{color:var(--neg)}
+.kpi.mcstats{grid-template-columns:repeat(4,minmax(0,1fr));margin:20px 0 0}
+@media (max-width:700px){.kpi.mcstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 *{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 ::-webkit-scrollbar{width:11px;height:11px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -552,29 +559,23 @@ risk stays at $200 regardless. That is what makes every result comparable in R.<
 <!-- ================= 08 MONTE CARLO ================= -->
 <section id="montecarlo">
 <h2><span class="num">08</span>Monte Carlo simulation</h2>
-<p class="sub">The pass rate above is not a formula. It is eighty thousand simulated attempts at the
-challenge, and this is what eighty of them look like.</p>
+<p class="sub">Draw a trade at random from the {{TRADES}} real results, add it, repeat until the
+account hits +{{TARGET}}% or &minus;{{MAXLOSS}}%. That is one attempt. Eighty of them are drawn
+below; the numbers come from 40&nbsp;000.</p>
 
-<figure><div class="fig">{{MCSVG}}</div>
-<figcaption>Eighty attempts at the risk set at the top of the page. Each line is one challenge:
-trades are drawn at random from the {{TRADES}} real results and added up until the account reaches
-the target or the maximum loss. Green finished, red died. Change the risk and the same eighty
-attempts are redrawn against the new limits.</figcaption></figure>
+<div class="mclegend">
+  <span><i class="sw pos"></i>Passed &mdash; reached +{{TARGET}}%</span>
+  <span><i class="sw neg"></i>Failed &mdash; hit &minus;{{MAXLOSS}}%</span>
+</div>
 
-<p><b>How it works.</b> Take the {{TRADES}} real trades. Draw one at random, add it to the account,
-draw another, and keep going until the account either reaches the target or hits the maximum loss.
-That is one attempt. Do it 40&nbsp;000 times and count how many reached the target &mdash; that
-number is the pass rate.</p>
+<div class="fig">{{MCSVG}}</div>
 
-<p><b>Why it comes out where it does.</b> A trade is worth
-<span data-pct="{{EVR}}" data-fmt="plain2"></span>% on average at this risk, so the target is a
-handful of trades away. The only way to lose is a long losing run arriving before that average has
-had time to show up. Nearly every red line above is exactly that, and nothing else.</p>
-
-<p><b>What it assumes.</b> That the next trades look like the {{TRADES}} already taken &mdash; same
-win rate, same sizes, in a random order. It does not know whether the edge weakens. That is the
-real risk here, and no amount of simulation can measure it: it can only be settled by trades this
-strategy has not seen yet.</p>
+<div class="kpi mcstats">
+  <div class="k"><div class="l">Passed</div><div class="v pos"><span data-sweep="pass_pct"></span>%</div></div>
+  <div class="k"><div class="l">Failed</div><div class="v neg"><span data-sweep="fail_pct"></span>%</div></div>
+  <div class="k"><div class="l">Median trades to pass</div><div class="v"><span data-sweep="trades"></span></div></div>
+  <div class="k"><div class="l">Attempts simulated</div><div class="v">40,000</div></div>
+</div>
 </section>
 
 <!-- ================= 08 TRADES ================= -->

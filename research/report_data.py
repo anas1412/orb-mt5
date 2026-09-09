@@ -214,7 +214,8 @@ def sweep_at(risk, paths=40000):
     daily=[x for x in R if B['daily'] and x*risk <= -B['daily']]
     run=out['streaks']['worst_loss']
     return dict(risk=round(risk,2), ret=round(sum(R)*risk,1), maxdd=round(out['maxdd_r']*risk,1),
-                pass_pct=p['both'], trades=p['trades'], days=p['days'],
+                pass_pct=p['both'], fail_pct=round(100.0-p['both'],1),
+                trades=p['trades'], days=p['days'],
                 money=round(ctx.DEPOSIT*risk/100.0),
                 worst_trade=round(worst_trade*risk,2),
                 daily_share=round(100.0*len(daily)/len(R),1),
