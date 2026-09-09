@@ -20,6 +20,8 @@ TZ  = {"UTC": 0, "London": 1, "NewYork": 2, "Tokyo": 3, "Sydney": 4, "Broker": 5
 TF  = {"M1": 1, "M2": 2, "M3": 3, "M4": 4, "M5": 5, "M6": 6, "M10": 10,
        "M12": 12, "M15": 15, "M20": 20, "M30": 30, "H1": 16385}
 LOT = {"lots": 0, "percent": 1, "money": 2}
+# Which side of the break may be traded. "both" is the published configuration.
+DIRECTION = {"both": (True, True), "long": (True, False), "short": (False, True)}
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"]
 BENCHMARKS = {
     # name: (phase 1 target %, phase 2 target %, max loss %, daily loss %, min days)
@@ -42,11 +44,18 @@ DEFAULTS = {
                 "hold_min": 90, "force_close_min": 360, "signal_tf": "M1"},
     "rules":   {"rr": 2.0, "sl_pct_of_range": 50.0, "stop_move_at_r": 0.5, "stop_move_to_r": -0.5,
                 "half_filter": True, "yday_filter": False, "yday_min_body": 30.0,
+                "direction": "both",
                 "days": ["Mon", "Tue", "Wed", "Thu"], "max_trades_per_day": 1},
     "risk":    {"mode": "percent", "per_trade": 2.5, "deposit": 10000, "leverage": 100,
                 "max_daily_loss_pct": 3.5},
     "dates":   {"from": dt.date(2026, 1, 1), "to": "today"},
-    "report":  {"benchmark": "fundingpips-1step-flex", "title": "", "output": ""},
+    "report":  {"benchmark": "fundingpips-1step-flex", "title": "", "output": "",
+                "h1": "", "h1_em": "", "short": "", "lede": ""},
+    # Why each rule is what it is, as [rule, reason] pairs. The reasoning is
+    # measured on ONE configuration, so it belongs to the spec that measured it
+    # -- template.html used to hardcode the Asia rows and print them under every
+    # report, including one whose 60-minute range they argued against.
+    "notes":   {"why": []},
     "magic":   20260821,
 }
 
@@ -95,6 +104,7 @@ def validate(s):
     if ru["stop_move_at_r"]:
         need(ru["stop_move_to_r"] < ru["stop_move_at_r"], "rules.stop_move_to_r must sit below stop_move_at_r")
     need(all(d in DAYS for d in ru["days"]) and ru["days"], "rules.days must be a non-empty subset of %s" % DAYS)
+    need(ru["direction"] in DIRECTION, "rules.direction must be one of %s" % ", ".join(DIRECTION))
     need(ru["yday_min_body"] > 0, "rules.yday_min_body must be positive")
     need(ri["mode"] in LOT, "risk.mode must be one of %s" % ", ".join(LOT))
     need(ri["per_trade"] > 0, "risk.per_trade must be positive")
@@ -103,6 +113,9 @@ def validate(s):
     need(da["to"] == "today" or isinstance(da["to"], dt.date), "dates.to must be a date or \"today\"")
     need(re_["benchmark"] in BENCHMARKS, "report.benchmark must be one of %s" % ", ".join(BENCHMARKS))
     need(not re_["output"] or re_["output"].endswith(".html"), "report.output must end in .html")
+    for row in s["notes"]["why"]:
+        need(isinstance(row, list) and len(row) == 2 and all(isinstance(x, str) for x in row),
+             "notes.why rows must each be [\"rule\", \"reason\"]")
 
 
 def inputs(s):
@@ -131,6 +144,9 @@ def inputs(s):
     }
     for d in DAYS:
         out["InpTrade" + d] = "true" if d in ru["days"] else "false"
+    longs, shorts = DIRECTION[ru["direction"]]
+    out["InpTradeLongs"]  = "true" if longs else "false"
+    out["InpTradeShorts"] = "true" if shorts else "false"
     return out
 
 

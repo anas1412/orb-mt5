@@ -230,9 +230,7 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
 <header>
   <div class="eyebrow"><span class="dot"></span> FundingPips 1 Step Flex &middot; +12% target &middot; 12% max loss &middot; 3% daily</div>
   <h1>The Asia Opening Range<br><em>on Gold</em></h1>
-  <p class="lede">One trade a day, Monday to Thursday, decided in the fifteen
-  minutes after midnight UTC. This is the complete rule set, why each rule is
-  there, and every trade it produced in 2026.</p>
+  <p class="lede">One trade a day, Monday to Thursday, decided in the fifteen minutes after midnight UTC. This is the complete rule set, why each rule is there, and every trade it produced in 2026.</p>
 
   <div class="riskbar">
     <label for="riskin">Risk per trade</label>
@@ -500,7 +498,7 @@ price is still up there. You are reading <em>where it is</em>, not which way it
 moved.</p></div>
 
 <div class="scroll"><table>
-<caption>Every 2026 Monday&ndash;Thursday break, split by which half the range closed in. Totals, not averages, except EV. Total % is the account move at 2% risk per trade. Profit factor is R won divided by R lost &mdash; 2.00 means twice as much won as lost.</caption>
+<caption>Every 2026 Monday–Thursday break, split by which half the range closed in. Totals, not averages, except EV. Total % is the account move at <span data-risk>2.5%</span> risk per trade. Profit factor is R won divided by R lost &mdash; 2.00 means twice as much won as lost.</caption>
 <thead><tr><th>Which half broke</th><th>Trades</th><th>Wins</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Total %</th><th>Verdict</th></tr></thead>
 <tbody><tr class="hi"><td><b>Broke the half it closed in</b></td><td>79</td><td>40</td><td>50.6%</td><td class="pos">2.28</td><td class="pos">+0.544</td><td class="pos">+43.0 R</td><td class="pos">+107.5%</td><td><span class="pill ok">TRADE</span></td></tr><tr class="q"><td><b>Broke the opposite half</b></td><td>25</td><td>7</td><td>28.0%</td><td class="pos">1.01</td><td class="pos">+0.003</td><td class="pos">+0.1 R</td><td class="pos">+0.2%</td><td><span class="pill no">SKIP</span></td></tr><tr><td><b>Every break, no filter</b></td><td>104</td><td>47</td><td>45.2%</td><td class="pos">1.90</td><td class="pos">+0.414</td><td class="pos">+43.0 R</td><td class="pos">+107.5%</td><td></td></tr></tbody></table></div>
 
@@ -597,19 +595,7 @@ is exactly what a pass-rate account wants.</p></div>
 plain terms.</p>
 
 <div class="scroll"><table>
-<thead><tr><th>Rule</th><th>Why this and not something else</th></tr></thead><tbody>
-<tr><td><b>00:00 UTC</b></td><td>A quiet handover between New York closing and Asia opening — not an auction. Ranges built inside an opening auction get violated in both directions and carry no information.</td></tr>
-<tr><td><b>15-minute range</b></td><td>Shorter is better. A 30- or 60-minute range gives a wider box, a wider stop, a smaller position and a worse result. The information is in the first fifteen minutes.</td></tr>
-<tr><td><b>M1 confirmation</b></td><td>The fastest candle catches the earliest break, and the earliest break is the best one — 39% of all breaks happen within five minutes of the range closing.</td></tr>
-<tr><td><b>Entries stop at 00:29</b></td><td>A range that takes more than fifteen minutes to give way is drifting, not breaking. Including later breaks cuts expectancy by more than half.</td></tr>
-<tr><td><b>Stop at the midpoint</b></td><td>Tighter stops sit inside normal noise and get taken out before the move resolves. Wider stops shrink the position so much that the 2R target becomes unreachable inside the hour. The midpoint is the balance point.</td></tr>
-<tr><td><b>2R target</b></td><td>Roughly five times the expectancy of a 1R target. Pushing to 3R lowers the win rate faster than it raises the payoff.</td></tr>
-<tr><td><b>Stop to −0.5R, never to breakeven</b></td><td>A breakeven stop sits exactly where price retests after a breakout — it stops you for nothing on trades that would have worked. Half a risk unit back is far enough away to survive the retest.</td></tr>
-<tr><td><b>Trigger at +0.5R</b></td><td>Moving earlier tightens the stop while the trade is still inside noise. Moving later leaves more on the table when it reverses.</td></tr>
-<tr><td><b>90-minute cap</b></td><td>95% of trades finish on their own before it. The cap only touches the tail, and it keeps you out of the market rather than holding through the London open. At 60 minutes it was cutting three trades off within a hair of their target.</td></tr>
-<tr><td><b>Monday to Thursday</b></td><td>Friday's Asia session runs into weekend position-squaring — flow driven by people flattening rather than committing. It was the only losing day of the week, at a 20.8% win rate.</td></tr>
-<tr><td><b>One trade a day</b></td><td>Keeps a bad day to a single loss and the daily exposure well inside any prop-firm daily limit.</td></tr>
-</tbody></table></div>
+<thead><tr><th>Rule</th><th>Why this and not something else</th></tr></thead><tbody><tr><td><b>00:00 UTC</b></td><td>A quiet handover between New York closing and Asia opening — not an auction. Ranges built inside an opening auction get violated in both directions and carry no information.</td></tr><tr><td><b>15-minute range</b></td><td>Shorter is better. A 30- or 60-minute range gives a wider box, a wider stop, a smaller position and a worse result. The information is in the first fifteen minutes.</td></tr><tr><td><b>M1 confirmation</b></td><td>The fastest candle catches the earliest break, and the earliest break is the best one — 39% of all breaks happen within five minutes of the range closing.</td></tr><tr><td><b>Entries stop at 00:29</b></td><td>A range that takes more than fifteen minutes to give way is drifting, not breaking. Including later breaks cuts expectancy by more than half.</td></tr><tr><td><b>Stop at the midpoint</b></td><td>Tighter stops sit inside normal noise and get taken out before the move resolves. Wider stops shrink the position so much that the 2R target becomes unreachable inside the hour. The midpoint is the balance point.</td></tr><tr><td><b>2R target</b></td><td>Roughly five times the expectancy of a 1R target. Pushing to 3R lowers the win rate faster than it raises the payoff.</td></tr><tr><td><b>Stop to −0.5R, never to breakeven</b></td><td>A breakeven stop sits exactly where price retests after a breakout — it stops you for nothing on trades that would have worked. Half a risk unit back is far enough away to survive the retest.</td></tr><tr><td><b>Trigger at +0.5R</b></td><td>Moving earlier tightens the stop while the trade is still inside noise. Moving later leaves more on the table when it reverses.</td></tr><tr><td><b>90-minute cap</b></td><td>95% of trades finish on their own before it. The cap only touches the tail, and it keeps you out of the market rather than holding through the London open. At 60 minutes it was cutting three trades off within a hair of their target.</td></tr><tr><td><b>Monday to Thursday</b></td><td>Friday's Asia session runs into weekend position-squaring — flow driven by people flattening rather than committing. It was the only losing day of the week, at a 20.8% win rate.</td></tr><tr><td><b>One trade a day</b></td><td>Keeps a bad day to a single loss and the daily exposure well inside any prop-firm daily limit.</td></tr></tbody></table></div>
 </section>
 
 <!-- ================= 05 RESULTS ================= -->

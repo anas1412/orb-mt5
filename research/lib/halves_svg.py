@@ -4,6 +4,7 @@ numbers are read from halves.json, so the picture cannot drift from the data.
     y(v) = 250 - 130*v      v is position in the range: 0 = low, 1 = high
 """
 import json, os
+import ctx
 
 W, H = 1080, 430
 PW, PH = 495, 270          # panel size
@@ -11,7 +12,7 @@ PANELS = (30, 555)         # panel left edges
 BOX_L, BOX_W = 120, 210    # box offset inside a panel, and its width
 def Y(v): return 250 - 130 * v
 
-# each panel: (heading, subheading, the 00:14 candle as open/high/low/close in v,
+# each panel: (heading, subheading, the last range candle as open/high/low/close in v,
 #             which break is taken, accent colour)
 LEFT  = ("Closed in the TOP half",    "up-breaks only",
          (.72, .94, .66, .88), "up",   "var(--pos)")
@@ -60,7 +61,7 @@ def panel(px, head, sub, cndl, take, col):
     a('<rect x="%d" y="%.0f" width="10" height="%.0f" fill="%s" stroke="var(--ink)" '
       'stroke-width="1.1"/>' % (cx, Y(max(o, c)), Y(min(o, c)) - Y(max(o, c)), ccol))
     a('<text x="%d" y="%.0f" font-size="11.5" fill="currentColor" fill-opacity=".7" '
-      'text-anchor="middle">00:14</text>' % (cx + 5, Y(1) - 10))
+      'text-anchor="middle">%s</text>' % (cx + 5, Y(1) - 10, ctx.LAST_CANDLE))
 
     # the two possible breaks
     ax = px + 400

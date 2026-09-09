@@ -64,6 +64,44 @@ def clock(mins_after_open):
     t = (START + mins_after_open) % 1440
     return "%02d:%02d" % (t // 60, t % 60)
 
+# --- who this strategy is, in words the template can print ----------------
+# template.html used to spell out "the Asia Opening Range", "Monday to
+# Thursday" and "00:00 to 00:14 UTC" in its own prose, so every spec report
+# described the Asia session whatever spec built it. Identity lives here now.
+_DOW      = {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4}
+_LONGDOW  = {"Mon": "Monday", "Tue": "Tuesday", "Wed": "Wednesday",
+             "Thu": "Thursday", "Fri": "Friday"}
+DAY_NAMES = [d for d in ("Mon", "Tue", "Wed", "Thu", "Fri") if d in SPEC["rules"]["days"]]
+WEEKDAYS  = frozenset(_DOW[d] for d in DAY_NAMES)
+def _days_txt(long):
+    n = [(_LONGDOW if long else dict((k, k) for k in _LONGDOW))[d] for d in DAY_NAMES]
+    if len(n) == 1:
+        return n[0]
+    if [_DOW[d] for d in DAY_NAMES] == list(range(_DOW[DAY_NAMES[0]], _DOW[DAY_NAMES[-1]] + 1)):
+        return "%s to %s" % (n[0], n[-1]) if long else "%s–%s" % (n[0], n[-1])
+    return ", ".join(n[:-1]) + " and " + n[-1]
+DAYS_TXT   = _days_txt(True)                    # "Monday to Thursday"
+DAYS_SHORT = _days_txt(False)                   # "Mon-Thu"
+DAYS_DASH  = (("%s\u2013%s" % (_LONGDOW[DAY_NAMES[0]], _LONGDOW[DAY_NAMES[-1]]))
+              if len(DAY_NAMES) > 1 and [_DOW[d] for d in DAY_NAMES]
+                 == list(range(_DOW[DAY_NAMES[0]], _DOW[DAY_NAMES[-1]] + 1))
+              else DAYS_TXT)                    # "Monday-Thursday"
+OFF_DAYS   = [_LONGDOW[d] for d in ("Mon", "Tue", "Wed", "Thu", "Fri") if d not in DAY_NAMES]
+
+DIRECTION  = SPEC["rules"]["direction"]
+DIR_TXT    = {"both":  "either way",
+              "long":  "upward breaks only",
+              "short": "downward breaks only"}[DIRECTION]
+HALF_FILTER = bool(SPEC["rules"]["half_filter"])
+
+TZ_TXT      = SES["tz"]
+OPEN_TXT    = "%s %s" % (clock(0), TZ_TXT)                  # "00:00 UTC"
+LAST_CANDLE = clock(RANGE_MIN - 1)                          # "00:14"
+BOX_DONE    = clock(RANGE_MIN)                              # "00:15"
+ENTRY_LAST  = clock(RANGE_MIN + ENTRY_MIN - 1)              # "00:29"
+RANGE_TXT   = "%s to %s %s" % (clock(0), LAST_CANDLE, TZ_TXT)
+SIGNAL_TF   = SES["signal_tf"]
+
 FROM = SPEC["dates"]["from"]
 TO   = (dt.date.today() + dt.timedelta(days=1)) if SPEC["dates"]["to"] == "today" else SPEC["dates"]["to"]
 def in_range(t):
@@ -73,6 +111,24 @@ def row_in_range(row):
     return in_range(dt.datetime.strptime(row["entry_time"], "%Y.%m.%d %H:%M"))
 _last = TO - dt.timedelta(days=1)
 PERIOD = str(FROM.year) if FROM.year == _last.year else "%d\u2013%d" % (FROM.year, _last.year)
+
+# --- the headline and the reasoning, both owned by the spec ----------------
+_rep  = SPEC["report"]
+_WORD = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 10: "ten",
+         15: "fifteen", 20: "twenty", 30: "thirty", 45: "forty-five", 60: "sixty"}
+def _word(n):
+    return _WORD.get(n, str(n))
+RANGE_WORD = _word(RANGE_MIN)
+NDAYS_WORD = _word(len(DAY_NAMES))
+OFF_TXT    = ("%s off. " % ", ".join(d + "s" for d in OFF_DAYS)) if OFF_DAYS else ""
+
+H1    = _rep["h1"]    or "The %s Opening Range" % OPEN_TXT
+H1_EM = _rep["h1_em"] or "on %s" % SYMBOL
+SHORT = _rep["short"] or "ORB %s \u2014 %s." % (OPEN_TXT, SYMBOL)
+LEDE  = _rep["lede"]  or ("One trade a day, %s, decided in the %s minutes after %s. "
+                          "This is the complete rule set, why each rule is there, and "
+                          "every trade it produced in %s." % (DAYS_TXT, RANGE_WORD, OPEN_TXT, PERIOD))
+WHY   = SPEC["notes"]["why"]
 
 _b = S.BENCHMARKS[SPEC["report"]["benchmark"]]
 _label, _text = S.BENCH_TEXT[SPEC["report"]["benchmark"]]

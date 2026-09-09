@@ -242,7 +242,8 @@ def qblock():
     """The quarters box used to be typed by hand and went stale (Q3 read +13.6 R
     after it had fallen). Generated from the same numbers as the table."""
     qs=d['quarters']; pos=[q for q in qs if q['total']>0]
-    title="Every quarter positive" if len(pos)==len(qs) else "%d of %d quarters positive"%(len(pos),len(qs))
+    QL=d.get('qlabel') or "quarter"
+    title=("Every %s positive"%QL) if len(pos)==len(qs) else "%d of %d %ss positive"%(len(pos),len(qs),QL)
     body=", ".join("%s <b>%+.1f R</b>"%(q['q'],q['total']) for q in qs)
     return '<div class="%s"><div class="t">%s</div><p>%s.</p></div>'%("good" if len(pos)==len(qs) else "note",title,body)
 
@@ -255,7 +256,48 @@ def runprose():
             %(run,"once" if times==1 else "%d times"%times,ctx.RISK_TXT,round(cost,1),vs))
 
 tpl=open(os.path.join(ctx.RESEARCH, "template.html")).read()
+def rules_block():
+    """The schematic when it depicts this spec, otherwise a table that does.
+
+    rules_svg is drawn by hand for a 15-candle range, a 2R target and a 90-minute
+    cap. Under a spec with different geometry it showed the wrong strategy, so it
+    now returns "" and this fills in from the spec instead."""
+    svg = rules_svg.build()
+    if svg:
+        return svg
+    rows = [
+        ("Range", "%s, the %s M1 candles from %s" % (ctx.OPEN_TXT, ctx.RANGE_WORD, ctx.RANGE_TXT)),
+        ("Break confirmed on", "a closing %s candle beyond the box" % ctx.SIGNAL_TF),
+        ("Half filter", "only the half the %s candle closed in" % ctx.LAST_CANDLE
+                        if ctx.HALF_FILTER else "off — either half may break"),
+        ("Direction", {"both": "either way", "long": "upward breaks only",
+                       "short": "downward breaks only"}[ctx.DIRECTION]),
+        ("Entries", "from %s until %s, then the day is done" % (ctx.BOX_DONE, ctx.ENTRY_LAST)),
+        ("Stop", "%g%% of the range from the broken edge" % ctx.SPEC["rules"]["sl_pct_of_range"]),
+        ("Target", "%s from entry" % ctx.RR_TXT),
+        ("Stop management", "at +%gR the stop moves to %gR" % (ctx.SPEC["rules"]["stop_move_at_r"],
+                                                               ctx.SPEC["rules"]["stop_move_to_r"])
+                            if ctx.SPEC["rules"]["stop_move_at_r"] else "none — the stop never moves"),
+        ("Time cap", "flat %d minutes after entry" % HOLD),
+        ("Days", "%s, one trade a day" % ctx.DAYS_TXT),
+    ]
+    return ('<div class="scroll"><table><caption>The rules, read from the spec that '
+            'produced this report</caption><tbody>'
+            + "".join("<tr><td><b>%s</b></td><td>%s</td></tr>" % r for r in rows)
+            + '</tbody></table></div>')
+
+def why_rows():
+    """The reasoning table. Rows come from the spec that measured them; a spec
+    with none says so rather than inheriting another strategy's argument."""
+    if ctx.WHY:
+        return "".join("<tr><td><b>%s</b></td><td>%s</td></tr>" % (a, b) for a, b in ctx.WHY)
+    return ("<tr><td colspan=\"2\">This configuration carries no per-rule reasoning. "
+            "It was selected by a parameter search, so each setting is a measured "
+            "result rather than an argument &mdash; read the numbers below and the "
+            "evidence note in section 01.</td></tr>")
+
 html=(tpl
+ .replace("{{WHYROWS}}", why_rows())
  .replace("{{TRADES}}",str(H['trades'])).replace("{{WINS}}",str(wins)).replace("{{LOSSES}}",str(losses))
  .replace("{{WR}}","%.1f"%H['wr']).replace("{{EV}}","%+.3f"%H['ev']).replace("{{SE}}","%.3f"%H['se'])
  .replace("{{TOTALR}}","%+.1f"%H['total'])
@@ -271,7 +313,7 @@ html=(tpl
  .replace("{{MROWS}}",m_rows()).replace("{{EXITROWS}}",exit_rows())
  .replace("{{SWEEPROWS}}",sweep_rows()).replace("{{STREAKROWS}}",streak_rows())
  .replace("{{HALFROWS}}",half_rows())
- .replace("{{RULESSVG}}",rules_svg.build())
+ .replace("{{RULESSVG}}",rules_block())
  .replace("{{HALVESSVG}}",halves_svg.build(d["halves"]))
  .replace("{{ALLR}}","%+.1f"%d["halves"]["all"]["total"])
  .replace("{{ALLN}}","%d"%d["halves"]["all"]["n"])
@@ -297,7 +339,7 @@ html=(tpl
  .replace("{{LASTDATE}}",dt.date.fromisoformat(d["coverage"]["last"]).strftime("%d %B %Y")).replace("{{GALLERY}}",gallery()).replace("{{FILTERS}}",filters())
 
  .replace("{{GENERATED}}", dt.date.today().isoformat())
- .replace("{{TITLE}}", ctx.TITLE or "ORB Asia — Gold")
+ .replace("{{TITLE}}", ctx.TITLE or ctx.H1)
  .replace("{{RISKPCT}}", ctx.RISK_TXT).replace("{{RRTXT}}", ctx.RR_TXT).replace("{{RRWORD}}", ctx.RR_WORD)
  .replace("{{HOLDMIN}}", str(HOLD)).replace("{{PERIOD}}", ctx.PERIOD)
  .replace("{{MAXLOSS}}", "%g" % ctx.BENCH["maxloss"]).replace("{{BENCHTEXT}}", ctx.BENCH["text"])
@@ -306,6 +348,14 @@ html=(tpl
  .replace("{{MCSVG}}", mc_svg(RISK))
  .replace("{{EVR}}", "%.4f" % H["ev"])
  .replace("{{RISKNUM}}", "%g" % ctx.RISK)
+ .replace("{{QLABEL}}", (d.get('qlabel') or "quarter").capitalize())
+ .replace("{{QLABEL2}}", d.get('qlabel') or "quarter")
+ .replace("{{H1}}", ctx.H1).replace("{{H1EM}}", ctx.H1_EM)
+ .replace("{{LEDE}}", ctx.LEDE).replace("{{SHORT}}", ctx.SHORT)
+ .replace("{{RANGEMIN}}", ctx.RANGE_WORD).replace("{{RANGETXT}}", ctx.RANGE_TXT)
+ .replace("{{LASTCANDLE}}", ctx.LAST_CANDLE).replace("{{BOXDONE}}", ctx.BOX_DONE)
+ .replace("{{DAYSTXT}}", ctx.DAYS_TXT).replace("{{DAYSSHORT}}", ctx.DAYS_DASH)
+ .replace("{{OFFDAYS}}", ctx.OFF_TXT).replace("{{NDAYS}}", ctx.NDAYS_WORD)
  .replace("{{DAILY}}", "%g" % (ctx.BENCH["daily"] or 0))
  .replace("{{TARGET}}", "%g" % ctx.BENCH["p1"])
  .replace("{{CLIFFLOSS}}", "%g" % (d["cliffs"]["maxloss"] or 0))

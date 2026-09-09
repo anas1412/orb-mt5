@@ -8,6 +8,20 @@ The stop sits at the range midpoint, so risk = half the range = 0.5 in v, and
 every R level falls out of that: entry v=1.0, +0.5R v=1.25, +2R v=2.0,
 -0.5R v=0.75, -1R (the first stop) v=0.5.
 """
+import ctx
+
+# The candle shapes, the price path and the R levels below are drawn by hand for
+# ONE geometry: a 15-candle range, a 15-minute entry window, a 2R target and a
+# 90-minute cap. Printed under any other spec it illustrates a strategy that is
+# not the one being reported, so build() refuses and build_report falls back to
+# a table generated from the spec.
+DRAWN_FOR = dict(range_min=15, entry_min=15, rr=2.0, hold=90, half_filter=True)
+
+def fits():
+    return (ctx.RANGE_MIN, ctx.ENTRY_MIN, float(ctx.RR), ctx.HOLD, ctx.HALF_FILTER) == (
+        DRAWN_FOR["range_min"], DRAWN_FOR["entry_min"], DRAWN_FOR["rr"],
+        DRAWN_FOR["hold"], DRAWN_FOR["half_filter"])
+
 X0, PXM = 100, 7.5
 def X(m): return round(X0 + PXM * m)
 def Y(v): return 260 - 100 * v
@@ -42,6 +56,8 @@ def candle(m, o, h, l, c, hi=False):
                ' stroke="var(--ink)" stroke-width="1.2"' if hi else ''))
 
 def build():
+    if not fits():
+        return ""
     s = []
     a = s.append
     a('<svg viewBox="0 0 %d %d" width="100%%" role="img">' % (W, H))
@@ -90,7 +106,7 @@ def build():
     # sits in the clear band between the +2R line and the +0.5R line, both of
     # which only start at the fill
     a('<text x="%d" y="88" font-size="13.5" font-weight="700" fill="var(--pos)">'
-      '00:14 closed in the TOP half</text>' % X0)
+      '%s closed in the TOP half</text>' % (X0, ctx.LAST_CANDLE))
     a('<text x="%d" y="108" font-size="12.5" fill="currentColor" fill-opacity=".72">'
       'so only an up-break counts today</text>' % X0)
     a('<path d="M%d 118 L%d %.0f" fill="none" stroke="var(--pos)" stroke-width="1.8" '

@@ -70,6 +70,8 @@ input double           InpMinRangeRatio   = 1.25;          // Rolling filter: ra
 input double           InpMinClosePos     = 0.50;          // Trade only the half the range closed in (0.50=midpoint, 0=off)
 input bool             InpYdayFilter      = false;         // Skip breaks against yesterday's daily candle (off: not in the published config)
 input double           InpYdayMinBody     = 30.0;          // ...only when that candle's body is at least this (price units)
+input bool             InpTradeLongs      = true;          // Trade upside breaks
+input bool             InpTradeShorts     = true;          // Trade downside breaks
 input bool             InpTradeMon        = true;          // Trade Monday
 input bool             InpTradeTue        = true;          // Trade Tuesday
 input bool             InpTradeWed        = true;          // Trade Wednesday
@@ -583,6 +585,11 @@ void LookForBreak()
    if(!isBuy && bars[0].close >= g_rangeLow)
       return;                              // no break either way
 
+   if(!DirectionAllows(isBuy))
+     {
+      g_daySkipped = true;                 // one shot per day, as tested
+      return;
+     }
    if(!ClosePositionAllows(isBuy))
      {
       g_daySkipped = true;                 // one shot per day, as tested
@@ -700,6 +707,26 @@ void EnterOnRangeDirection()
 //| way. That is deliberate - it matches how the rule was measured,    |
 //| and the opposite break is allowed by construction, so permitting   |
 //| it would turn every rejection into a coin flip on the other side.  |
+//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
+//| Direction filter. Both sides on by default, so the published      |
+//| configuration is unchanged.                                       |
+//|                                                                   |
+//| A one-sided session is a bet on drift, not on the range, so this  |
+//| is off unless a spec asks for it. Rejection ends the day like the  |
+//| other filters: the first break decides the session, and a break   |
+//| the wrong way means no trade rather than waiting for a better one. |
+//+------------------------------------------------------------------+
+bool DirectionAllows(const bool isBuy)
+  {
+   if(isBuy ? InpTradeLongs : InpTradeShorts)
+      return true;
+
+   PrintFormat("%s break, but %s are switched off - skipping",
+               isBuy ? "upside" : "downside", isBuy ? "longs" : "shorts");
+   return false;
+  }
+
 //+------------------------------------------------------------------+
 bool ClosePositionAllows(const bool isBuy)
   {

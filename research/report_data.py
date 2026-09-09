@@ -18,7 +18,7 @@ out_cover=None
 alldates=sorted(bars)
 sessions=set()
 for d,b in bars.items():
-    if d.weekday()>3: continue
+    if d.weekday() not in ctx.WEEKDAYS: continue   # the spec's trading days, not Mon-Thu
     st=ctx.session_start(d)
     if len([m for m in range(st,st+ctx.RANGE_MIN) if m in b])>=ctx.RANGE_MIN: sessions.add(d)
 
@@ -120,17 +120,30 @@ for k in sorted(weeks):
                              seq=(b or {}).get('seq','')))
 # quarterly
 out['quarters']=[]
-for q,(a,b_) in enumerate([(1,3),(4,6),(7,9)],1):
-    rs=[r for r in rows if a<=r['t'].month<=b_]
-    days=len([d for d in sessions if a<=d.month<=b_])
-    x=blk(rs,days)
-    if x: out['quarters'].append(dict(q="Q%d"%q, **x))
+out['qlabel']=None   # set below: 'year' or 'quarter'
+MULTIYEAR = len({r['t'].year for r in rows}) > 1
+if MULTIYEAR:
+    # One row per year. Quarters across three years read as one Q1 and hid which
+    # year the money came from -- the only thing this strategy is judged on.
+    for y in sorted({r['t'].year for r in rows}):
+        rs=[r for r in rows if r['t'].year==y]
+        x=blk(rs,len([d for d in sessions if d.year==y]))
+        if x: out['quarters'].append(dict(q=str(y), **x))
+else:
+    for q,(a,b_) in enumerate([(1,3),(4,6),(7,9),(10,12)],1):
+        rs=[r for r in rows if a<=r['t'].month<=b_]
+        days=len([d for d in sessions if a<=d.month<=b_])
+        x=blk(rs,days)
+        if x: out['quarters'].append(dict(q="Q%d"%q, **x))
+out['qlabel'] = "year" if MULTIYEAR else "quarter"
 # monthly
 out['months']=[]
-for m in sorted({r['t'].month for r in rows}):
-    rs=[r for r in rows if r['t'].month==m]
-    days=len([d for d in sessions if d.month==m])
-    out['months'].append(dict(month=dt.date(ctx.FROM.year,m,1).strftime("%b"), **blk(rs,days)))
+for ym in sorted({(r['t'].year,r['t'].month) for r in rows}):
+    y,m=ym
+    rs=[r for r in rows if (r['t'].year,r['t'].month)==ym]
+    days=len([d for d in sessions if (d.year,d.month)==ym])
+    lab=dt.date(y,m,1).strftime("%b %y" if MULTIYEAR else "%b")
+    out['months'].append(dict(month=lab, **blk(rs,days)))
 # exits
 c=Counter()
 for r in rows:

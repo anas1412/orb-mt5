@@ -33,3 +33,42 @@ to   = "today"
 [report]
 benchmark = "fundingpips-1step-flex"   # fundingpips-1step-flex | fundingpips-2step | ftmo-2step | none
 output    = "index.html"               # the GitHub Pages landing page
+# The published wording. Without these the report falls back to a generated
+# headline built from the session clock, which is correct but not the name
+# this study is known by.
+title     = "ORB Asia — Gold"
+h1        = "The Asia Opening Range"
+h1_em     = "on Gold"
+short     = "ORB Asia — gold."
+lede      = """One trade a day, Monday to Thursday, decided in the fifteen \
+minutes after midnight UTC. This is the complete rule set, why each rule is \
+there, and every trade it produced in 2026."""
+
+# Why each rule is what it is. These were measured on THIS configuration and
+# used to live in template.html, which printed them under every spec report --
+# including one whose 60-minute range the third row argues against.
+[notes]
+why = [
+  ["00:00 UTC",
+   "A quiet handover between New York closing and Asia opening — not an auction. Ranges built inside an opening auction get violated in both directions and carry no information."],
+  ["15-minute range",
+   "Shorter is better. A 30- or 60-minute range gives a wider box, a wider stop, a smaller position and a worse result. The information is in the first fifteen minutes."],
+  ["M1 confirmation",
+   "The fastest candle catches the earliest break, and the earliest break is the best one — 39% of all breaks happen within five minutes of the range closing."],
+  ["Entries stop at 00:29",
+   "A range that takes more than fifteen minutes to give way is drifting, not breaking. Including later breaks cuts expectancy by more than half."],
+  ["Stop at the midpoint",
+   "Tighter stops sit inside normal noise and get taken out before the move resolves. Wider stops shrink the position so much that the 2R target becomes unreachable inside the hour. The midpoint is the balance point."],
+  ["{{RRTXT}} target",
+   "Roughly five times the expectancy of a 1R target. Pushing to 3R lowers the win rate faster than it raises the payoff."],
+  ["Stop to −0.5R, never to breakeven",
+   "A breakeven stop sits exactly where price retests after a breakout — it stops you for nothing on trades that would have worked. Half a risk unit back is far enough away to survive the retest."],
+  ["Trigger at +0.5R",
+   "Moving earlier tightens the stop while the trade is still inside noise. Moving later leaves more on the table when it reverses."],
+  ["{{HOLDMIN}}-minute cap",
+   "{{SELFPCT}} of trades finish on their own before it. The cap only touches the tail, and it keeps you out of the market rather than holding through the London open. At 60 minutes it was cutting three trades off within a hair of their target."],
+  ["Monday to Thursday",
+   "Friday's Asia session runs into weekend position-squaring — flow driven by people flattening rather than committing. It was the only losing day of the week, at a 20.8% win rate."],
+  ["One trade a day",
+   "Keeps a bad day to a single loss and the daily exposure well inside any prop-firm daily limit."],
+]

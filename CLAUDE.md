@@ -260,8 +260,10 @@ bash update.sh --account accounts/ftmo.env   # log into that broker account; els
 YDAY=true bash research/run_window.sh 2026.01.01 2026.09.08   # one-off: yesterday filter ON
 ```
 
-**The published results are 2026 only.** `report_data.py` drops every other
-year, so the edge is never claimed on 2024 or 2025. The tester still starts in
+**The published results are 2026 only** -- `dates.from` in `asia-gold.toml`,
+enforced by `ctx.in_range`, so the edge is never claimed on 2024 or 2025. A
+spec may ask for more: `gold-0530-r60.toml` runs 2024-2026 because consistency
+across all three years is the only thing it claims. The tester still starts in
 2024 because those trades label the session dataset in `research/`, where the
 quiet years serve as negative examples -- they are inputs to that file and
 nothing else.
@@ -363,6 +365,37 @@ Intrabar ordering is the standing limitation: an M1 bar will not say whether
 its high or its low came first, which decides whether the stop move armed
 before the stop was hit. It affects the exit *time* on a handful of charts, not
 the recorded result. Check it before trusting a replayed day.
+
+### The template describes the spec, not Asia
+
+`template.html` held the session identity in its own prose -- "The Asia Opening
+Range", "Monday to Thursday" five times, "00:00 to 00:14 UTC", "every trade it
+produced in 2026" -- so **every spec report was an Asia report with a different
+title**. The 13:30 pages said `00:14` six times each. Worse, the "why each rule
+exists" table was 11 hardcoded Asia rows, one of which argues that a 60-minute
+range is worse than a 15-minute one, printed under a report whose range is 60
+minutes.
+
+Identity now comes from `ctx`: `H1`, `LEDE`, `SHORT`, `OPEN_TXT`, `RANGE_TXT`,
+`LAST_CANDLE`, `BOX_DONE`, `ENTRY_LAST`, `DAYS_TXT`, `DAYS_DASH`, `OFF_TXT`,
+`WEEKDAYS`, `DIRECTION`. Rules of thumb:
+
+- **Reasoning belongs to the spec that measured it.** `[notes].why` is a list of
+  `[rule, reason]` pairs. A spec with none gets a line saying so, not another
+  strategy's argument.
+- **A hand-drawn diagram must refuse to draw the wrong strategy.**
+  `rules_svg.fits()` compares the spec against `DRAWN_FOR` (15 candles, 15-min
+  window, 2R, 90-min cap, half filter on) and `build()` returns `""` otherwise;
+  `build_report.rules_block()` then generates a table from the spec instead.
+- **`report_data.py` reads `ctx.WEEKDAYS`,** never `weekday() > 3`.
+- A multi-year spec gets **one row per year** in place of quarters
+  (`out['qlabel']`), and month rows labelled `Jan 24`. Keying on the month alone
+  reported three Januaries as one.
+
+`InpTradeLongs` / `InpTradeShorts` on the EA back `rules.direction`
+(`both` / `long` / `short`). Both default true, so the published config is
+untouched. New EA inputs must also be added to `tester.ini` -- `run_window.sh`
+refuses a spec key with no line there rather than letting the tester ignore it.
 
 ### Numbers live in report_data.json
 
