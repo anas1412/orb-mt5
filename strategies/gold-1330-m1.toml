@@ -1,0 +1,13 @@
+# The same 13:30 UTC range as gold-1330-m3, but breaks confirmed on M1 closes
+# -- the published setup's own signal timeframe.  15:30 UTC+2 = 13:30 UTC.
+name = "gold-1330-m1"
+
+[session]
+tz        = "UTC"
+start     = "13:30"
+range_min = 15
+signal_tf = "M1"
+
+[report]
+output = "gold-1330-m1.html"
+title  = "ORB 13:30 UTC on Gold, M1 breakout"
