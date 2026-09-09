@@ -101,6 +101,8 @@ BOX_DONE    = clock(RANGE_MIN)                              # "00:15"
 ENTRY_LAST  = clock(RANGE_MIN + ENTRY_MIN - 1)              # "00:29"
 RANGE_TXT   = "%s to %s %s" % (clock(0), LAST_CANDLE, TZ_TXT)
 SIGNAL_TF   = SES["signal_tf"]
+ENTRY_MODE  = SES["entry_mode"]
+ENTRY_TXT   = S.ENTRY_TEXT[ENTRY_MODE]
 
 FROM = SPEC["dates"]["from"]
 TO   = (dt.date.today() + dt.timedelta(days=1)) if SPEC["dates"]["to"] == "today" else SPEC["dates"]["to"]

@@ -314,51 +314,7 @@ nothing that needs you awake at a screen.</p>
 </section>
 
 <!-- ================= 02 FILTER ================= -->
-<section id="filter">
-<h2><span class="num">02</span>The half-of-the-range rule</h2>
-<p class="sub">One filter, and it is the only one the edge needs. Draw a line
-across the middle of the range box and ask <strong>which half the {{LASTCANDLE}} candle
-closed in</strong>. That half is the only direction you are allowed to trade
-today.</p>
-
-<div class="good"><div class="t">The whole rule</div>
-<p><strong>Closed in the top half &rarr; longs only.</strong> If price breaks
-<em>down</em> instead, you sit out.<br>
-<strong>Closed in the bottom half &rarr; shorts only.</strong> If price breaks
-<em>up</em> instead, you sit out.</p></div>
-
-<figure><div class="fig">
-{{HALVESSVG}}
-</div>
-<figcaption>The half the range closed in is the half price was already leaning into. Breaking that way continues the move; breaking the other way means price crossed the whole box first.</figcaption></figure>
-
-<h3>Reading it live, in three seconds</h3>
-<ul>
-<li>At {{BOXDONE}}, look at the box and find its <strong>middle</strong>.</li>
-<li>Did the last candle close <strong>above</strong> the middle? Only a break of the <strong>high</strong> counts today.</li>
-<li><strong>Below</strong> the middle? Only a break of the <strong>low</strong> counts.</li>
-<li>Price breaks the wrong side &rarr; <strong>no trade, close the platform.</strong></li>
-</ul>
-
-<div class="note"><div class="t">The one thing people get wrong</div>
-<p>The candle's <strong>colour doesn't matter.</strong> A red candle sitting near the
-top of the box still counts as the top half &mdash; it drifted down a little but
-price is still up there. You are reading <em>where it is</em>, not which way it
-moved.</p></div>
-
-<div class="scroll"><table>
-<caption>Every {{PERIOD}} {{DAYSSHORT}} break, split by which half the range closed in. Totals, not averages, except EV. Total % is the account move at <span data-risk></span> risk per trade. Profit factor is R won divided by R lost &mdash; 2.00 means twice as much won as lost.</caption>
-<thead><tr><th>Which half broke</th><th>Trades</th><th>Wins</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Total %</th><th>Verdict</th></tr></thead>
-<tbody>{{HALFROWS}}</tbody></table></div>
-
-<div class="good"><div class="t">Why this filter is worth having</div>
-<p>Trading <em>every</em> break returns <strong>{{ALLR}}&nbsp;R</strong> from {{ALLN}} trades at a
-{{ALLWR}} win rate. Trading only the correct half returns <strong>{{TOTALR}}&nbsp;R</strong> from
-{{TRADES}} &mdash; virtually the same money from <strong>{{OPPN}} fewer trades</strong>, at a
-<strong>{{WR}}</strong> win rate. The {{OPPN}} skipped trades contributed {{OPPR}}&nbsp;R between
-them: all of the drawdown, none of the profit. Fewer trades at a higher win rate
-is exactly what a pass-rate account wants.</p></div>
-</section>
+{{HALVESSECTION}}
 
 <!-- ================= 03 STOP MOVE ================= -->
 {{STOPSECTION}}

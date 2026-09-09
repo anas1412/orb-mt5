@@ -396,7 +396,7 @@ nothing that needs you awake at a screen.</p>
 
 <div class="scroll"><table>
 <caption>Settings, exactly as they appear in the EA</caption>
-<thead><tr><th>Input</th><th>Value</th><th>Meaning</th></tr></thead><tbody><tr><td><code>InpTimeZone</code></td><td><b>TZ_UTC</b></td><td>session clock</td></tr><tr><td><code>InpStartHour / Minute</code></td><td><b>13 / 30</b></td><td>13:30 UTC</td></tr><tr><td><code>InpRangeMinutes</code></td><td><b>15</b></td><td>range length, so the box closes 13:44</td></tr><tr><td><code>InpSignalTF</code></td><td><b>M1</b></td><td>confirmation candle</td></tr><tr><td><code>InpNoEntryAfterMin</code></td><td><b>15</b></td><td>stop looking at 13:59</td></tr><tr><td><code>InpMinClosePos</code></td><td><b>0.50</b></td><td>trade only the half it closed in</td></tr><tr><td><code>InpTradeLongs / Shorts</code></td><td><b>true / true</b></td><td>either direction</td></tr><tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr><tr><td><code>InpRR</code></td><td><b>2</b></td><td>target</td></tr><tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0.5 / −0.5</b></td><td>the stop move</td></tr><tr><td><code>InpMaxHoldMinutes</code></td><td><b>90</b></td><td>time cap</td></tr><tr><td><code>InpTradeFri</code></td><td><b>false</b></td><td>Fridays off</td></tr><tr><td><code>InpRiskPercent</code></td><td><b>2.5</b></td><td>risk per trade</td></tr></tbody></table></div>
+<thead><tr><th>Input</th><th>Value</th><th>Meaning</th></tr></thead><tbody><tr><td><code>InpTimeZone</code></td><td><b>TZ_UTC</b></td><td>session clock</td></tr><tr><td><code>InpStartHour / Minute</code></td><td><b>13 / 30</b></td><td>13:30 UTC</td></tr><tr><td><code>InpRangeMinutes</code></td><td><b>15</b></td><td>range length, so the box closes 13:44</td></tr><tr><td><code>InpSignalTF</code></td><td><b>M1</b></td><td>confirmation candle</td></tr><tr><td><code>InpEntryMode</code></td><td><b>MARKET_ON_CLOSE</b></td><td>market, the moment the signal candle closes</td></tr><tr><td><code>InpNoEntryAfterMin</code></td><td><b>15</b></td><td>stop looking at 13:59</td></tr><tr><td><code>InpMinClosePos</code></td><td><b>0.50</b></td><td>trade only the half it closed in</td></tr><tr><td><code>InpTradeLongs / Shorts</code></td><td><b>true / true</b></td><td>either direction</td></tr><tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr><tr><td><code>InpRR</code></td><td><b>2</b></td><td>target</td></tr><tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0.5 / −0.5</b></td><td>the stop move</td></tr><tr><td><code>InpMaxHoldMinutes</code></td><td><b>90</b></td><td>time cap</td></tr><tr><td><code>InpTradeFri</code></td><td><b>false</b></td><td>Fridays off</td></tr><tr><td><code>InpRiskPercent</code></td><td><b>2.5</b></td><td>risk per trade</td></tr></tbody></table></div>
 </section>
 
 <!-- ================= 02 FILTER ================= -->
@@ -497,6 +497,7 @@ moved.</p></div>
 them: all of the drawdown, none of the profit. Fewer trades at a higher win rate
 is exactly what a pass-rate account wants.</p></div>
 </section>
+
 
 <!-- ================= 03 STOP MOVE ================= -->
 <section id="stop">

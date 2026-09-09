@@ -280,6 +280,7 @@ def settings_rows():
         ("InpStartHour / Minute", "%d / %d" % (inp["InpStartHour"], inp["InpStartMinute"]), ctx.OPEN_TXT),
         ("InpRangeMinutes", inp["InpRangeMinutes"], "range length, so the box closes %s" % ctx.LAST_CANDLE),
         ("InpSignalTF", tf, "confirmation candle"),
+        ("InpEntryMode", ctx.ENTRY_MODE.upper(), ctx.ENTRY_TXT),
         ("InpNoEntryAfterMin", inp["InpNoEntryAfterMin"], "stop looking at %s" % ctx.ENTRY_LAST),
         ("InpMinClosePos", "%.2f" % inp["InpMinClosePos"] if ctx.HALF_FILTER else "0",
          "trade only the half it closed in" if ctx.HALF_FILTER else "off — either half may break"),
@@ -295,6 +296,37 @@ def settings_rows():
         ("InpRiskPercent", "%g" % ctx.RISK, "risk per trade"),
     ]
     return "".join("<tr><td><code>%s</code></td><td><b>%s</b></td><td>%s</td></tr>" % r for r in rows)
+
+def halves_section():
+    """Section 02. A spec with the filter off does not get to claim it.
+
+    The section argues the half-of-the-range rule is the only filter the edge
+    needs. Under InpMinClosePos=0 nothing is being filtered, so it becomes a
+    plain breakdown of how the two halves behaved instead of a rule."""
+    if ctx.HALF_FILTER:
+        return open(os.path.join(ctx.RESEARCH, "lib", "halves_section.html")).read()
+    h = d["halves"]
+    return ('<section id="filter">\n<h2><span class="num">02</span>'
+            'The half-of-the-range rule</h2>\n'
+            '<p class="sub">Not used here. <code>InpMinClosePos</code> is <b>0</b> on this '
+            'configuration, so the first %s candle to close outside the box is taken '
+            'whichever way it breaks.</p>\n'
+            '<p>The published Asia configuration only trades the half the range closed in, '
+            'and that filter is where most of its edge comes from. Switching it off is a '
+            'deliberate part of this spec, not an oversight &mdash; here is how the two '
+            'halves actually behaved, for reference rather than as a rule.</p>\n'
+            '<div class="scroll"><table><caption>Split by which half of the box the '
+            '%s candle closed in &mdash; descriptive only, since both are traded</caption>'
+            '<thead><tr><th>Range closed in the</th><th>Trades</th><th>Win rate</th>'
+            '<th>EV per trade</th><th>Total R</th></tr></thead><tbody>'
+            '<tr><td><b>top half</b></td><td>%d</td><td>%.1f%%</td><td>%+.3f R</td>'
+            '<td>%+.1f R</td></tr>'
+            '<tr><td><b>bottom half</b></td><td>%d</td><td>%.1f%%</td><td>%+.3f R</td>'
+            '<td>%+.1f R</td></tr>'
+            '</tbody></table></div>\n</section>'
+            % (ctx.SIGNAL_TF, ctx.LAST_CANDLE,
+               h["same"]["n"], h["same"]["wr"], h["same"]["ev"], h["same"]["total"],
+               h["opp"]["n"], h["opp"]["wr"], h["opp"]["ev"], h["opp"]["total"]))
 
 def stop_section():
     """Section 03. The drawn-to-scale diagram belongs to a spec that moves its
@@ -327,6 +359,7 @@ def rules_block():
     rows = [
         ("Range", "%s, the %s M1 candles from %s" % (ctx.OPEN_TXT, ctx.RANGE_WORD, ctx.RANGE_TXT)),
         ("Break confirmed on", "a closing %s candle beyond the box" % ctx.SIGNAL_TF),
+        ("Entry", ctx.ENTRY_TXT),
         ("Half filter", "only the half the %s candle closed in" % ctx.LAST_CANDLE
                         if ctx.HALF_FILTER else "off — either half may break"),
         ("Direction", {"both": "either way", "long": "upward breaks only",
@@ -359,8 +392,11 @@ html=(tpl
  .replace("{{WHYROWS}}", why_rows())
  .replace("{{SETTINGS}}", settings_rows())
  .replace("{{STOPSECTION}}", stop_section())
+ .replace("{{HALVESSECTION}}", halves_section())
  .replace("{{LOSSNOTE}}", ("%d of %d halved by the stop move" % (d["losses"]["halved"], d["losses"]["n"]))
-                          if MOVES else "every one a full 1R — the stop never moves")
+                          if MOVES else
+                          ("%d of %d closed on the time cap for less than a full stop"
+                           % (d["losses"]["halved"], d["losses"]["n"])))
  .replace("{{STOPRULE}}", ("<li><b>At +%gR, move the stop to %sR</b><span>Once the trade is that far "
                            "toward target, pull the stop so the worst case is a part loss instead of a "
                            "full one. Once only — it never moves again.</span></li>" % (MOVE_AT, minus(MOVE_TO)))

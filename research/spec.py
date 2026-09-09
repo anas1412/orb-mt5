@@ -20,6 +20,16 @@ TZ  = {"UTC": 0, "London": 1, "NewYork": 2, "Tokyo": 3, "Sydney": 4, "Broker": 5
 TF  = {"M1": 1, "M2": 2, "M3": 3, "M4": 4, "M5": 5, "M6": 6, "M10": 10,
        "M12": 12, "M15": 15, "M20": 20, "M30": 30, "H1": 16385}
 LOT = {"lots": 0, "percent": 1, "money": 2}
+# How the fill happens once a signal exists. The pipeline pinned this to 0 while
+# the EA offered four, so no spec could say how it entered -- and a report that
+# does not state market-or-limit is missing a rule, not a detail.
+ENTRY = {"market_on_close": 0, "stop_at_level": 1, "limit_retest": 2, "first_candle": 3}
+ENTRY_TEXT = {
+    "market_on_close": "market, the moment the signal candle closes",
+    "stop_at_level":   "a stop order resting at the box edge, filled on touch",
+    "limit_retest":    "a limit back at the box edge after the close beyond it",
+    "first_candle":    "no break needed: the range's own direction at its close",
+}
 # Which side of the break may be traded. "both" is the published configuration.
 DIRECTION = {"both": (True, True), "long": (True, False), "short": (False, True)}
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"]
@@ -41,7 +51,8 @@ DEFAULTS = {
     "symbol": "XAUUSD",
     "server": "FTMO-Demo",
     "session": {"tz": "UTC", "start": "00:00", "range_min": 15, "entry_window_min": 15,
-                "hold_min": 90, "force_close_min": 360, "signal_tf": "M1"},
+                "hold_min": 90, "force_close_min": 360, "signal_tf": "M1",
+                "entry_mode": "market_on_close"},
     "rules":   {"rr": 2.0, "sl_pct_of_range": 50.0, "stop_move_at_r": 0.5, "stop_move_to_r": -0.5,
                 "half_filter": True, "yday_filter": False, "yday_min_body": 30.0,
                 "direction": "both",
@@ -99,6 +110,7 @@ def validate(s):
     need(0 <= ses["entry_window_min"] <= 240, "session.entry_window_min must be 0..240 (0 = no limit)")
     need(0 <= ses["hold_min"] <= 1440, "session.hold_min must be 0..1440 (0 = off)")
     need(ses["signal_tf"] in TF, "session.signal_tf must be one of %s" % ", ".join(TF))
+    need(ses["entry_mode"] in ENTRY, "session.entry_mode must be one of %s" % ", ".join(ENTRY))
     need(0 < ru["rr"] <= 20, "rules.rr must be in (0, 20]")
     need(0 <= ru["sl_pct_of_range"] <= 100, "rules.sl_pct_of_range must be 0..100")
     if ru["stop_move_at_r"]:
@@ -125,7 +137,7 @@ def inputs(s):
     out = {
         "InpTimeZone": TZ[ses["tz"]], "InpStartHour": int(hh), "InpStartMinute": int(mm),
         "InpRangeMinutes": ses["range_min"], "InpSignalTF": TF[ses["signal_tf"]],
-        "InpEntryMode": 0, "InpNoEntryAfterMin": ses["entry_window_min"],
+        "InpEntryMode": ENTRY[ses["entry_mode"]], "InpNoEntryAfterMin": ses["entry_window_min"],
         "InpForceCloseMin": ses["force_close_min"], "InpMaxHoldMinutes": ses["hold_min"],
         "InpMaxTradesPerDay": ru["max_trades_per_day"],
         "InpMinClosePos": 0.50 if ru["half_filter"] else 0,

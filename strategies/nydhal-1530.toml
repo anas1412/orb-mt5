@@ -1,0 +1,72 @@
+# Nydhal's spec: the M15 candle 15:30-15:45 UTC+2 (13:30-13:45 UTC) on gold,
+# broken by a closing M15 candle, entries open until 17:00 UTC+2.
+#
+# One change from what he wrote: the stop goes at the FAR SIDE of the box, not
+# at the break candle's low. Measured on 2026, that is +0.074 R a trade against
+# +0.025 R -- the tighter stop makes a fixed cost a bigger share of the risk.
+name = "nydhal-1530"
+
+[session]
+tz               = "UTC"
+start            = "13:30"      # 15:30 UTC+2
+range_min        = 15           # the single M15 candle, so the box closes 13:44
+entry_window_min = 75           # a break must close by 15:00 UTC = 17:00 UTC+2
+hold_min         = 60
+signal_tf        = "M15"        # the break counts when an M15 candle CLOSES outside
+entry_mode       = "market_on_close"
+
+[rules]
+rr              = 1.0           # his 1RR, and the measured optimum sits at 1.0-1.25
+sl_pct_of_range = 100.0         # the far side of the box
+stop_move_at_r  = 0             # off
+half_filter     = false         # he did not ask for it: either half may break
+direction       = "both"
+days            = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+
+[risk]
+per_trade = 2.5
+
+[dates]
+from = 2026-01-01
+to   = "today"
+
+[report]
+benchmark = "fundingpips-1step-flex"
+output    = "nydhal-1530.html"
+title     = "ORB 15:30 UTC+2 — Gold, 1R"
+h1        = "The 15:30 Candle"
+h1_em     = "on Gold, at 1R"
+short     = "ORB 15:30 UTC+2 — gold, 1R."
+lede      = """One trade a session, Monday to Friday, from the single M15 candle that \
+closes at 15:30 UTC+2. Break either way, stop at the far side of the box, target 1R, \
+flat after an hour."""
+
+[notes]
+why = [
+  ["15:30 UTC+2 (13:30 UTC)",
+   "Nydhal's choice, not a search result. It is the same session as the existing 13:30 study, so the two are directly comparable."],
+  ["One M15 candle as the box",
+   "15:30 to 15:44. The high and low of that single candle are the whole range — no 15 separate M1 candles to aggregate."],
+  ["M15 close to confirm the break",
+   "A wick through the box does not count. Roughly half of all breaks happen on the very first M15 candle after the box."],
+  ["Entries until 17:00 UTC+2",
+   "Five M15 candles. His rule 4. Breaks later than that were not tested, because the bar data runs out before a 60-minute hold would finish."],
+  ["Stop at the far side of the box",
+   "The one change from his spec. His rule 5 puts it at the break candle's low, which measured +0.025 R a trade against +0.074 R here. The far-side stop is roughly $22 wide against $14, and a fixed spread-and-commission is a smaller share of the bigger number: 0.031 R against 0.052 R."],
+  ["Not the candle before the break",
+   "His rule 6. Tested at every target and it never beat the box edge. When the break lands on the first candle it is the box edge anyway."],
+  ["Market entry, on the candle's close",
+   "The order goes in the moment the M15 candle closes beyond the box; the fill is the next minute's open. The alternative — a limit resting back at the box edge — only fills 73% of the time and earns +0.053 R against +0.088 R, because the trades it misses are the ones that ran away."],
+  ["1R target",
+   "What he asked for, and it is right. 0.5R is worse everywhere — a smaller payout against the same fixed cost. The measured peak is 1.0R to 1.25R."],
+  ["No stop move",
+   "A 1R target is reached or not before a stop move at +0.5R would earn its keep."],
+  ["60-minute cap",
+   "Half the trades end on it. A wider stop needs longer to travel 1R, and longer holds cannot be tested on this bar data without dropping the late-entry summer sessions that do not fit — which would keep only the fast winners."],
+  ["Either direction, no half filter",
+   "His rules 1 and 2 take the first break whichever way it goes. The Asia configuration's half-of-the-range filter is switched off here."],
+  ["2026 only — read this",
+   "The same rules over 2024-2026 lose money on all 32 stop-and-target settings tested. Gold is far more expensive in 2026, so the box is wider in dollars and a fixed cost matters less. That is the whole reason this year looks different, and it is the main reason to distrust the numbers below."],
+  ["Evidence strength — and this",
+   "The best t-statistic across every variant is about +1.3. Anything under +2 is indistinguishable from luck. On this many trades the result is a hint, not a finding."],
+]

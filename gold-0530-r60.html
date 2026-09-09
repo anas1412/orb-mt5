@@ -255,7 +255,7 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
     <div class="k"><div class="l">Average win</div><div class="v pos">+1.96 R</div>
       <div class="n">27 reached the target</div></div>
     <div class="k"><div class="l">Average loss</div><div class="v neg">-0.99 R</div>
-      <div class="n">every one a full 1R — the stop never moves</div></div>
+      <div class="n">3 of 75 closed on the time cap for less than a full stop</div></div>
 
     <div class="k"><div class="l">Challenge pass rate</div><div class="v pos"><span data-sweep="pass_pct">95.6</span>%</div>
       <div class="n">one phase, +12% target</div></div>
@@ -291,7 +291,7 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
 nothing that needs you awake at a screen.</p>
 
 <figure><div class="fig">
-<div class="scroll"><table><caption>The rules, read from the spec that produced this report</caption><tbody><tr><td><b>Range</b></td><td>05:30 UTC, the sixty M1 candles from 05:30 to 06:29 UTC</td></tr><tr><td><b>Break confirmed on</b></td><td>a closing M1 candle beyond the box</td></tr><tr><td><b>Half filter</b></td><td>only the half the 06:29 candle closed in</td></tr><tr><td><b>Direction</b></td><td>upward breaks only</td></tr><tr><td><b>Entries</b></td><td>from 06:30 until 06:44, then the day is done</td></tr><tr><td><b>Stop</b></td><td>50% of the range from the broken edge</td></tr><tr><td><b>Target</b></td><td>3R from entry</td></tr><tr><td><b>Stop management</b></td><td>none — the stop never moves</td></tr><tr><td><b>Time cap</b></td><td>flat 180 minutes after entry</td></tr><tr><td><b>Days</b></td><td>Monday to Friday, one trade a day</td></tr></tbody></table></div>
+<div class="scroll"><table><caption>The rules, read from the spec that produced this report</caption><tbody><tr><td><b>Range</b></td><td>05:30 UTC, the sixty M1 candles from 05:30 to 06:29 UTC</td></tr><tr><td><b>Break confirmed on</b></td><td>a closing M1 candle beyond the box</td></tr><tr><td><b>Entry</b></td><td>market, the moment the signal candle closes</td></tr><tr><td><b>Half filter</b></td><td>only the half the 06:29 candle closed in</td></tr><tr><td><b>Direction</b></td><td>upward breaks only</td></tr><tr><td><b>Entries</b></td><td>from 06:30 until 06:44, then the day is done</td></tr><tr><td><b>Stop</b></td><td>50% of the range from the broken edge</td></tr><tr><td><b>Target</b></td><td>3R from entry</td></tr><tr><td><b>Stop management</b></td><td>none — the stop never moves</td></tr><tr><td><b>Time cap</b></td><td>flat 180 minutes after entry</td></tr><tr><td><b>Days</b></td><td>Monday to Friday, one trade a day</td></tr></tbody></table></div>
 </div>
 <figcaption>One session end to end, on two straight scales: 10&nbsp;px a minute across, 50&nbsp;px an R up. Drawn with the fill at the range high; in practice it lands a few points beyond and the target is measured from the actual fill.</figcaption></figure>
 
@@ -310,7 +310,7 @@ nothing that needs you awake at a screen.</p>
 
 <div class="scroll"><table>
 <caption>Settings, exactly as they appear in the EA</caption>
-<thead><tr><th>Input</th><th>Value</th><th>Meaning</th></tr></thead><tbody><tr><td><code>InpTimeZone</code></td><td><b>TZ_UTC</b></td><td>session clock</td></tr><tr><td><code>InpStartHour / Minute</code></td><td><b>5 / 30</b></td><td>05:30 UTC</td></tr><tr><td><code>InpRangeMinutes</code></td><td><b>60</b></td><td>range length, so the box closes 06:29</td></tr><tr><td><code>InpSignalTF</code></td><td><b>M1</b></td><td>confirmation candle</td></tr><tr><td><code>InpNoEntryAfterMin</code></td><td><b>15</b></td><td>stop looking at 06:44</td></tr><tr><td><code>InpMinClosePos</code></td><td><b>0.50</b></td><td>trade only the half it closed in</td></tr><tr><td><code>InpTradeLongs / Shorts</code></td><td><b>true / false</b></td><td>upside breaks only</td></tr><tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr><tr><td><code>InpRR</code></td><td><b>3</b></td><td>target</td></tr><tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0 / −0.5</b></td><td>off — the stop never moves</td></tr><tr><td><code>InpMaxHoldMinutes</code></td><td><b>180</b></td><td>time cap</td></tr><tr><td><code>InpTradeFri</code></td><td><b>true</b></td><td>Fridays traded</td></tr><tr><td><code>InpRiskPercent</code></td><td><b>1.5</b></td><td>risk per trade</td></tr></tbody></table></div>
+<thead><tr><th>Input</th><th>Value</th><th>Meaning</th></tr></thead><tbody><tr><td><code>InpTimeZone</code></td><td><b>TZ_UTC</b></td><td>session clock</td></tr><tr><td><code>InpStartHour / Minute</code></td><td><b>5 / 30</b></td><td>05:30 UTC</td></tr><tr><td><code>InpRangeMinutes</code></td><td><b>60</b></td><td>range length, so the box closes 06:29</td></tr><tr><td><code>InpSignalTF</code></td><td><b>M1</b></td><td>confirmation candle</td></tr><tr><td><code>InpEntryMode</code></td><td><b>MARKET_ON_CLOSE</b></td><td>market, the moment the signal candle closes</td></tr><tr><td><code>InpNoEntryAfterMin</code></td><td><b>15</b></td><td>stop looking at 06:44</td></tr><tr><td><code>InpMinClosePos</code></td><td><b>0.50</b></td><td>trade only the half it closed in</td></tr><tr><td><code>InpTradeLongs / Shorts</code></td><td><b>true / false</b></td><td>upside breaks only</td></tr><tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr><tr><td><code>InpRR</code></td><td><b>3</b></td><td>target</td></tr><tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0 / −0.5</b></td><td>off — the stop never moves</td></tr><tr><td><code>InpMaxHoldMinutes</code></td><td><b>180</b></td><td>time cap</td></tr><tr><td><code>InpTradeFri</code></td><td><b>true</b></td><td>Fridays traded</td></tr><tr><td><code>InpRiskPercent</code></td><td><b>1.5</b></td><td>risk per trade</td></tr></tbody></table></div>
 </section>
 
 <!-- ================= 02 FILTER ================= -->
@@ -411,6 +411,7 @@ moved.</p></div>
 them: all of the drawdown, none of the profit. Fewer trades at a higher win rate
 is exactly what a pass-rate account wants.</p></div>
 </section>
+
 
 <!-- ================= 03 STOP MOVE ================= -->
 <section id="stop">
