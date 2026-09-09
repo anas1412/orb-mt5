@@ -131,6 +131,10 @@ LEDE  = _rep["lede"]  or ("One trade a day, %s, decided in the %s minutes after 
                           "This is the complete rule set, why each rule is there, and "
                           "every trade it produced in %s." % (DAYS_TXT, RANGE_WORD, OPEN_TXT, PERIOD))
 WHY   = SPEC["notes"]["why"]
+VARIANT      = _rep["variant"]
+VARIANT_ALT  = _rep["variant_alt"]
+VARIANT_HREF = _rep["variant_alt_href"]
+MIN_RANGE_PCT = float(SPEC["rules"]["min_range_pct"])
 
 _b = S.BENCHMARKS[SPEC["report"]["benchmark"]]
 _label, _text = S.BENCH_TEXT[SPEC["report"]["benchmark"]]

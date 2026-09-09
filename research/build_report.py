@@ -333,6 +333,19 @@ def renumber(html):
         raise SystemExit("build_report: numbered %d sections, nav lists %d" % (n[0], want))
     return html
 
+def toggle():
+    """The switch between a pair of reports that differ by one rule.
+
+    Both sides are fully built and separately audited. The alternative is a page
+    that swaps its own numbers in the browser, and since every figure on it
+    depends on which trades were taken, a partial swap would show a mixture and
+    give no sign of it."""
+    if not (ctx.VARIANT and ctx.VARIANT_ALT and ctx.VARIANT_HREF):
+        return ""
+    return ('<div class="vtog"><span class="lbl">Range filter</span>'
+            '<span>%s</span><a href="%s">%s</a></div>'
+            % (ctx.VARIANT, ctx.VARIANT_HREF, ctx.VARIANT_ALT))
+
 def halves_section():
     """Section 02, and only for a spec that uses the filter.
 
@@ -404,6 +417,7 @@ html=(tpl
  .replace("{{STOPSECTION}}", stop_section())
  .replace("{{HALVESSECTION}}", halves_section())
  .replace("{{NAV}}", nav_links())
+ .replace("{{TOGGLE}}", toggle())
  .replace("{{SKIPREASON}}", "the half-of-the-range rule or the entry window"
                             if ctx.HALF_FILTER else "the entry window")
  .replace("{{LOSSNOTE}}", ("%d of %d halved by the stop move" % (d["losses"]["halved"], d["losses"]["n"]))

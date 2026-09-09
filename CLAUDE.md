@@ -320,6 +320,31 @@ Every one of these looked like something else first.
 | A fake login appears in the Navigator | **Never test with made-up credentials.** MetaTrader saves every attempted account to `accounts.dat`; a bogus `Login=1` shows up in the user's GUI and can become the terminal's last-used account, disconnecting the live EA |
 | The tester ignores the dates asked for | It **clamps `ToDate`** to its history and reports the clamped value. That clamped date is the coverage record, and it is an *exclusive* end -- the day it names is the day it did not test |
 
+### A pair of reports that differ by one rule
+
+`InpMinRangePercent` skips a session whose range is under a percent of price.
+OFF by default; the published numbers do not use it. It exists because a
+minimum in POINTS drifts: 636 points was a wide gold range in 2024 and a narrow
+one in 2026. Measured against price the Asia range ran 0.079% in 2024, 0.142%
+in 2025 and 0.261% in 2026, and pooling all three years the narrowest quarter
+of sessions won 14.7% for -0.474 R against the widest quarter's 44.9% for
++0.381 R. The years the strategy lost are the years the box was too small to
+pay for itself.
+
+Showing both answers is **two specs and two pages**, not one page toggling its
+own numbers. `report.variant` / `variant_alt` / `variant_alt_href` render a
+switch in the masthead, and each side is built and audited on its own. The
+reason is that every figure on the page -- headline, curve, quarters, exits,
+streaks, pass rate, Monte Carlo, gallery -- depends on which trades were taken,
+so a page that swapped some of them in the browser would show a mixture and
+give no sign of it. `check_charts` cannot catch what it is not asked to compare.
+
+`apply_range_filter.py` builds the filtered spec's CSVs from the unfiltered
+run instead of testing again: the filter only ever removes sessions, so the
+result is a subset. It re-derives the money columns, because size compounds and
+dropping a trade changes every balance after it; R is size-independent, so
+nothing published moves.
+
 ### Bar coverage decides which holds are testable
 
 `dump.ini` records broker hours 1-18, which is why `bars_XAUUSD.csv` stopped at

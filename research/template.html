@@ -224,6 +224,14 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
 ::-webkit-scrollbar-corner{background:transparent}
 tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:640}
 @media (max-width:640px){.riskbar{grid-template-columns:1fr auto}.chips{grid-column:1/-1}}
+.vtog{display:inline-flex;margin:18px 0 0;border:1px solid var(--line);border-radius:2px;
+  overflow:hidden;font:500 12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+.vtog a,.vtog span{padding:9px 15px;text-decoration:none;display:block;letter-spacing:.02em}
+.vtog span{background:var(--acc);color:#fff}
+.vtog a{color:var(--ink);background:transparent}
+.vtog a:hover{background:var(--line)}
+.vtog .lbl{background:transparent;color:var(--mut);border-right:1px solid var(--line);
+  font-weight:400;cursor:default}
 </style></head><body>
 <div class="wrap">
 
@@ -231,6 +239,7 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
   <div class="eyebrow"><span class="dot"></span> FundingPips 1 Step Flex &middot; +{{TARGET}}% target &middot; {{MAXLOSS}}% max loss &middot; {{DAILY}}% daily</div>
   <h1>{{H1}}<br><em>{{H1EM}}</em></h1>
   <p class="lede">{{LEDE}}</p>
+{{TOGGLE}}
 
   <div class="riskbar">
     <label for="riskin">Risk per trade</label>

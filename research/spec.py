@@ -55,13 +55,18 @@ DEFAULTS = {
                 "entry_mode": "market_on_close"},
     "rules":   {"rr": 2.0, "sl_pct_of_range": 50.0, "stop_move_at_r": 0.5, "stop_move_to_r": -0.5,
                 "half_filter": True, "yday_filter": False, "yday_min_body": 30.0,
-                "direction": "both",
+                "direction": "both", "min_range_pct": 0.0,
                 "days": ["Mon", "Tue", "Wed", "Thu"], "max_trades_per_day": 1},
     "risk":    {"mode": "percent", "per_trade": 2.5, "deposit": 10000, "leverage": 100,
                 "max_daily_loss_pct": 3.5},
     "dates":   {"from": dt.date(2026, 1, 1), "to": "today"},
     "report":  {"benchmark": "fundingpips-1step-flex", "title": "", "output": "",
-                "h1": "", "h1_em": "", "short": "", "lede": ""},
+                "h1": "", "h1_em": "", "short": "", "lede": "",
+                # A pair of reports that differ by one rule gets a switch between
+                # them. Two audited pages rather than one page toggling its own
+                # numbers: every figure here depends on which trades were taken,
+                # so a half-swapped page would show a mix and look fine doing it.
+                "variant": "", "variant_alt": "", "variant_alt_href": ""},
     # Why each rule is what it is, as [rule, reason] pairs. The reasoning is
     # measured on ONE configuration, so it belongs to the spec that measured it
     # -- template.html used to hardcode the Asia rows and print them under every
@@ -117,6 +122,7 @@ def validate(s):
         need(ru["stop_move_to_r"] < ru["stop_move_at_r"], "rules.stop_move_to_r must sit below stop_move_at_r")
     need(all(d in DAYS for d in ru["days"]) and ru["days"], "rules.days must be a non-empty subset of %s" % DAYS)
     need(ru["direction"] in DIRECTION, "rules.direction must be one of %s" % ", ".join(DIRECTION))
+    need(0 <= ru["min_range_pct"] < 10, "rules.min_range_pct must be 0..10 (0 = off)")
     need(ru["yday_min_body"] > 0, "rules.yday_min_body must be positive")
     need(ri["mode"] in LOT, "risk.mode must be one of %s" % ", ".join(LOT))
     need(ri["per_trade"] > 0, "risk.per_trade must be positive")
@@ -146,7 +152,7 @@ def inputs(s):
         "InpSLMode": 0, "InpSLPercentOfRange": ru["sl_pct_of_range"],
         "InpTPMode": 0, "InpRR": ru["rr"],
         "InpStopMoveAtR": ru["stop_move_at_r"], "InpStopMoveToR": ru["stop_move_to_r"],
-        "InpRangeLookback": 0,
+        "InpRangeLookback": 0, "InpMinRangePercent": ru["min_range_pct"],
         "InpLotMode": LOT[ri["mode"]],
         "InpRiskPercent": ri["per_trade"] if ri["mode"] == "percent" else 2.0,
         "InpRiskMoney":   ri["per_trade"] if ri["mode"] == "money" else 100,

@@ -64,6 +64,7 @@ input ENUM_ENTRY_MODE  InpEntryMode       = ENTRY_MARKET_ON_CLOSE;  // Entry mod
 input int              InpMaxTradesPerDay = 1;             // Max trades per day
 input double           InpMaxSpreadPoints = 0;             // Max spread (points, 0=off)
 input double           InpMinRangePoints  = 0;             // Min range size (points, 0=off)
+input double           InpMinRangePercent = 0;             // Min range size (percent of price, 0=off)
 input double           InpMaxRangePoints  = 0;             // Max range size (points, 0=off)
 input int              InpRangeLookback   = 0;             // Rolling filter: sessions to compare against (0=off)
 input double           InpMinRangeRatio   = 1.25;          // Rolling filter: range must be this x the median
@@ -464,6 +465,25 @@ void BuildRange()
      }
 
    const double sizePoints = (g_rangeHigh - g_rangeLow) / g_point;
+
+   // A minimum in POINTS drifts as the instrument reprices: 636 points was a
+   // wide gold range in 2024 and a narrow one in 2026. Measured against price,
+   // the Asia range ran 0.079% in 2024, 0.142% in 2025 and 0.261% in 2026, and
+   // pooling all three years the narrowest quarter of sessions won 14.7% of the
+   // time for -0.474 R while the widest won 44.9% for +0.381. So the percent
+   // form is the one that keeps meaning the same thing. OFF by default -- the
+   // published numbers do not use it.
+   if(InpMinRangePercent > 0 && g_rangeLastClose > 0)
+     {
+      const double pct = 100.0 * (g_rangeHigh - g_rangeLow) / g_rangeLastClose;
+      if(pct < InpMinRangePercent)
+        {
+         g_daySkipped = true;
+         PrintFormat("range %.4f%% of price below minimum %.4f%% - day skipped",
+                     pct, InpMinRangePercent);
+         return;
+        }
+     }
    if(InpMinRangePoints > 0 && sizePoints < InpMinRangePoints)
      {
       g_daySkipped = true;
