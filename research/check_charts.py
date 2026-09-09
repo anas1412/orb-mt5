@@ -51,8 +51,11 @@ for r in rows:
                              "win" if r["Rf"] > 0 else "loss")
     if i["file"] != want:
         fail("filename", "%s is %s, expected %s" % (d, i["file"], want))
-    if not os.path.exists(os.path.join(TRADES, i["file"])):
-        fail("file", "%s is missing from disk" % i["file"])
+    # Check where the PAGE points, not where the drawing code happened to write.
+    # Checking the source folder passed while every gallery link was broken.
+    web = os.path.join(ctx.REPO, ctx.TRADES_WEB, i["file"])
+    if not os.path.exists(web):
+        fail("file", "%s/%s is missing -- the page links to it" % (ctx.TRADES_WEB, i["file"]))
 
     # 3. a hold time of 0 means the walk never advanced; 90 is the cap
     if not 0 <= i["held"] <= HOLD:

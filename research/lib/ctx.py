@@ -62,8 +62,11 @@ else:
     OUT_DIR      = os.path.join(RESEARCH, "out", NAME)
     CSV_LIVE     = os.path.join(OUT_DIR, "live_cp0.50.csv")
     CSV_ALL      = os.path.join(OUT_DIR, "live_cp0.00.csv")
-    TRADES_DIR   = os.path.join(OUT_DIR, "trades")
+    # Drawn straight into the folder the page links to. They used to be written
+    # under research/out and the page pointed at the repo root, so every gallery
+    # image on a spec report was a broken link.
     TRADES_WEB   = "trades-" + NAME
+    TRADES_DIR   = os.path.join(REPO, TRADES_WEB)
     REPORT_LOCAL = None
     REPORT_PAGES = os.path.join(REPO, SPEC["report"]["output"] or NAME + "-full-report.html")
     os.makedirs(TRADES_DIR, exist_ok=True)
