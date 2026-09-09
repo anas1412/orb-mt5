@@ -84,7 +84,7 @@ def sweep_rows():
     for s in d['sweep']:
         # The input accepts anything to 99%, but a table of 129 rows is not a
         # table. Show the range where the answer is still a decision.
-        if s['risk'] > 3 or s['risk'] < 0.5 or (s['risk']*4) % 1: continue
+        if s['risk'] > 2.5 or s['risk'] < 0.5 or (s['risk']*4) % 1: continue
         cls=[]
         if s['run_breaks']: cls.append('neg')
         if daily and abs(s['worst_trade'])>daily: cls.append('neg')
@@ -185,7 +185,7 @@ def riskdata():
     """
     hist=dict(d['streaks']['loss_hist'])
     run=d['streaks']['worst_loss']
-    return dict(sweep=d['sweep'], chips=[1,1.5,2,2.5,3], maxrisk=99, risk=RISK,
+    return dict(sweep=d['sweep'], chips=[1,1.5,2,2.5], maxrisk=99, risk=RISK,
                 maxloss=ctx.BENCH['maxloss'], daily=ctx.BENCH['daily'],
                 target=ctx.BENCH['p1'], worst_run=run,
                 worst_run_times="once" if hist.get(run,1)==1 else "%d times"%hist.get(run,1),
