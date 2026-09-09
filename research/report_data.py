@@ -233,6 +233,15 @@ STEPS=([round(0.25*i,2) for i in range(1,21)]          # 0.25 .. 5.00 in quarter
 out['sweep']=[sweep_at(x, 40000 if x <= 3 else 6000)
               for x in sorted(set(STEPS) | {round(RISK,2)})]
 
+# Sample challenge attempts for the chart. Only the RANDOMNESS is fixed here:
+# each attempt is a list of indexes into R, and the barriers are applied later
+# at whatever risk the reader picks. So the page redraws the same eighty
+# attempts rather than inventing new ones, and the picture is identical on
+# every reload.
+_mc=random.Random(20260909)
+out['mc_seq']=[[_mc.randrange(len(R)) for _ in range(60)] for _ in range(80)]
+out['R']=[round(x,4) for x in R]
+
 # Where each rule starts to bite, in risk-per-trade. A limit divided by an R is
 # risk-independent, so these are fixed prose -- but they were typed into the
 # template and a comment, which is how a number goes stale.

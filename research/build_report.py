@@ -176,6 +176,48 @@ def filters():
     return '<div class="filters">' + "".join(g) + '</div>'
 
 wins=H['wins']; losses=H['trades']-wins
+def mc_svg(risk):
+    """Eighty sample attempts, drawn as they would run at this risk.
+
+    The sequences come from report_data so the browser can redraw the SAME
+    eighty attempts when risk changes -- the barriers move, the luck does not.
+    Illustration only: the pass rate itself comes from 40 000 attempts in the
+    sweep, not from these eighty.
+    """
+    W,H,PAD=1180,300,44
+    T=ctx.BENCH['p1']; L=-(ctx.BENCH['maxloss'])
+    Rv=d['R']; hi=T*1.45; lo=L*1.35
+    X=lambda i,n: PAD + i*(W-PAD-24)/max(n-1,1)
+    Y=lambda v: H-PAD - (v-lo)*(H-PAD-16)/(hi-lo)
+    runs=[]
+    longest=1
+    for seq in d['mc_seq']:
+        eq=0.0; pts=[0.0]; out_='open'
+        for k in seq:
+            eq += risk*Rv[k]; pts.append(eq)
+            if eq>=T: out_='pass'; break
+            if eq<=L: out_='fail'; break
+        runs.append((out_,pts)); longest=max(longest,len(pts))
+    g=[]
+    for v,lab in ((T,'+%g%% target'%T),(L,'%g%% max loss'%L)):
+        g.append('<line x1="%d" y1="%.1f" x2="%d" y2="%.1f" stroke="currentColor" '
+                 'stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="7 5"/>'%(PAD,Y(v),W-24,Y(v)))
+        g.append('<text x="%d" y="%.1f" font-size="12" font-weight="640" fill="currentColor" '
+                 'fill-opacity=".65" dy="-6">%s</text>'%(PAD+2,Y(v),lab))
+    g.append('<line x1="%d" y1="%.1f" x2="%d" y2="%.1f" stroke="currentColor" stroke-opacity=".18"/>'%(PAD,Y(0),W-24,Y(0)))
+    for out_,pts in sorted(runs, key=lambda r: r[0]=='fail'):
+        col='var(--neg)' if out_=='fail' else 'var(--pos)'
+        g.append('<polyline points="%s" fill="none" stroke="%s" stroke-width="%s" '
+                 'stroke-opacity="%s" stroke-linejoin="round"/>'
+                 %(" ".join("%.1f,%.1f"%(X(i,longest),Y(v)) for i,v in enumerate(pts)),
+                   col, "2" if out_=="fail" else "1.1", ".95" if out_=="fail" else ".5"))
+    nf=len([1 for o,_ in runs if o=='fail'])
+    return ('<svg viewBox="0 0 %d %d" width="100%%" role="img" id="mcsvg" data-mc="1">'
+            '<title>Eighty simulated challenge attempts</title>'
+            '<desc>Eighty attempts at %g%% risk; %d reached the target, %d hit the maximum loss.</desc>'
+            '%s<text x="%d" y="%d" font-size="11" fill="currentColor" fill-opacity=".5">trades taken</text>'
+            '</svg>')%(W,H,risk,len(runs)-nf,nf,"".join(g),PAD,H-10)
+
 def riskdata():
     """What the page needs to answer "what changes if I risk X?" offline.
 
@@ -186,6 +228,7 @@ def riskdata():
     hist=dict(d['streaks']['loss_hist'])
     run=d['streaks']['worst_loss']
     return dict(sweep=d['sweep'], chips=[1,1.5,2,2.5], maxrisk=99, risk=RISK,
+                R=d['R'], mc=d['mc_seq'],
                 maxloss=ctx.BENCH['maxloss'], daily=ctx.BENCH['daily'],
                 target=ctx.BENCH['p1'], worst_run=run,
                 worst_run_times="once" if hist.get(run,1)==1 else "%d times"%hist.get(run,1),
@@ -257,6 +300,8 @@ html=(tpl
  .replace("{{MAXLOSS}}", "%g" % ctx.BENCH["maxloss"]).replace("{{BENCHTEXT}}", ctx.BENCH["text"])
  .replace("{{DEPOSIT}}", "$%s" % format(int(ctx.DEPOSIT), ",")).replace("{{RISKMONEY}}", "$%s" % format(int(round(ctx.RISK_MONEY)), ","))
  .replace("{{QBLOCK}}", qblock()).replace("{{RUNPROSE}}", runprose())
+ .replace("{{MCSVG}}", mc_svg(RISK))
+ .replace("{{EVR}}", "%.4f" % H["ev"])
  .replace("{{RISKNUM}}", "%g" % ctx.RISK)
  .replace("{{DAILY}}", "%g" % (ctx.BENCH["daily"] or 0))
  .replace("{{TARGET}}", "%g" % ctx.BENCH["p1"])

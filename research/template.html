@@ -522,6 +522,17 @@ a drawdown limit. That makes streaks matter more than averages.</p>
 snaps to a simulated level. Pass, trades and days come from walking the real outcomes against the
 barriers, not from scaling.</p>
 
+<figure><div class="fig">{{MCSVG}}</div>
+<figcaption>Eighty simulated attempts at the risk set above. Each line is one challenge: trades are
+drawn at random from the {{TRADES}} real results and added up until the account reaches the target
+or the maximum loss. Green finished; red died. The pass rate in the table comes from 40&nbsp;000 of
+these, not from the eighty drawn here.</figcaption></figure>
+
+<p>Failure has one shape. A challenge needs <span data-pct="{{EVR}}" data-fmt="plain2"></span>% per
+trade on average, so the target arrives in a handful of trades &mdash; and the only way to lose is a
+long losing run before that average has time to show up. Nearly every red line above is exactly
+that.</p>
+
 <div class="scroll"><table>
 <caption>Losing runs that actually happened in {{PERIOD}}. The cost is the worst real sequence of that length, not a run of average losses &mdash; the stop move halves some losses, so averaging them understates the run that matters.</caption>
 <thead><tr><th>Consecutive losses</th><th>Times</th><th>Worst it actually cost</th><th>At the risk above</th></tr></thead>
@@ -691,6 +702,44 @@ demo test thoroughly before risking capital.</p>
     if(f === 'plain2')  return v.toFixed(2);
     return (v>=0?'+':'') + v.toFixed(1);
   }
+  // Redraw the sample attempts. Same eighty sequences every time -- only the
+  // barriers move -- so the picture never reshuffles under the reader.
+  function drawMC(risk){
+    var svg = document.getElementById('mcsvg');
+    if(!svg || !D.mc) return;
+    var W=1180,H=300,PAD=44, T=D.target, L=-D.maxloss,
+        hi=T*1.45, lo=L*1.35, runs=[], longest=1;
+    D.mc.forEach(function(seq){
+      var eq=0, pts=[0], out='open';
+      for(var i=0;i<seq.length;i++){
+        eq += risk*D.R[seq[i]]; pts.push(eq);
+        if(eq>=T){ out='pass'; break; }
+        if(eq<=L){ out='fail'; break; }
+      }
+      runs.push([out,pts]); if(pts.length>longest) longest=pts.length;
+    });
+    var X=function(i){ return PAD + i*(W-PAD-24)/Math.max(longest-1,1); },
+        Y=function(v){ return H-PAD - (v-lo)*(H-PAD-16)/(hi-lo); }, g=[];
+    [[T,'+'+T+'% target'],[L,L+'% max loss']].forEach(function(b){
+      g.push('<line x1="'+PAD+'" y1="'+Y(b[0]).toFixed(1)+'" x2="'+(W-24)+'" y2="'+Y(b[0]).toFixed(1)+
+             '" stroke="currentColor" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="7 5"/>');
+      g.push('<text x="'+(PAD+2)+'" y="'+Y(b[0]).toFixed(1)+'" font-size="12" font-weight="640" '+
+             'fill="currentColor" fill-opacity=".65" dy="-6">'+b[1]+'</text>');
+    });
+    g.push('<line x1="'+PAD+'" y1="'+Y(0).toFixed(1)+'" x2="'+(W-24)+'" y2="'+Y(0).toFixed(1)+
+           '" stroke="currentColor" stroke-opacity=".18"/>');
+    runs.sort(function(a,b){ return (a[0]==='fail') - (b[0]==='fail'); }).forEach(function(r){
+      var fail = r[0]==='fail';
+      g.push('<polyline points="'+r[1].map(function(v,i){ return X(i).toFixed(1)+','+Y(v).toFixed(1); }).join(' ')+
+             '" fill="none" stroke="'+(fail?'var(--neg)':'var(--pos)')+'" stroke-width="'+(fail?2:1.1)+
+             '" stroke-opacity="'+(fail?'.95':'.5')+'" stroke-linejoin="round"/>');
+    });
+    var nf = runs.filter(function(r){ return r[0]==='fail'; }).length;
+    svg.innerHTML = '<title>Eighty simulated challenge attempts</title><desc>Eighty attempts at ' +
+      num(risk) + '% risk; ' + (runs.length-nf) + ' reached the target, ' + nf + ' hit the maximum loss.</desc>' +
+      g.join('') + '<text x="'+PAD+'" y="'+(H-10)+'" font-size="11" fill="currentColor" fill-opacity=".5">trades taken</text>';
+  }
+
   window.orbRisk = function(){ return CUR; };
   var CUR = parseFloat(D.risk);
 
@@ -751,6 +800,7 @@ demo test thoroughly before risking capital.</p>
           'which is the trade to make once the account is funded rather than being won.'
         : '';
     }
+    drawMC(r);
     // The gallery footer has its own percent; recompute it against the new risk.
     if(window.orbGalleryRefresh) window.orbGalleryRefresh();
     try { history.replaceState(null, '', '?risk=' + num(r)); } catch(e){}
