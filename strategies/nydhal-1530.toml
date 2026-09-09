@@ -16,7 +16,7 @@ signal_tf        = "M15"        # the break counts when an M15 candle CLOSES out
 entry_mode       = "market_on_close"
 
 [rules]
-rr              = 1.0           # his 1RR, and the measured optimum sits at 1.0-1.25
+rr              = 1.2           # measured optimum; his 1R earns +0.095 R against +0.118
 sl_pct_of_range = 100.0         # the far side of the box
 stop_move_at_r  = 0             # off
 half_filter     = false         # he did not ask for it: either half may break
@@ -33,12 +33,12 @@ to   = "today"
 [report]
 benchmark = "fundingpips-1step-flex"
 output    = "nydhal-1530.html"
-title     = "ORB 15:30 UTC+2 — Gold, 1R"
+title     = "ORB 15:30 UTC+2 — Gold, 1.2R"
 h1        = "The 15:30 Candle"
-h1_em     = "on Gold, at 1R"
-short     = "ORB 15:30 UTC+2 — gold, 1R."
+h1_em     = "on Gold, at 1.2R"
+short     = "ORB 15:30 UTC+2 — gold, 1.2R."
 lede      = """One trade a session, Monday to Friday, from the single M15 candle that \
-closes at 15:30 UTC+2. Break either way, stop at the far side of the box, target 1R, \
+closes at 15:30 UTC+2. Break either way, stop at the far side of the box, target 1.2R, \
 flat after an hour."""
 
 [notes]
@@ -57,14 +57,14 @@ why = [
    "His rule 6. Tested at every target and it never beat the box edge. When the break lands on the first candle it is the box edge anyway."],
   ["Market entry, on the candle's close",
    "The order goes in the moment the M15 candle closes beyond the box; the fill is the next minute's open. The alternative — a limit resting back at the box edge — only fills 73% of the time and earns +0.053 R against +0.088 R, because the trades it misses are the ones that ran away."],
-  ["1R target",
-   "What he asked for, and it is right. 0.5R is worse everywhere — a smaller payout against the same fixed cost. The measured peak is 1.0R to 1.25R."],
+  ["1.2R target",
+   "He asked for 1R, which earns +0.095 R a trade. 1.2R earns +0.118 R for the same worst losing run, so the extra 0.2R is free. 0.5R is the worst choice of all — a smaller payout meets the same fixed cost. Everything from 1.1R to 1.3R scores between +0.099 and +0.118, so read 1.2R as the middle of a plateau rather than a precise peak."],
   ["No stop move",
    "A 1R target is reached or not before a stop move at +0.5R would earn its keep."],
   ["60-minute cap",
-   "Half the trades end on it. A wider stop needs longer to travel 1R, and longer holds cannot be tested on this bar data without dropping the late-entry summer sessions that do not fit — which would keep only the fast winners."],
-  ["Either direction, no half filter",
-   "His rules 1 and 2 take the first break whichever way it goes. The Asia configuration's half-of-the-range filter is switched off here."],
+   "Not in his spec, which runs to stop or target. It is here for drawdown, not for profit: running to resolution earns the same +0.093 R a trade and a better 55.4% win rate, but the worst losing run doubles from -3.02 R to -5.03 R, which at 2.5% risk is 12.6% and breaches the 12% limit on its own. The cap turns would-be full stops into small exits. It is also the honest limit of the data — 32.5% of no-cap trades are closed by the bar file ending, not by the rule."],
+  ["Either direction",
+   "His rules 1 and 2: the first M15 candle to close outside the box is taken whichever way it broke. 83 longs, 74 shorts."],
   ["2026 only — read this",
    "The same rules over 2024-2026 lose money on all 32 stop-and-target settings tested. Gold is far more expensive in 2026, so the box is wider in dollars and a fixed cost matters less. That is the whole reason this year looks different, and it is the main reason to distrust the numbers below."],
   ["Evidence strength — and this",

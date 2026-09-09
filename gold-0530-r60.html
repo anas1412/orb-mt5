@@ -274,7 +274,7 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
   <nav>
     <a href="#rules"><span>01</span>The rules</a>
     <a href="#filter"><span>02</span>The half-of-the-range rule</a>
-    <a href="#stop"><span>03</span>The stop move</a>
+    <a href="#stop"><span>03</span>How trades ended</a>
     <a href="#why"><span>04</span>Why each rule exists</a>
     <a href="#curve"><span>05</span>Results</a>
     <a href="#weeks"><span>06</span>Week by week</a>
@@ -415,18 +415,13 @@ is exactly what a pass-rate account wants.</p></div>
 
 <!-- ================= 03 STOP MOVE ================= -->
 <section id="stop">
-<h2><span class="num">03</span>The stop move</h2>
-<p class="sub">There isn't one. <code>InpStopMoveAtR</code> is <b>0</b> on this configuration: the stop is placed once at the range midpoint and stays there until the trade hits it, reaches the 3R target, or runs out of time.</p>
-<p>So every loss here is a full <b>1R</b> — 75 of 75, with none halved. The published Asia configuration moves the stop to &minus;0.5R once a trade is +0.5R up, which is why its losing runs cost less than a run of full stops. That protection is not present here, and the losing-run table below is not discounted for it. Section 04 gives the measured reason the move is off.</p>
+<h2><span class="num">03</span>How trades ended</h2>
 <div class="scroll"><table>
 <caption>How the 144 trades ended</caption>
 <thead><tr><th>Exit</th><th>Trades</th><th>Share</th><th>EV each</th><th>Total R</th><th>Total %</th></tr></thead>
 <tbody><tr><td>Stopped out</td><td><b>72</b></td><td>50.0%</td><td class="neg">-1.02 R</td><td class="neg"><b>-73.2 R</b></td><td class="neg"><b><span data-pct="-73.2000">-109.8</span>%</b></td></tr><tr><td>180-minute cap</td><td><b>45</b></td><td>31.2%</td><td class="pos">+1.18 R</td><td class="pos"><b>+53.3 R</b></td><td class="pos"><b><span data-pct="53.3000">+79.9</span>%</b></td></tr><tr><td>Target hit  (+3R)</td><td><b>27</b></td><td>18.8%</td><td class="pos">+2.99 R</td><td class="pos"><b>+80.9 R</b></td><td class="pos"><b><span data-pct="80.9000">+121.4</span>%</b></td></tr></tbody></table></div>
 
-<p>Nearly even on count &mdash; 27 targets, 72 stops. The edge is
-<strong>size</strong>: a win pays 3R, a loss costs 0.99R.</p>
 </section>
-
 
 <!-- ================= 04 WHY ================= -->
 <section id="why">

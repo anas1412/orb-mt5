@@ -271,17 +271,7 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
       <div class="n">from {{SESSIONS}} eligible sessions</div></div>
   </div>
 
-  <nav>
-    <a href="#rules"><span>01</span>The rules</a>
-    <a href="#filter"><span>02</span>The half-of-the-range rule</a>
-    <a href="#stop"><span>03</span>The stop move</a>
-    <a href="#why"><span>04</span>Why each rule exists</a>
-    <a href="#curve"><span>05</span>Results</a>
-    <a href="#weeks"><span>06</span>Week by week</a>
-    <a href="#risk"><span>07</span>Risk &amp; sizing</a>
-    <a href="#montecarlo"><span>08</span>Monte Carlo simulation</a>
-    <a href="#trades"><span>09</span>Every trade</a>
-  </nav>
+  <nav>{{NAV}}</nav>
 </header>
 
 <!-- ================= 01 RULES ================= -->
@@ -367,7 +357,7 @@ the entry conditions.</p>
 <p>The pattern worth noticing: <strong>you take a trade on roughly half the days
 available.</strong> {{TRADES}} trades from {{SESSIONS}} eligible sessions. Most weeks
 produce two or three trades, and a handful produce none at all — those are weeks
-where the half-of-the-range rule or the entry window ruled every session out.
+where {{SKIPREASON}} ruled every session out.
 Sitting out is part of the edge, not a failure of it.</p>
 </section>
 

@@ -297,36 +297,51 @@ def settings_rows():
     ]
     return "".join("<tr><td><code>%s</code></td><td><b>%s</b></td><td>%s</td></tr>" % r for r in rows)
 
-def halves_section():
-    """Section 02. A spec with the filter off does not get to claim it.
+# The section list, in page order. A section that is not present is not linked
+# and not numbered -- the numbers are assigned after assembly, so dropping one
+# renumbers the rest instead of leaving a hole where 02 used to be.
+def sections():
+    return [("rules",      "The rules",                    True),
+            ("filter",     "The half-of-the-range rule",   ctx.HALF_FILTER),
+            ("stop",       "The stop move" if MOVES else "How trades ended", True),
+            ("why",        "Why each rule exists",         True),
+            ("curve",      "Results",                      True),
+            ("weeks",      "Week by week",                 True),
+            ("risk",       "Risk &amp; sizing",            True),
+            ("montecarlo", "Monte Carlo simulation",       True),
+            ("trades",     "Every trade",                  True)]
 
-    The section argues the half-of-the-range rule is the only filter the edge
-    needs. Under InpMinClosePos=0 nothing is being filtered, so it becomes a
-    plain breakdown of how the two halves behaved instead of a rule."""
+def nav_links():
+    out=[]
+    for n,(sid,label,present) in enumerate((x for x in sections() if x[2]), 1):
+        out.append('\n    <a href="#%s"><span>%02d</span>%s</a>' % (sid, n, label))
+    return "".join(out)+"\n  "
+
+def renumber(html):
+    """Number the section headings in document order.
+
+    The template and the generated sections both carry a literal number; after a
+    section is dropped those disagree with the nav. One pass over the assembled
+    page settles it."""
+    n=[0]
+    def one(m):
+        n[0]+=1
+        return '<span class="num">%02d</span>' % n[0]
+    html=re.sub(r'<span class="num">\d+</span>', one, html)
+    want=len([x for x in sections() if x[2]])
+    if n[0]!=want:
+        raise SystemExit("build_report: numbered %d sections, nav lists %d" % (n[0], want))
+    return html
+
+def halves_section():
+    """Section 02, and only for a spec that uses the filter.
+
+    It argues the half-of-the-range rule is the only filter the edge needs.
+    Under InpMinClosePos=0 nothing is being filtered, so the section is dropped
+    rather than explained -- an absent rule needs no paragraph saying so."""
     if ctx.HALF_FILTER:
         return open(os.path.join(ctx.RESEARCH, "lib", "halves_section.html")).read()
-    h = d["halves"]
-    return ('<section id="filter">\n<h2><span class="num">02</span>'
-            'The half-of-the-range rule</h2>\n'
-            '<p class="sub">Not used here. <code>InpMinClosePos</code> is <b>0</b> on this '
-            'configuration, so the first %s candle to close outside the box is taken '
-            'whichever way it breaks.</p>\n'
-            '<p>The published Asia configuration only trades the half the range closed in, '
-            'and that filter is where most of its edge comes from. Switching it off is a '
-            'deliberate part of this spec, not an oversight &mdash; here is how the two '
-            'halves actually behaved, for reference rather than as a rule.</p>\n'
-            '<div class="scroll"><table><caption>Split by which half of the box the '
-            '%s candle closed in &mdash; descriptive only, since both are traded</caption>'
-            '<thead><tr><th>Range closed in the</th><th>Trades</th><th>Win rate</th>'
-            '<th>EV per trade</th><th>Total R</th></tr></thead><tbody>'
-            '<tr><td><b>top half</b></td><td>%d</td><td>%.1f%%</td><td>%+.3f R</td>'
-            '<td>%+.1f R</td></tr>'
-            '<tr><td><b>bottom half</b></td><td>%d</td><td>%.1f%%</td><td>%+.3f R</td>'
-            '<td>%+.1f R</td></tr>'
-            '</tbody></table></div>\n</section>'
-            % (ctx.SIGNAL_TF, ctx.LAST_CANDLE,
-               h["same"]["n"], h["same"]["wr"], h["same"]["ev"], h["same"]["total"],
-               h["opp"]["n"], h["opp"]["wr"], h["opp"]["ev"], h["opp"]["total"]))
+    return ""
 
 def stop_section():
     """Section 03. The drawn-to-scale diagram belongs to a spec that moves its
@@ -335,17 +350,12 @@ def stop_section():
     lib = os.path.join(ctx.RESEARCH, "lib")
     exits = open(os.path.join(lib, "exits_block.html")).read()
     if MOVES:
-        return open(os.path.join(lib, "stop_section.html")).read() + "\n" + exits
-    return (('<section id="stop">\n<h2><span class="num">03</span>The stop move</h2>\n'
-            '<p class="sub">There isn\'t one. <code>InpStopMoveAtR</code> is <b>0</b> on this '
-            'configuration: the stop is placed once at the range midpoint and stays there until '
-            'the trade hits it, reaches the %s target, or runs out of time.</p>\n'
-            '<p>So every loss here is a full <b>1R</b> — %d of %d, with none halved. '
-            'The published Asia configuration moves the stop to &minus;0.5R once a trade is '
-            '+0.5R up, which is why its losing runs cost less than a run of full stops. '
-            'That protection is not present here, and the losing-run table below is not '
-            'discounted for it. Section 04 gives the measured reason the move is off.</p>\n'
-            % (ctx.RR_TXT, d["losses"]["n"], d["losses"]["n"])) + exits)
+        return (open(os.path.join(lib, "stop_section.html")).read() + "\n" + exits
+                + open(os.path.join(lib, "exits_note.html")).read() + "\n</section>")
+    # No stop move: the diagram and the loss-halving arithmetic go, the exits
+    # table stays, because how the trades ended is data either way.
+    return ('<section id="stop">\n<h2><span class="num">03</span>How trades ended</h2>\n'
+            + exits + "\n</section>")
 
 def rules_block():
     """The schematic when it depicts this spec, otherwise a table that does.
@@ -393,6 +403,9 @@ html=(tpl
  .replace("{{SETTINGS}}", settings_rows())
  .replace("{{STOPSECTION}}", stop_section())
  .replace("{{HALVESSECTION}}", halves_section())
+ .replace("{{NAV}}", nav_links())
+ .replace("{{SKIPREASON}}", "the half-of-the-range rule or the entry window"
+                            if ctx.HALF_FILTER else "the entry window")
  .replace("{{LOSSNOTE}}", ("%d of %d halved by the stop move" % (d["losses"]["halved"], d["losses"]["n"]))
                           if MOVES else
                           ("%d of %d closed on the time cap for less than a full stop"
@@ -517,7 +530,7 @@ def fill_warning(html):
     return html.replace('<div id="riskwarn" class="riskwarn" hidden></div>',
                         '<div id="riskwarn" class="riskwarn">%s</div>' % " ".join(bad))
 
-html = fill_warning(fill_defaults(html))
+html = renumber(fill_warning(fill_defaults(html)))
 open(PAGES,"w").write(html)
 
 # The charts are drawn straight into the folder the page links to, so there is

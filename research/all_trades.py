@@ -19,7 +19,14 @@ HOLD = ctx.HOLD; RR = ctx.RR; RM = ctx.RANGE_MIN; EW = ctx.ENTRY_MIN
 FORCE = "--all" in sys.argv
 # Hashing this file means a change to the drawing code redraws everything by
 # itself, so the cache can never serve a chart the current code would not draw.
-CODE = hashlib.sha1(open(os.path.abspath(__file__), "rb").read()).hexdigest()[:12]
+# The drawing depends on the spec as much as on this file: RR places the target
+# line, HOLD sets how far right the x-axis runs, and every clock label comes from
+# the session start. With only the file hashed, changing rr from 1.0 to 1.2
+# redrew the 48 trades whose outcome flipped and left 108 drawing the old target
+# under a report that said 1.2R.
+SPECSIG = repr([ctx.SYMBOL, ctx.RR, ctx.HOLD, ctx.RANGE_MIN, ctx.ENTRY_MIN, ctx.START])
+CODE = hashlib.sha1(open(os.path.abspath(__file__), "rb").read()
+                    + SPECSIG.encode()).hexdigest()[:12]
 OUT=ctx.TRADES_DIR; os.makedirs(OUT,exist_ok=True)
 INK="#141310"; MUT="#8a837a"; POS="#12694a"; NEG="#a8352a"; ACC="#8a6d3b"; GRID="#ece7dd"
 bars={}
