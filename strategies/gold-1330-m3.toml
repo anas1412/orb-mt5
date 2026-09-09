@@ -1,0 +1,13 @@
+# The published rules moved to the 13:30 UTC range, with breakouts judged on
+# M3 closes instead of M1.  15:30 UTC+2 = 13:30 UTC.
+name = "gold-1330-m3"
+
+[session]
+tz        = "UTC"
+start     = "13:30"
+range_min = 15          # 13:30 - 13:44, the same 15 M1 candles as the Asia setup
+signal_tf = "M3"        # a break counts when an M3 candle CLOSES outside the box
+
+[report]
+output = "gold-1330-m3.html"
+title  = "ORB 13:30 UTC on Gold, M3 breakout"

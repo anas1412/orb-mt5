@@ -15,7 +15,10 @@ Read with tomllib (stdlib); nothing else to install.
 import sys, tomllib, datetime as dt
 
 TZ  = {"UTC": 0, "London": 1, "NewYork": 2, "Tokyo": 3, "Sydney": 4, "Broker": 5}
-TF  = {"M1": 1, "M5": 5, "M15": 15, "M30": 30, "H1": 16385}
+# MQL5 ENUM_TIMEFRAMES values. Minute frames are the number of minutes;
+# H1 is 16385 because the enum switches base above M30.
+TF  = {"M1": 1, "M2": 2, "M3": 3, "M4": 4, "M5": 5, "M6": 6, "M10": 10,
+       "M12": 12, "M15": 15, "M20": 20, "M30": 30, "H1": 16385}
 LOT = {"lots": 0, "percent": 1, "money": 2}
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"]
 BENCHMARKS = {

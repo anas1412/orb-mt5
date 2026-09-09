@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORB 13:30 UTC on Gold, M3 breakout</title>
+<style>
+:root{
+  --bg:#faf8f4; --panel:#fff; --panel2:#f5f2ec; --ink:#17150f; --ink2:#413c33;
+  --mut:#7d766c; --line:#e6e0d4; --acc:#8a6d3b; --acc2:#b08d4f;
+  --pos:#12694a; --posbg:#e8f2ec; --neg:#a8352a; --negbg:#faeae7;
+  --warn:#8a5a00; --warnbg:#fdf4e3;
+  --r:14px; --sh:0 1px 2px rgba(23,21,15,.05),0 8px 24px -12px rgba(23,21,15,.14);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 8px 28px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme=dark]{
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.62 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 110px}
+
+/* ---------- hero ---------- */
+header{padding:66px 0 30px}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:650;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--acc);
+  background:color-mix(in srgb,var(--acc) 11%,transparent);
+  padding:7px 14px;border-radius:100px;margin-bottom:22px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--pos);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--pos) 25%,transparent)}
+h1{font-size:clamp(2.3rem,5.2vw,3.5rem);line-height:1.03;margin:0 0 16px;
+  letter-spacing:-.032em;font-weight:680}
+h1 em{font-style:normal;color:var(--acc);}
+.lede{font-size:1.14rem;color:var(--ink2);max-width:60ch;margin:0}
+
+/* ---------- kpi ---------- */
+.kpi{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px;margin:36px 0 8px}
+/* ten cards divide evenly by 5 and by 2, so neither layout leaves a stranded
+   tile on its own row; 3 across would. */
+@media (max-width:1240px){.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1000px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px) {.kpi{grid-template-columns:1fr}}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;box-shadow:var(--sh);min-width:0}
+.k .l{font-size:10.5px;font-weight:640;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:9px}
+.k .v{font-size:clamp(1.45rem,2.4vw,1.8rem);font-weight:670;letter-spacing:-.03em;line-height:1}
+.k .n{font-size:12px;color:var(--mut);margin-top:7px;line-height:1.4}
+.k.big{background:linear-gradient(150deg,color-mix(in srgb,var(--pos) 13%,var(--panel)),var(--panel))}
+
+/* ---------- sections ---------- */
+section{margin-top:72px;scroll-margin-top:20px}
+h2{font-size:1.62rem;letter-spacing:-.022em;margin:0 0 8px;font-weight:670;display:flex;align-items:baseline;gap:13px}
+h2 .num{font-size:.72em;color:var(--acc);font-variant-numeric:tabular-nums;font-weight:640}
+.sub{color:var(--mut);margin:0 0 26px;max-width:66ch;font-size:1.02rem}
+h3{font-size:1.06rem;margin:34px 0 10px;font-weight:650}
+p{margin:0 0 15px;color:var(--ink2)}
+p strong,li strong{color:var(--ink);font-weight:640}
+a{color:var(--acc)}
+
+/* ---------- toc ---------- */
+nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:8px;margin:34px 0 0;box-shadow:var(--sh);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:4px}
+nav a{display:block;padding:10px 13px;border-radius:9px;text-decoration:none;
+  color:var(--ink2);font-size:13.5px;font-weight:520;transition:.14s}
+nav a:hover{background:var(--panel2);color:var(--ink)}
+nav a span{color:var(--acc);font-weight:640;margin-right:7px;font-variant-numeric:tabular-nums}
+
+/* ---------- cards / callouts ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:24px 26px;box-shadow:var(--sh);margin:22px 0}
+.note{border-left:3px solid var(--warn);background:var(--warnbg);border-radius:0 var(--r) var(--r) 0;
+  padding:18px 22px;margin:22px 0}
+.note .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);margin-bottom:9px}
+.note p:last-child,.card p:last-child{margin-bottom:0}
+.good{border-left:3px solid var(--pos);background:var(--posbg);border-radius:0 var(--r) var(--r) 0;padding:18px 22px;margin:22px 0}
+.good .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--pos);margin-bottom:9px}
+
+/* ---------- rules list ---------- */
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:22px 0}
+ol.steps li{counter-increment:s;position:relative;padding:15px 20px 15px 62px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:10px;box-shadow:var(--sh)}
+ol.steps li::before{content:counter(s);position:absolute;left:18px;top:14px;
+  width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--acc) 15%,transparent);
+  color:var(--acc);font-weight:680;font-size:14px;display:grid;place-items:center}
+ol.steps b{display:block;color:var(--ink);margin-bottom:2px}
+ol.steps span{color:var(--mut);font-size:14.5px}
+ul{margin:0 0 15px;padding-left:22px;color:var(--ink2)}
+li{margin-bottom:8px}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh);margin:20px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+caption{caption-side:top;text-align:left;padding:17px 20px 3px;color:var(--mut);font-size:12.5px}
+th{text-align:right;padding:13px 15px;font-size:10.5px;font-weight:660;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);white-space:nowrap;
+  background:var(--panel2)}
+th:first-child,td:first-child{text-align:left}
+td{padding:11px 15px;border-bottom:1px solid var(--line);text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink2)}
+td b{color:var(--ink)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--panel2)}
+tr.hi td{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+tr.q td{color:var(--mut);opacity:.62}
+tr.neg td:first-child{box-shadow:inset 3px 0 0 var(--neg)}
+tr.warn td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+.pos{color:var(--pos);font-weight:600} .neg{color:var(--neg);font-weight:600}
+.pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:640;letter-spacing:.02em}
+.pill.ok{background:var(--posbg);color:var(--pos)} .pill.no{background:var(--negbg);color:var(--neg)}
+
+/* ---------- figures ---------- */
+figure{margin:26px 0}
+figcaption{color:var(--mut);font-size:13px;margin-top:12px;max-width:70ch}
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px;box-shadow:var(--sh);color:var(--ink)}
+
+/* ---------- gallery filters ---------- */
+.filters{display:flex;flex-direction:column;gap:11px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;
+  box-shadow:var(--sh);margin:22px 0 0}
+.fgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fgroup>b{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);min-width:62px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--ink2);
+  font:inherit;font-size:12.5px;font-weight:550;padding:6px 13px;border-radius:100px;
+  cursor:pointer;transition:.13s;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--acc);color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--bg);font-weight:640}
+.chip.win[aria-pressed=true]{background:var(--pos);border-color:var(--pos)}
+.chip.loss[aria-pressed=true]{background:var(--neg);border-color:var(--neg)}
+.fcount{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums;
+  border-top:1px solid var(--line);padding-top:11px}
+.fcount b{color:var(--ink)}
+.gal .tc[hidden]{display:none}
+.noresult{color:var(--mut);font-size:14px;padding:26px 2px}
+
+/* ---------- lightbox ---------- */
+#lb{position:fixed;inset:0;z-index:99;display:none;background:rgba(8,7,6,.93);
+  backdrop-filter:blur(6px);padding:22px;align-items:center;justify-content:center}
+#lb.on{display:flex}
+#lb figure{margin:0;max-width:min(1300px,100%);max-height:100%;display:flex;
+  flex-direction:column;gap:12px}
+#lb img{max-width:100%;max-height:calc(100vh - 130px);object-fit:contain;
+  background:#fff;border-radius:12px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+#lb figcaption{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  color:#f3efe7;font-size:14px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+#lb figcaption b{color:#fff}
+#lb .lbwin{color:#4fbe8b;font-weight:660} #lb .lbloss{color:#e0806f;font-weight:660}
+#lb .lbn{color:#948c80;font-size:12.5px;letter-spacing:.04em}
+.lbbtn{position:fixed;top:50%;transform:translateY(-50%);width:46px;height:46px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;
+  border-radius:50%;font-size:20px;line-height:1;cursor:pointer;display:grid;
+  place-items:center;transition:.14s}
+.lbbtn:hover{background:rgba(255,255,255,.2)}
+#lbprev{left:14px} #lbnext{right:14px}
+#lbclose{position:fixed;top:14px;right:14px;transform:none}
+@media (max-width:620px){.lbbtn{top:auto;bottom:14px;transform:none}
+  #lbprev{left:calc(50% - 58px)} #lbnext{left:calc(50% + 12px);right:auto}
+  #lbclose{top:14px;right:14px;bottom:auto}}
+
+/* ---------- gallery ---------- */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:22px}
+.tc{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;overflow:hidden;box-shadow:var(--sh);transition:.16s}
+.tc:hover{transform:translateY(-2px);border-color:var(--acc)}
+.tc img{width:100%;display:block;background:#fff}
+.tc .tm{display:block;padding:11px 14px;font-size:12.5px;color:var(--mut);
+  border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.tc .tm b{color:var(--ink)}
+.tc.win .tm i{color:var(--pos);font-style:normal;font-weight:660}
+.tc.loss .tm i{color:var(--neg);font-style:normal;font-weight:660}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0 0;font-size:13px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:11px;height:11px;border-radius:3px}
+
+footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+@media(max-width:640px){
+  header{padding-top:44px}
+  .k .v{font-size:1.55rem}
+  section{margin-top:56px}
+}
+.seq{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em;letter-spacing:.03em;white-space:nowrap}
+.riskbar{display:grid;grid-template-columns:auto auto 1fr;gap:10px 14px;align-items:center;
+  margin:0 0 18px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.riskbar label{font-size:13px;font-weight:640;letter-spacing:.01em}
+.riskin{display:flex;align-items:center;gap:6px}
+.riskin input{width:5.6rem;font:inherit;font-weight:700;font-size:19px;padding:6px 9px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;text-align:right}
+.riskin input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.riskin span{font-size:15px;color:var(--mut);font-weight:640}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:12.5px;padding:5px 11px;border:1px solid var(--line);
+  border-radius:999px;background:transparent;color:var(--mut);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:640}
+.risknote{grid-column:1/-1;margin:2px 0 0;font-size:12.5px;line-height:1.6;color:var(--mut)}
+.riskwarn{margin:0 0 18px;padding:12px 16px;border-radius:12px;font-size:13.5px;line-height:1.6;
+  border:1px solid var(--neg);background:color-mix(in srgb,var(--neg) 9%,transparent)}
+.riskwarn b{color:var(--neg)}
+.mclegend{display:flex;flex-wrap:wrap;gap:18px;margin:0 0 10px;font-size:12.5px;color:var(--mut)}
+.mclegend span{display:inline-flex;align-items:center;gap:7px}
+.mclegend .sw{width:15px;height:2.5px;border-radius:2px;background:currentColor}
+.mclegend .sw.pos{color:var(--pos)}
+.mclegend .sw.neg{color:var(--neg)}
+.kpi.mcstats{grid-template-columns:repeat(4,minmax(0,1fr));margin:20px 0 0}
+@media (max-width:700px){.kpi.mcstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--mut)}
+::-webkit-scrollbar-corner{background:transparent}
+tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:640}
+@media (max-width:640px){.riskbar{grid-template-columns:1fr auto}.chips{grid-column:1/-1}}
+</style></head><body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow"><span class="dot"></span> FundingPips 1 Step Flex &middot; +12% target &middot; 12% max loss &middot; 3% daily</div>
+  <h1>The Asia Opening Range<br><em>on Gold</em></h1>
+  <p class="lede">One trade a day, Monday to Thursday, decided in the fifteen
+  minutes after midnight UTC. This is the complete rule set, why each rule is
+  there, and every trade it produced in 2026.</p>
+
+  <div class="riskbar">
+    <label for="riskin">Risk per trade</label>
+    <div class="riskin"><input id="riskin" type="number" min="1" max="99" step="0.25"
+      value="2.5" inputmode="decimal" aria-label="Risk per trade, percent"><span>%</span></div>
+    <div class="chips" id="riskchips"></div>
+    <p class="risknote">Every percentage here is <b>R &times; risk</b>. R values, win rate and
+    profit factor do not move. Past <b>1.68%</b> the worst run on record breaks the maximum
+    loss; past <b>2.76%</b> one bad trade breaches the daily limit alone.</p>
+  </div>
+  <div id="riskwarn" class="riskwarn">A run of <b>8 losses</b> costs <b>17.8%</b>, past the 12% maximum loss. That run is in this data.</div>
+
+  <div class="kpi">
+    <div class="k big"><div class="l">Total return</div><div class="v pos"><span data-pct="-8.3000" data-fmt="signint">-21</span>%</div>
+      <div class="n">-8.3 R banked at <span data-risk>2.5%</span></div></div>
+    <div class="k"><div class="l">Win rate</div><div class="v">26.9%</div>
+      <div class="n">18 wins &middot; 49 losses</div></div>
+    <div class="k"><div class="l">Per trade</div><div class="v pos">-0.123 R</div>
+      <div class="n">&plusmn;0.146 standard error</div></div>
+    <div class="k"><div class="l">Profit factor</div><div class="v pos">0.79</div>
+      <div class="n">+31.2 R won vs 39.4 R lost</div></div>
+    <div class="k"><div class="l">Average win</div><div class="v pos">+1.73 R</div>
+      <div class="n">15 reached the target</div></div>
+    <div class="k"><div class="l">Average loss</div><div class="v neg">-0.80 R</div>
+      <div class="n">21 of 49 halved by the stop move</div></div>
+
+    <div class="k"><div class="l">Challenge pass rate</div><div class="v pos"><span data-sweep="pass_pct">28.0</span>%</div>
+      <div class="n">one phase, +12% target</div></div>
+    <div class="k"><div class="l">Trades to pass</div><div class="v"><span data-sweep="trades">13</span></div>
+      <div class="n">about <span data-sweep="days">28</span> trading days</div></div>
+    <div class="k" id="ddcard"><div class="l">Worst drawdown</div><div class="v"><span data-sweep="maxdd">40.2</span>%</div>
+      <div class="n">the limit is 12%</div></div>
+    <div class="k"><div class="l">Longest win run</div><div class="v pos">3</div>
+      <div class="n">wins in a row</div></div>
+    <div class="k"><div class="l">Longest losing run</div><div class="v">8</div>
+      <div class="n"><span data-sweep="run_cost" data-fmt="plain1">17.8</span>% of the account</div></div>
+    <div class="k"><div class="l">Trades taken</div><div class="v">67</div>
+      <div class="n">from 143 eligible sessions</div></div>
+  </div>
+
+  <nav>
+    <a href="#rules"><span>01</span>The rules</a>
+    <a href="#filter"><span>02</span>The half-of-the-range rule</a>
+    <a href="#stop"><span>03</span>The stop move</a>
+    <a href="#why"><span>04</span>Why each rule exists</a>
+    <a href="#curve"><span>05</span>Results</a>
+    <a href="#weeks"><span>06</span>Week by week</a>
+    <a href="#risk"><span>07</span>Risk &amp; sizing</a>
+    <a href="#montecarlo"><span>08</span>Monte Carlo simulation</a>
+    <a href="#trades"><span>09</span>Every trade</a>
+  </nav>
+</header>
+
+<!-- ================= 01 RULES ================= -->
+<section id="rules">
+<h2><span class="num">01</span>The rules</h2>
+<p class="sub">Everything is mechanical. No discretion, no judgement calls, and
+nothing that needs you awake at a screen.</p>
+
+<figure><div class="fig">
+<svg viewBox="0 0 1080 400" width="100%" role="img">
+<title>One trading day, start to finish</title>
+<desc>A time axis in minutes after midnight UTC and a price axis in R. Fifteen one-minute candles form the range box; the last one closes in the top half, so only an upward break may be traded. In the 00:15 to 00:29 window a candle closes above the box, the trade is entered at market, the stop goes at the range midpoint and the target two R above entry. At plus half an R the stop moves up to minus half an R. Anything still open ninety minutes after entry is closed. A footer strip shows Monday to Thursday traded and Friday skipped.</desc>
+<defs><marker id="arR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round"/></marker></defs>
+<text x="100" y="26" font-size="14.5" font-weight="700" fill="currentColor">Every decision is made in the first 30 minutes.</text>
+<rect x="212" y="106" width="113" height="178" fill="var(--acc)" opacity=".05"/>
+<rect x="100" y="160" width="112" height="100" fill="currentColor" opacity=".05"/>
+<rect x="100" y="160" width="112" height="50" fill="var(--pos)" opacity=".16"/>
+<text x="106" y="176" font-size="11" font-weight="640" fill="var(--pos)" fill-opacity=".8">TOP HALF</text>
+<line x1="100" y1="160" x2="212" y2="160" stroke="currentColor" stroke-width="1.8"/>
+<line x1="100" y1="260" x2="212" y2="260" stroke="currentColor" stroke-width="1.8"/>
+<line x1="94" y1="210" x2="218" y2="210" stroke="var(--acc)" stroke-width="1.6" stroke-dasharray="7 5"/>
+<text x="100" y="144" font-size="12.5" fill="currentColor" fill-opacity=".62">15-minute range</text>
+<line x1="103.75" y1="198.0" x2="103.75" y2="212.0" stroke="var(--neg)" stroke-width="1.4"/><rect x="101.0" y="205.0" width="5.5" height="5.0" fill="var(--neg)"/>
+<line x1="111.75" y1="202.0" x2="111.75" y2="218.0" stroke="var(--neg)" stroke-width="1.4"/><rect x="109.0" y="210.0" width="5.5" height="6.0" fill="var(--neg)"/>
+<line x1="118.75" y1="210.0" x2="118.75" y2="230.0" stroke="var(--neg)" stroke-width="1.4"/><rect x="116.0" y="216.0" width="5.5" height="10.0" fill="var(--neg)"/>
+<line x1="125.75" y1="220.0" x2="125.75" y2="248.0" stroke="var(--neg)" stroke-width="1.4"/><rect x="123.0" y="226.0" width="5.5" height="16.0" fill="var(--neg)"/>
+<line x1="133.75" y1="232.0" x2="133.75" y2="260.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="131.0" y="238.0" width="5.5" height="4.0" fill="var(--pos)"/>
+<line x1="141.75" y1="222.0" x2="141.75" y2="242.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="139.0" y="225.0" width="5.5" height="13.0" fill="var(--pos)"/>
+<line x1="148.75" y1="216.0" x2="148.75" y2="230.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="146.0" y="220.0" width="5.5" height="5.0" fill="var(--pos)"/>
+<line x1="155.75" y1="208.0" x2="155.75" y2="224.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="153.0" y="212.0" width="5.5" height="8.0" fill="var(--pos)"/>
+<line x1="163.75" y1="200.0" x2="163.75" y2="216.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="161.0" y="202.0" width="5.5" height="10.0" fill="var(--pos)"/>
+<line x1="171.75" y1="188.0" x2="171.75" y2="206.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="169.0" y="192.0" width="5.5" height="10.0" fill="var(--pos)"/>
+<line x1="178.75" y1="182.0" x2="178.75" y2="198.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="176.0" y="190.0" width="5.5" height="2.0" fill="var(--pos)"/>
+<line x1="185.75" y1="174.0" x2="185.75" y2="194.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="183.0" y="178.0" width="5.5" height="12.0" fill="var(--pos)"/>
+<line x1="193.75" y1="160.0" x2="193.75" y2="182.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="191.0" y="166.0" width="5.5" height="12.0" fill="var(--pos)"/>
+<line x1="201.75" y1="162.0" x2="201.75" y2="176.0" stroke="var(--neg)" stroke-width="1.4"/><rect x="199.0" y="166.0" width="5.5" height="6.0" fill="var(--neg)"/>
+<line x1="208.75" y1="164.0" x2="208.75" y2="178.0" stroke="var(--pos)" stroke-width="2.4"/><rect x="206.0" y="170.0" width="5.5" height="2.0" fill="var(--pos)" stroke="var(--ink)" stroke-width="1.2"/>
+<line x1="215.75" y1="163.0" x2="215.75" y2="174.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="213.0" y="168.0" width="5.5" height="2.0" fill="var(--pos)"/>
+<line x1="223.75" y1="166.0" x2="223.75" y2="176.0" stroke="var(--neg)" stroke-width="1.4"/><rect x="221.0" y="168.0" width="5.5" height="4.0" fill="var(--neg)"/>
+<line x1="231.75" y1="161.0" x2="231.75" y2="174.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="229.0" y="165.0" width="5.5" height="7.0" fill="var(--pos)"/>
+<line x1="238.75" y1="163.0" x2="238.75" y2="173.0" stroke="var(--neg)" stroke-width="1.4"/><rect x="236.0" y="165.0" width="5.5" height="5.0" fill="var(--neg)"/>
+<line x1="245.75" y1="160.0" x2="245.75" y2="172.0" stroke="var(--pos)" stroke-width="1.4"/><rect x="243.0" y="162.0" width="5.5" height="8.0" fill="var(--pos)"/>
+<line x1="253.75" y1="160.0" x2="253.75" y2="168.0" stroke="var(--neg)" stroke-width="1.4"/><rect x="251.0" y="162.0" width="5.5" height="4.0" fill="var(--neg)"/>
+<line x1="261.75" y1="155.0" x2="261.75" y2="167.0" stroke="var(--pos)" stroke-width="2.4"/><rect x="259.0" y="158.0" width="5.5" height="8.0" fill="var(--pos)" stroke="var(--ink)" stroke-width="1.2"/>
+<text x="100" y="88" font-size="13.5" font-weight="700" fill="var(--pos)">00:14 closed in the TOP half</text>
+<text x="100" y="108" font-size="12.5" fill="currentColor" fill-opacity=".72">so only an up-break counts today</text>
+<path d="M134 118 L208 164" fill="none" stroke="var(--pos)" stroke-width="1.8" stroke-opacity=".7" marker-end="url(#arR)"/>
+<line x1="265" y1="60" x2="1000" y2="60" stroke="var(--pos)" stroke-width="1.6" stroke-dasharray="7 5"/>
+<line x1="265" y1="135" x2="1000" y2="135" stroke="var(--acc2)" stroke-width="1.4" stroke-dasharray="6 4"/>
+<line x1="265" y1="160" x2="1000" y2="160" stroke="currentColor" stroke-opacity=".4" stroke-width="1.6"/>
+<line x1="265" y1="210" x2="362" y2="210" stroke="var(--neg)" stroke-width="2" stroke-dasharray="9 5"/>
+<line x1="362" y1="210" x2="1000" y2="210" stroke="var(--neg)" stroke-opacity=".28" stroke-width="1.4" stroke-dasharray="3 6"/>
+<line x1="362" y1="185" x2="1000" y2="185" stroke="var(--neg)" stroke-width="2.2" stroke-dasharray="9 5"/>
+<path d="M378 206 L378 191" fill="none" stroke="var(--neg)" stroke-width="3" marker-end="url(#arR)"/>
+<path d="M265 157 L295 150 L325 155 L355 142 L362 135 L415 138 L475 122 L520 128 L580 100 L625 85 L685 60" fill="none" stroke="var(--pos)" stroke-width="2.8" stroke-linejoin="round"/>
+<circle cx="265" cy="157" r="6.5" fill="var(--ink)"/>
+<line x1="265" y1="166" x2="265" y2="232" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="3 4"/>
+<text x="231" y="244" font-size="12.5" font-weight="700" fill="currentColor">enter at market</text>
+<circle cx="362" cy="135" r="6.5" fill="var(--acc2)"/>
+<circle cx="685" cy="60" r="7" fill="var(--pos)"/>
+<text x="699" y="46" font-size="13.5" font-weight="700" fill="var(--pos)">win</text>
+<text x="392" y="204" font-size="12.5" font-weight="640" fill="var(--neg)">stop moves up</text>
+<line x1="940" y1="106" x2="940" y2="284" stroke="var(--neg)" stroke-opacity=".45" stroke-width="1.5" stroke-dasharray="4 5"/>
+<text x="930" y="244" font-size="12.5" fill="var(--neg)" fill-opacity=".8" text-anchor="end">flat 90 min after entry</text>
+<text x="1010" y="64" font-size="12.5" fill="var(--pos)" font-weight="640">+2R</text>
+<text x="1010" y="139" font-size="12.5" fill="var(--acc)">+0.5R</text>
+<text x="1010" y="164" font-size="12.5" fill="currentColor" fill-opacity=".65">entry</text>
+<text x="1010" y="189" font-size="12.5" fill="var(--neg)" font-weight="640">&minus;0.5R</text>
+<text x="1010" y="214" font-size="12.5" fill="var(--neg)" fill-opacity=".5">&minus;1R</text>
+<line x1="100" y1="300" x2="1000" y2="300" stroke="currentColor" stroke-opacity=".25" stroke-width="1.5"/>
+<line x1="100" y1="295" x2="100" y2="305" stroke="currentColor" stroke-opacity=".3"/>
+<text x="100" y="322" font-size="11.5" fill="currentColor" fill-opacity=".55" text-anchor="middle">00:00</text>
+<line x1="212" y1="295" x2="212" y2="305" stroke="currentColor" stroke-opacity=".3"/>
+<text x="212" y="322" font-size="11.5" fill="currentColor" fill-opacity=".55" text-anchor="middle">00:15</text>
+<line x1="325" y1="295" x2="325" y2="305" stroke="currentColor" stroke-opacity=".3"/>
+<text x="325" y="322" font-size="11.5" fill="currentColor" fill-opacity=".55" text-anchor="middle">00:30</text>
+<line x1="550" y1="295" x2="550" y2="305" stroke="currentColor" stroke-opacity=".3"/>
+<text x="550" y="322" font-size="11.5" fill="currentColor" fill-opacity=".55" text-anchor="middle">01:00</text>
+<line x1="775" y1="295" x2="775" y2="305" stroke="currentColor" stroke-opacity=".3"/>
+<text x="775" y="322" font-size="11.5" fill="currentColor" fill-opacity=".55" text-anchor="middle">01:30</text>
+<line x1="1000" y1="295" x2="1000" y2="305" stroke="currentColor" stroke-opacity=".3"/>
+<text x="1000" y="322" font-size="11.5" fill="currentColor" fill-opacity=".55" text-anchor="middle">02:00</text>
+<text x="268" y="290" font-size="12" fill="var(--acc)" fill-opacity=".95" text-anchor="middle">break window</text>
+<rect x="100" y="338" width="88" height="32" rx="8" fill="var(--pos)" opacity=".16"/>
+<text x="144" y="359" font-size="12.5" font-weight="700" fill="var(--pos)" text-anchor="middle">MON</text>
+<rect x="196" y="338" width="88" height="32" rx="8" fill="var(--pos)" opacity=".16"/>
+<text x="240" y="359" font-size="12.5" font-weight="700" fill="var(--pos)" text-anchor="middle">TUE</text>
+<rect x="292" y="338" width="88" height="32" rx="8" fill="var(--pos)" opacity=".16"/>
+<text x="336" y="359" font-size="12.5" font-weight="700" fill="var(--pos)" text-anchor="middle">WED</text>
+<rect x="388" y="338" width="88" height="32" rx="8" fill="var(--pos)" opacity=".16"/>
+<text x="432" y="359" font-size="12.5" font-weight="700" fill="var(--pos)" text-anchor="middle">THU</text>
+<rect x="484" y="338" width="88" height="32" rx="8" fill="var(--neg)" opacity=".13"/>
+<text x="528" y="359" font-size="12.5" font-weight="700" fill="var(--neg)" fill-opacity=".7" text-anchor="middle">FRI</text>
+<line x1="498" y1="360" x2="558" y2="348" stroke="var(--neg)" stroke-width="2"/>
+<text x="588" y="359" font-size="12.5" fill="currentColor" fill-opacity=".7">Friday off &mdash; the only losing day of the week</text>
+</svg>
+</div>
+<figcaption>One session end to end, on two straight scales: 10&nbsp;px a minute across, 50&nbsp;px an R up. Drawn with the fill at the range high; in practice it lands a few points beyond and the target is measured from the actual fill.</figcaption></figure>
+
+<ol class="steps">
+<li><b>Mark the range</b><span>Take the highest high and lowest low of the fifteen M1 candles from 00:00 to 00:14 UTC. That box is the range.</span></li>
+<li><b>Split the box in half and see where the 00:14 candle closed</b><span>Closed in the <em>top</em> half &rarr; you may only take an <em>upward</em> break. Closed in the <em>bottom</em> half &rarr; only a <em>downward</em> break. Breaks the other way are skipped &mdash; section 02.</span></li>
+<li><b>Watch for a break until 00:29</b><span>The first M1 candle to <em>close</em> outside the box triggers the trade — above the high goes long, below the low goes short. Wicks poking through don't count. Nothing by 00:29 means no trade.</span></li>
+<li><b>Enter at market</b><span>On the next candle, in the direction of the break.</span></li>
+<li><b>Stop at the range midpoint</b><span>Halfway between the high and the low. That distance is your 1R.</span></li>
+<li><b>Target at 2R</b><span>Twice the distance from entry to stop, measured from the actual fill.</span></li>
+<li><b>At +0.5R, move the stop to −0.5R</b><span>Once the trade is halfway to target, pull the stop so the worst case is half a loss instead of a full one. Once only — it never moves again.</span></li>
+<li><b>Flat after 90 minutes</b><span>If neither level is hit, close at market. 96% of trades finish on their own before this.</span></li>
+<li><b>Monday to Thursday, one trade a day</b><span>Fridays off. One position, then done regardless of the outcome.</span></li>
+<li><b>Risk <span data-risk>2.5%</span> of the starting balance</b><span>Fixed, not compounding. Position size = <span data-risk>2.5%</span> ÷ the distance from entry to stop.</span></li>
+</ol>
+
+<div class="scroll"><table>
+<caption>Settings, exactly as they appear in the EA</caption>
+<thead><tr><th>Input</th><th>Value</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>InpTimeZone</code></td><td><b>TZ_UTC</b></td><td>session clock</td></tr>
+<tr><td><code>InpStartHour / Minute</code></td><td><b>0 / 0</b></td><td>00:00 UTC</td></tr>
+<tr><td><code>InpRangeMinutes</code></td><td><b>15</b></td><td>range length</td></tr>
+<tr><td><code>InpSignalTF</code></td><td><b>M1</b></td><td>confirmation candle</td></tr>
+<tr><td><code>InpNoEntryAfterMin</code></td><td><b>15</b></td><td>stop looking at 00:29</td></tr>
+<tr><td><code>InpMinClosePos</code></td><td><b>0.50</b></td><td>trade only the half it closed in</td></tr>
+<tr><td><code>InpSLPercentOfRange</code></td><td><b>50</b></td><td>stop at the midpoint</td></tr>
+<tr><td><code>InpRR</code></td><td><b>2.0</b></td><td>target</td></tr>
+<tr><td><code>InpStopMoveAtR / ToR</code></td><td><b>0.5 / −0.5</b></td><td>the stop move</td></tr>
+<tr><td><code>InpMaxHoldMinutes</code></td><td><b>90</b></td><td>time cap</td></tr>
+<tr><td><code>InpTradeFri</code></td><td><b>false</b></td><td>Fridays off</td></tr>
+<tr><td><code>InpRiskPercent</code></td><td><b>2.0</b></td><td>risk per trade</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ================= 02 FILTER ================= -->
+<section id="filter">
+<h2><span class="num">02</span>The half-of-the-range rule</h2>
+<p class="sub">One filter, and it is the only one the edge needs. Draw a line
+across the middle of the range box and ask <strong>which half the 00:14 candle
+closed in</strong>. That half is the only direction you are allowed to trade
+today.</p>
+
+<div class="good"><div class="t">The whole rule</div>
+<p><strong>Closed in the top half &rarr; longs only.</strong> If price breaks
+<em>down</em> instead, you sit out.<br>
+<strong>Closed in the bottom half &rarr; shorts only.</strong> If price breaks
+<em>up</em> instead, you sit out.</p></div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 1080 430" width="100%" role="img">
+<title>The half-of-the-range rule</title>
+<desc>Two panels sharing one vertical scale. On the left the last candle of the range closes in the top half, so an upward break is taken and a downward break is skipped. On the right it closes in the bottom half and the rule mirrors. Below, the measured result: breaks in the same half as the close beat breaks in the opposite half on win rate and expectancy.</desc>
+<defs><marker id="arH" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round"/></marker></defs>
+<text x="30" y="28" font-size="14.5" font-weight="700" fill="currentColor">Same box, same stop, same target. Only the allowed direction changes.</text>
+<rect x="30" y="50" width="495" height="270" rx="12" fill="var(--pos)" opacity=".06"/>
+<text x="54" y="82" font-size="15" font-weight="700" fill="var(--pos)">Closed in the TOP half</text>
+<text x="54" y="102" font-size="12.5" fill="currentColor" fill-opacity=".68">up-breaks only</text>
+<rect x="150" y="120" width="210" height="130" fill="currentColor" opacity=".045"/>
+<rect x="150" y="120" width="210" height="65" fill="var(--pos)" opacity=".17"/>
+<text x="160" y="140" font-size="11.5" font-weight="640" fill="var(--pos)" fill-opacity=".85">TOP HALF</text>
+<line x1="150" y1="120" x2="360" y2="120" stroke="currentColor" stroke-width="1.8"/>
+<line x1="150" y1="250" x2="360" y2="250" stroke="currentColor" stroke-width="1.8"/>
+<line x1="142" y1="185" x2="368" y2="185" stroke="var(--acc)" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="136" y="124" font-size="12" fill="currentColor" fill-opacity=".6" text-anchor="end">high</text>
+<text x="136" y="189" font-size="12" font-weight="640" fill="var(--acc)" text-anchor="end">middle</text>
+<text x="136" y="254" font-size="12" fill="currentColor" fill-opacity=".6" text-anchor="end">low</text>
+<line x1="325" y1="128" x2="325" y2="164" stroke="var(--pos)" stroke-width="2.4"/>
+<rect x="320" y="136" width="10" height="21" fill="var(--pos)" stroke="var(--ink)" stroke-width="1.1"/>
+<text x="325" y="110" font-size="11.5" fill="currentColor" fill-opacity=".7" text-anchor="middle">00:14</text>
+<path d="M430 116 L430 74" fill="none" stroke="var(--pos)" stroke-width="3" stroke-opacity="1" marker-end="url(#arH)"/>
+<text x="444" y="76" font-size="13.5" font-weight="700" fill="var(--pos)" fill-opacity="1">TAKE IT</text>
+<text x="444" y="94" font-size="12" fill="currentColor" fill-opacity=".6">break above</text>
+<path d="M430 254 L430 288" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".45" marker-end="url(#arH)"/>
+<text x="444" y="292" font-size="13.5" font-weight="700" fill="var(--neg)" fill-opacity=".6">SKIP</text>
+<text x="444" y="310" font-size="12" fill="currentColor" fill-opacity=".6">break below</text>
+<rect x="555" y="50" width="495" height="270" rx="12" fill="var(--pos)" opacity=".06"/>
+<text x="579" y="82" font-size="15" font-weight="700" fill="var(--pos)">Closed in the BOTTOM half</text>
+<text x="579" y="102" font-size="12.5" fill="currentColor" fill-opacity=".68">down-breaks only</text>
+<rect x="675" y="120" width="210" height="130" fill="currentColor" opacity=".045"/>
+<rect x="675" y="185" width="210" height="65" fill="var(--pos)" opacity=".17"/>
+<text x="685" y="205" font-size="11.5" font-weight="640" fill="var(--pos)" fill-opacity=".85">BOTTOM HALF</text>
+<line x1="675" y1="120" x2="885" y2="120" stroke="currentColor" stroke-width="1.8"/>
+<line x1="675" y1="250" x2="885" y2="250" stroke="currentColor" stroke-width="1.8"/>
+<line x1="667" y1="185" x2="893" y2="185" stroke="var(--acc)" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="661" y="124" font-size="12" fill="currentColor" fill-opacity=".6" text-anchor="end">high</text>
+<text x="661" y="189" font-size="12" font-weight="640" fill="var(--acc)" text-anchor="end">middle</text>
+<text x="661" y="254" font-size="12" fill="currentColor" fill-opacity=".6" text-anchor="end">low</text>
+<line x1="850" y1="206" x2="850" y2="242" stroke="var(--neg)" stroke-width="2.4"/>
+<rect x="845" y="214" width="10" height="21" fill="var(--neg)" stroke="var(--ink)" stroke-width="1.1"/>
+<text x="850" y="110" font-size="11.5" fill="currentColor" fill-opacity=".7" text-anchor="middle">00:14</text>
+<path d="M955 116 L955 74" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".45" marker-end="url(#arH)"/>
+<text x="969" y="76" font-size="13.5" font-weight="700" fill="var(--neg)" fill-opacity=".6">SKIP</text>
+<text x="969" y="94" font-size="12" fill="currentColor" fill-opacity=".6">break above</text>
+<path d="M955 254 L955 288" fill="none" stroke="var(--pos)" stroke-width="3" stroke-opacity="1" marker-end="url(#arH)"/>
+<text x="969" y="292" font-size="13.5" font-weight="700" fill="var(--pos)" fill-opacity="1">TAKE IT</text>
+<text x="969" y="310" font-size="12" fill="currentColor" fill-opacity=".6">break below</text>
+<line x1="30" y1="344" x2="1050" y2="344" stroke="currentColor" stroke-opacity=".12"/>
+<text x="30" y="374" font-size="13" font-weight="700" fill="var(--pos)" fill-opacity="1">Broke the half it closed in</text>
+<text x="290" y="374" font-size="13" fill="currentColor" fill-opacity="1">67 trades &#183; 26.9% win rate &#183; -0.124 R each &#183; -8.3 R total &#183; <tspan data-pct="-8.3000">-20.7%</tspan> of the account</text>
+<text x="30" y="400" font-size="13" font-weight="700" fill="var(--neg)" fill-opacity=".72">Broke the opposite half</text>
+<text x="290" y="400" font-size="13" fill="currentColor" fill-opacity=".72">26 trades &#183; 23.1% win rate &#183; -0.224 R each &#183; -5.8 R total &#183; <tspan data-pct="-5.8000">-14.6%</tspan> of the account</text>
+</svg>
+</div>
+<figcaption>The half the range closed in is the half price was already leaning into. Breaking that way continues the move; breaking the other way means price crossed the whole box first.</figcaption></figure>
+
+<h3>Reading it live, in three seconds</h3>
+<ul>
+<li>At 00:15, look at the box and find its <strong>middle</strong>.</li>
+<li>Did the last candle close <strong>above</strong> the middle? Only a break of the <strong>high</strong> counts today.</li>
+<li><strong>Below</strong> the middle? Only a break of the <strong>low</strong> counts.</li>
+<li>Price breaks the wrong side &rarr; <strong>no trade, close the platform.</strong></li>
+</ul>
+
+<div class="note"><div class="t">The one thing people get wrong</div>
+<p>The candle's <strong>colour doesn't matter.</strong> A red candle sitting near the
+top of the box still counts as the top half &mdash; it drifted down a little but
+price is still up there. You are reading <em>where it is</em>, not which way it
+moved.</p></div>
+
+<div class="scroll"><table>
+<caption>Every 2026 Monday&ndash;Thursday break, split by which half the range closed in. Totals, not averages, except EV. Total % is the account move at 2% risk per trade. Profit factor is R won divided by R lost &mdash; 2.00 means twice as much won as lost.</caption>
+<thead><tr><th>Which half broke</th><th>Trades</th><th>Wins</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Total %</th><th>Verdict</th></tr></thead>
+<tbody><tr class="hi"><td><b>Broke the half it closed in</b></td><td>67</td><td>18</td><td>26.9%</td><td class="neg">0.79</td><td class="neg">-0.124</td><td class="neg">-8.3 R</td><td class="neg">-20.8%</td><td><span class="pill ok">TRADE</span></td></tr><tr class="q"><td><b>Broke the opposite half</b></td><td>26</td><td>6</td><td>23.1%</td><td class="neg">0.62</td><td class="neg">-0.224</td><td class="neg">-5.8 R</td><td class="neg">-14.5%</td><td><span class="pill no">SKIP</span></td></tr><tr><td><b>Every break, no filter</b></td><td>93</td><td>24</td><td>25.8%</td><td class="neg">0.74</td><td class="pos">-0.152</td><td class="pos">-14.1 R</td><td class="pos">-35.2%</td><td></td></tr></tbody></table></div>
+
+<div class="good"><div class="t">Why this filter is worth having</div>
+<p>Trading <em>every</em> break returns <strong>-14.1&nbsp;R</strong> from 93 trades at a
+25.8% win rate. Trading only the correct half returns <strong>-8.3&nbsp;R</strong> from
+67 &mdash; virtually the same money from <strong>26 fewer trades</strong>, at a
+<strong>26.9</strong> win rate. The 26 skipped trades contributed -5.8&nbsp;R between
+them: all of the drawdown, none of the profit. Fewer trades at a higher win rate
+is exactly what a pass-rate account wants.</p></div>
+</section>
+
+<!-- ================= 03 STOP MOVE ================= -->
+<section id="stop">
+<h2><span class="num">03</span>The stop move</h2>
+<p class="sub">Once per trade, and only in one direction.</p>
+
+<figure><div class="fig">
+<svg viewBox="0 0 1080 380" width="100%" role="img">
+<title>The stop move, drawn to scale</title>
+<desc>Price levels drawn to scale from entry: plus two R at the top, plus half R, entry, minus half R, minus one R at the bottom. A price line leaves entry, rises to plus half R, and at that moment the stop jumps from minus one R up to minus half R. From there the line either carries on to the plus two R target or falls back to the new stop for half a loss. The band between minus half R and minus one R is greyed out because it can no longer be reached.</desc>
+<defs><marker id="ar3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round"/></marker></defs>
+
+<text x="40" y="26" font-size="14.5" font-weight="700" fill="currentColor">Risk $100. Once you are $50 up, the most you can lose is $50.</text>
+
+<!-- levels: 1R = 80px, entry at y=220 -->
+<line x1="90" y1="60"  x2="1000" y2="60"  stroke="var(--pos)" stroke-width="1.6" stroke-dasharray="7 5"/>
+<line x1="90" y1="180" x2="1000" y2="180" stroke="var(--acc2)" stroke-width="1.4" stroke-dasharray="6 4"/>
+<line x1="90" y1="220" x2="1000" y2="220" stroke="currentColor" stroke-opacity=".4" stroke-width="1.6"/>
+<text x="80" y="64"  font-size="13" font-weight="640" fill="var(--pos)" text-anchor="end">+2R</text>
+<text x="80" y="184" font-size="13" font-weight="640" fill="var(--acc)" text-anchor="end">+0.5R</text>
+<text x="80" y="224" font-size="13" fill="currentColor" fill-opacity=".65" text-anchor="end">entry</text>
+<text x="80" y="264" font-size="13" font-weight="640" fill="var(--neg)" text-anchor="end">&minus;0.5R</text>
+<text x="80" y="304" font-size="13" fill="var(--neg)" fill-opacity=".55" text-anchor="end">&minus;1R</text>
+
+<!-- the old stop: real until the move, dead after it -->
+<line x1="90" y1="300" x2="430" y2="300" stroke="var(--neg)" stroke-width="2" stroke-dasharray="9 5"/>
+<line x1="430" y1="300" x2="1000" y2="300" stroke="var(--neg)" stroke-opacity=".3" stroke-width="1.5" stroke-dasharray="3 6"/>
+<!-- the new stop: only exists after the move -->
+<line x1="430" y1="260" x2="1000" y2="260" stroke="var(--neg)" stroke-width="2.2" stroke-dasharray="9 5"/>
+<!-- dead zone -->
+<rect x="430" y="260" width="570" height="40" fill="var(--neg)" opacity=".08"/>
+<text x="700" y="286" font-size="12" fill="var(--neg)" fill-opacity=".6">no longer reachable</text>
+
+<!-- the stop jumping up -->
+<path d="M462 296 L462 266" fill="none" stroke="var(--neg)" stroke-width="3" marker-end="url(#ar3)"/>
+
+<!-- price, before the trigger -->
+<path d="M110 220 L170 212 L215 196 L265 205 L320 186 L370 190 L430 180"
+      fill="none" stroke="currentColor" stroke-opacity=".75" stroke-width="2.6" stroke-linejoin="round"/>
+<!-- the trigger -->
+<line x1="430" y1="180" x2="430" y2="256" stroke="var(--acc)" stroke-width="1.3" stroke-dasharray="3 4" stroke-opacity=".7"/>
+<circle cx="430" cy="180" r="7" fill="var(--acc2)"/>
+<text x="444" y="162" font-size="13.5" font-weight="700" fill="var(--acc)">stop moves here</text>
+
+<!-- branch A: keeps going -->
+<path d="M430 180 L490 168 L545 178 L600 140 L660 152 L720 110 L790 96 L860 60"
+      fill="none" stroke="var(--pos)" stroke-width="2.8" stroke-linejoin="round"/>
+<circle cx="860" cy="60" r="7" fill="var(--pos)"/>
+<text x="874" y="46" font-size="13.5" font-weight="700" fill="var(--pos)">win</text>
+
+<!-- branch B: falls back -->
+<path d="M430 180 L480 196 L530 188 L590 224 L650 240 L700 232 L750 260"
+      fill="none" stroke="var(--neg)" stroke-width="2.8" stroke-linejoin="round" stroke-opacity=".85"/>
+<circle cx="750" cy="260" r="7" fill="var(--neg)"/>
+<text x="764" y="244" font-size="13.5" font-weight="700" fill="var(--neg)">half loss</text>
+
+<text x="40" y="352" font-size="12.5" fill="currentColor" fill-opacity=".6">It moves once. It never moves back out.</text>
+</svg>
+</div>
+<figcaption>To scale &mdash; 1R is the same height everywhere.</figcaption>
+</figure>
+
+<ul>
+<li><strong>21 of the 49 losses were halved.</strong></li>
+<li>Average loss <strong>-0.81 R</strong>, not &minus;1.00 R.</li>
+<li>Saved <strong>+9.6 R</strong> &mdash; <span data-pct="9.6000">+24.0</span>% of the account.</li>
+</ul>
+
+<div class="scroll"><table>
+<caption>How the 67 trades ended</caption>
+<thead><tr><th>Exit</th><th>Trades</th><th>Share</th><th>EV each</th><th>Total R</th><th>Total %</th></tr></thead>
+<tbody><tr><td>Stopped out</td><td><b>49</b></td><td>73.1%</td><td class="neg">-0.81 R</td><td class="neg"><b>-39.4 R</b></td><td class="neg"><b><span data-pct="-39.4000">-98.5</span>%</b></td></tr><tr><td>Target hit  (+2R)</td><td><b>15</b></td><td>22.4%</td><td class="pos">+2.02 R</td><td class="pos"><b>+30.2 R</b></td><td class="pos"><b><span data-pct="30.2000">+75.5</span>%</b></td></tr><tr><td>90-minute cap</td><td><b>3</b></td><td>4.5%</td><td class="pos">+0.31 R</td><td class="pos"><b>+0.9 R</b></td><td class="pos"><b><span data-pct="0.9000">+2.2</span>%</b></td></tr></tbody></table></div>
+
+<p>Nearly even on count &mdash; 15 targets, 49 stops. The edge is
+<strong>size</strong>: a win pays 2R, a loss costs 0.81R.</p>
+</section>
+
+<!-- ================= 04 WHY ================= -->
+<section id="why">
+<h2><span class="num">04</span>Why each rule exists</h2>
+<p class="sub">Every number was measured, not chosen. Here is the reasoning in
+plain terms.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Rule</th><th>Why this and not something else</th></tr></thead><tbody>
+<tr><td><b>00:00 UTC</b></td><td>A quiet handover between New York closing and Asia opening — not an auction. Ranges built inside an opening auction get violated in both directions and carry no information.</td></tr>
+<tr><td><b>15-minute range</b></td><td>Shorter is better. A 30- or 60-minute range gives a wider box, a wider stop, a smaller position and a worse result. The information is in the first fifteen minutes.</td></tr>
+<tr><td><b>M1 confirmation</b></td><td>The fastest candle catches the earliest break, and the earliest break is the best one — 39% of all breaks happen within five minutes of the range closing.</td></tr>
+<tr><td><b>Entries stop at 00:29</b></td><td>A range that takes more than fifteen minutes to give way is drifting, not breaking. Including later breaks cuts expectancy by more than half.</td></tr>
+<tr><td><b>Stop at the midpoint</b></td><td>Tighter stops sit inside normal noise and get taken out before the move resolves. Wider stops shrink the position so much that the 2R target becomes unreachable inside the hour. The midpoint is the balance point.</td></tr>
+<tr><td><b>2R target</b></td><td>Roughly five times the expectancy of a 1R target. Pushing to 3R lowers the win rate faster than it raises the payoff.</td></tr>
+<tr><td><b>Stop to −0.5R, never to breakeven</b></td><td>A breakeven stop sits exactly where price retests after a breakout — it stops you for nothing on trades that would have worked. Half a risk unit back is far enough away to survive the retest.</td></tr>
+<tr><td><b>Trigger at +0.5R</b></td><td>Moving earlier tightens the stop while the trade is still inside noise. Moving later leaves more on the table when it reverses.</td></tr>
+<tr><td><b>90-minute cap</b></td><td>96% of trades finish on their own before it. The cap only touches the tail, and it keeps you out of the market rather than holding through the London open. At 60 minutes it was cutting three trades off within a hair of their target.</td></tr>
+<tr><td><b>Monday to Thursday</b></td><td>Friday's Asia session runs into weekend position-squaring — flow driven by people flattening rather than committing. It was the only losing day of the week, at a 20.8% win rate.</td></tr>
+<tr><td><b>One trade a day</b></td><td>Keeps a bad day to a single loss and the daily exposure well inside any prop-firm daily limit.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ================= 05 RESULTS ================= -->
+<section id="curve">
+<h2><span class="num">05</span>Results</h2>
+<p class="sub">2026, MetaTrader 5, real tick data, spread and commission
+included. Risk is a fixed <span data-risk>2.5%</span> of the starting balance on every trade — no
+compounding, so each R is worth a constant two percentage points.</p>
+
+<figure><div class="fig"><svg viewBox="0 0 1180 280" width="100%" role="img"><title>Cumulative return</title><desc>Cumulative return in percent, ending at -21%.</desc><defs><linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--pos)" stop-opacity=".28"/><stop offset="100%" stop-color="var(--pos)" stop-opacity="0"/></linearGradient></defs><polygon points="44.0,72.2 44.0,45.1 60.2,18.0 76.3,31.9 92.5,45.6 108.6,52.8 124.8,25.8 140.9,40.2 157.1,53.8 173.2,67.6 189.4,82.3 205.5,96.0 221.7,109.9 237.8,117.0 254.0,89.8 270.1,103.4 286.3,117.3 302.4,131.0 318.6,137.9 334.7,144.9 350.9,158.5 367.0,165.4 383.2,179.0 399.3,178.2 415.5,150.7 431.6,123.1 447.8,137.0 463.9,108.9 480.1,122.6 496.2,136.2 512.4,149.9 528.5,163.5 544.7,171.1 560.8,178.0 577.0,191.8 593.2,205.5 609.3,178.5 625.5,175.4 641.6,182.6 657.8,154.9 673.9,168.7 690.1,175.6 706.2,189.3 722.4,203.3 738.5,217.2 754.7,208.3 770.8,215.3 787.0,222.2 803.1,229.0 819.3,236.0 835.4,208.6 851.6,181.5 867.7,195.3 883.9,168.2 900.0,141.2 916.2,148.2 932.3,120.4 948.5,127.5 964.6,141.5 980.8,114.5 996.9,121.6 1013.1,128.5 1029.2,142.8 1045.4,149.8 1061.5,157.0 1077.7,163.8 1093.8,170.7 1110.0,184.3 1110.0,72.2" fill="url(#eqfill)" opacity=".5"/><polyline points="44.0,45.1 60.2,18.0 76.3,31.9 92.5,45.6 108.6,52.8 124.8,25.8 140.9,40.2 157.1,53.8 173.2,67.6 189.4,82.3 205.5,96.0 221.7,109.9 237.8,117.0 254.0,89.8 270.1,103.4 286.3,117.3 302.4,131.0 318.6,137.9 334.7,144.9 350.9,158.5 367.0,165.4 383.2,179.0 399.3,178.2 415.5,150.7 431.6,123.1 447.8,137.0 463.9,108.9 480.1,122.6 496.2,136.2 512.4,149.9 528.5,163.5 544.7,171.1 560.8,178.0 577.0,191.8 593.2,205.5 609.3,178.5 625.5,175.4 641.6,182.6 657.8,154.9 673.9,168.7 690.1,175.6 706.2,189.3 722.4,203.3 738.5,217.2 754.7,208.3 770.8,215.3 787.0,222.2 803.1,229.0 819.3,236.0 835.4,208.6 851.6,181.5 867.7,195.3 883.9,168.2 900.0,141.2 916.2,148.2 932.3,120.4 948.5,127.5 964.6,141.5 980.8,114.5 996.9,121.6 1013.1,128.5 1029.2,142.8 1045.4,149.8 1061.5,157.0 1077.7,163.8 1093.8,170.7 1110.0,184.3" fill="none" stroke="var(--pos)" stroke-width="2.4" stroke-linejoin="round"/><line x1="44" y1="72.2" x2="1110" y2="72.2" stroke="currentColor" stroke-opacity=".25"/><line x1="44" y1="72.2" x2="1110" y2="72.2" stroke="currentColor" stroke-opacity=".08"/><text x="36" y="72.2" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="0.0000" data-fmt="int">0%</text><text x="44.0" y="268" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="middle">Jan</text><text x="157.1" y="268" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="middle">Feb</text><text x="254.0" y="268" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="middle">Mar</text><text x="431.6" y="268" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="middle">Apr</text><text x="560.8" y="268" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="middle">May</text><text x="641.6" y="268" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="middle">Jun</text><text x="867.7" y="268" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="middle">Jul</text><text x="964.6" y="268" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="middle">Aug</text><text x="1077.7" y="268" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="middle">Sep</text><circle cx="1110.0" cy="184.3" r="4" fill="var(--pos)"/><text x="1117.0" y="184.3" font-size="13" font-weight="700" fill="var(--pos)" dy="4" data-pct="-8.2740" data-fmt="signint">  -21%</text></svg></div>
+<figcaption>Cumulative return across 2026. Every step is one trade.</figcaption></figure>
+
+<div class="scroll"><table>
+<caption>By quarter — trading days available, trades taken, and totals</caption>
+<thead><tr><th>Quarter</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
+<tbody><tr><td><b>Q1</b></td><td>50</td><td>24</td><td>6 / 18</td><td>25.0%</td><td class="neg">0.64</td><td class="pos">-0.241</td><td class="pos"><b>-5.8 R</b></td><td class="pos"><b><span data-pct="-5.8000">-14.5</span>%</b></td></tr><tr><td><b>Q2</b></td><td>52</td><td>27</td><td>8 / 19</td><td>29.6%</td><td class="neg">0.85</td><td class="pos">-0.084</td><td class="pos"><b>-2.3 R</b></td><td class="pos"><b><span data-pct="-2.3000">-5.8</span>%</b></td></tr><tr><td><b>Q3</b></td><td>41</td><td>16</td><td>4 / 12</td><td>25.0%</td><td class="neg">0.97</td><td class="pos">-0.013</td><td class="pos"><b>-0.2 R</b></td><td class="pos"><b><span data-pct="-0.2000">-0.5</span>%</b></td></tr></tbody></table></div>
+
+<div class="scroll"><table>
+<caption>By month</caption>
+<thead><tr><th>Month</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Sequence</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
+<tbody><tr><td><b>Jan</b></td><td>16</td><td>7</td><td>3 / 4</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>42.9%</td><td class="pos">1.65</td><td class="pos">+0.337</td><td class="pos"><b>+2.4 R</b></td><td class="pos"><b><span data-pct="2.4000">+6.0</span>%</b></td></tr><tr><td><b>Feb</b></td><td>16</td><td>6</td><td>0 / 6</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0.0%</td><td class="neg">0.00</td><td class="neg">-0.944</td><td class="neg"><b>-5.7 R</b></td><td class="neg"><b><span data-pct="-5.7000">-14.2</span>%</b></td></tr><tr><td><b>Mar</b></td><td>18</td><td>11</td><td>3 / 8</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>27.3%</td><td class="neg">0.62</td><td class="neg">-0.226</td><td class="neg"><b>-2.5 R</b></td><td class="neg"><b><span data-pct="-2.5000">-6.2</span>%</b></td></tr><tr><td><b>Apr</b></td><td>18</td><td>8</td><td>2 / 6</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>25.0%</td><td class="neg">0.73</td><td class="neg">-0.188</td><td class="neg"><b>-1.5 R</b></td><td class="neg"><b><span data-pct="-1.5000">-3.8</span>%</b></td></tr><tr><td><b>May</b></td><td>16</td><td>5</td><td>2 / 3</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>40.0%</td><td class="neg">0.87</td><td class="neg">-0.065</td><td class="neg"><b>-0.3 R</b></td><td class="neg"><b><span data-pct="-0.3000">-0.8</span>%</b></td></tr><tr><td><b>Jun</b></td><td>18</td><td>14</td><td>4 / 10</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>28.6%</td><td class="neg">0.94</td><td class="neg">-0.032</td><td class="neg"><b>-0.4 R</b></td><td class="neg"><b><span data-pct="-0.4000">-1.0</span>%</b></td></tr><tr><td><b>Jul</b></td><td>18</td><td>6</td><td>3 / 3</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>50.0%</td><td class="pos">2.94</td><td class="pos">+0.663</td><td class="pos"><b>+4.0 R</b></td><td class="pos"><b><span data-pct="4.0000">+10.0</span>%</b></td></tr><tr><td><b>Aug</b></td><td>17</td><td>7</td><td>1 / 6</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>14.3%</td><td class="neg">0.48</td><td class="neg">-0.310</td><td class="neg"><b>-2.2 R</b></td><td class="neg"><b><span data-pct="-2.2000">-5.5</span>%</b></td></tr><tr><td><b>Sep</b></td><td>6</td><td>3</td><td>0 / 3</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0.0%</td><td class="neg">0.00</td><td class="neg">-0.672</td><td class="neg"><b>-2.0 R</b></td><td class="neg"><b><span data-pct="-2.0000">-5.0</span>%</b></td></tr></tbody></table></div>
+
+<div class="note"><div class="t">0 of 3 quarters positive</div><p>Q1 <b>-5.8 R</b>, Q2 <b>-2.3 R</b>, Q3 <b>-0.2 R</b>.</p></div>
+</section>
+
+<!-- ================= 06 WEEKS ================= -->
+<section id="weeks">
+<h2><span class="num">06</span>Week by week</h2>
+<p class="sub">Actual trading days per week — Monday to Thursday, so four in a
+full week and fewer around holidays. Greyed rows are weeks where no session met
+the entry conditions.</p>
+
+<div class="scroll"><table>
+<caption>Every week of 2026. Trades taken out of the days available.</caption>
+<thead><tr><th>Week</th><th>Trading days</th><th>Trades</th><th>W / L</th><th>Sequence</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Total %</th></tr></thead>
+<tbody><tr><td>05 Jan&nbsp;&ndash;&nbsp;08 Jan</td><td>4</td><td><b>3</b></td><td>2 / 1</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>67%</td><td class="pos">3.89</td><td class="pos">+0.990</td><td class="pos"><b>+3.0 R</b></td><td class="pos"><b><span data-pct="3.0000">+7.5</span>%</b></td></tr><tr><td>12 Jan&nbsp;&ndash;&nbsp;15 Jan</td><td>4</td><td><b>1</b></td><td>0 / 1</td><td><span class="seq"><b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-1.006</td><td class="neg"><b>-1.0 R</b></td><td class="neg"><b><span data-pct="-1.0000">-2.5</span>%</b></td></tr><tr><td>19 Jan&nbsp;&ndash;&nbsp;22 Jan</td><td>4</td><td><b>3</b></td><td>1 / 2</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>33%</td><td class="pos">1.25</td><td class="pos">+0.132</td><td class="pos"><b>+0.4 R</b></td><td class="pos"><b><span data-pct="0.4000">+1.0</span>%</b></td></tr><tr class="q"><td>26 Jan&nbsp;&ndash;&nbsp;29 Jan</td><td>4</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr><tr><td>02 Feb&nbsp;&ndash;&nbsp;05 Feb</td><td>4</td><td><b>1</b></td><td>0 / 1</td><td><span class="seq"><b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-1.006</td><td class="neg"><b>-1.0 R</b></td><td class="neg"><b><span data-pct="-1.0000">-2.5</span>%</b></td></tr><tr><td>09 Feb&nbsp;&ndash;&nbsp;12 Feb</td><td>4</td><td><b>1</b></td><td>0 / 1</td><td><span class="seq"><b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-1.013</td><td class="neg"><b>-1.0 R</b></td><td class="neg"><b><span data-pct="-1.0000">-2.5</span>%</b></td></tr><tr><td>16 Feb&nbsp;&ndash;&nbsp;19 Feb</td><td>4</td><td><b>3</b></td><td>0 / 3</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-1.040</td><td class="neg"><b>-3.1 R</b></td><td class="neg"><b><span data-pct="-3.1000">-7.8</span>%</b></td></tr><tr><td>23 Feb&nbsp;&ndash;&nbsp;26 Feb</td><td>4</td><td><b>1</b></td><td>0 / 1</td><td><span class="seq"><b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-0.526</td><td class="neg"><b>-0.5 R</b></td><td class="neg"><b><span data-pct="-0.5000">-1.2</span>%</b></td></tr><tr><td>02 Mar&nbsp;&ndash;&nbsp;05 Mar</td><td>4</td><td><b>2</b></td><td>1 / 1</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b></span></td><td>50%</td><td class="pos">2.00</td><td class="pos">+0.503</td><td class="pos"><b>+1.0 R</b></td><td class="pos"><b><span data-pct="1.0000">+2.5</span>%</b></td></tr><tr><td>09 Mar&nbsp;&ndash;&nbsp;12 Mar</td><td>4</td><td><b>4</b></td><td>0 / 4</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-0.766</td><td class="neg"><b>-3.1 R</b></td><td class="neg"><b><span data-pct="-3.1000">-7.8</span>%</b></td></tr><tr><td>16 Mar&nbsp;&ndash;&nbsp;19 Mar</td><td>4</td><td><b>1</b></td><td>0 / 1</td><td><span class="seq"><b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-1.007</td><td class="neg"><b>-1.0 R</b></td><td class="neg"><b><span data-pct="-1.0000">-2.5</span>%</b></td></tr><tr><td>23 Mar&nbsp;&ndash;&nbsp;26 Mar</td><td>4</td><td><b>2</b></td><td>0 / 2</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-0.756</td><td class="neg"><b>-1.5 R</b></td><td class="neg"><b><span data-pct="-1.5000">-3.8</span>%</b></td></tr><tr><td>30 Mar&nbsp;&ndash;&nbsp;02 Apr</td><td>4</td><td><b>3</b></td><td>3 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>100%</td><td class="q">&ndash;</td><td class="pos">+1.376</td><td class="pos"><b>+4.1 R</b></td><td class="pos"><b><span data-pct="4.1000">+10.2</span>%</b></td></tr><tr class="q"><td>06 Apr&nbsp;&ndash;&nbsp;09 Apr</td><td>4</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr><tr><td>13 Apr&nbsp;&ndash;&nbsp;16 Apr</td><td>4</td><td><b>2</b></td><td>1 / 1</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b></span></td><td>50%</td><td class="pos">2.02</td><td class="pos">+0.522</td><td class="pos"><b>+1.0 R</b></td><td class="pos"><b><span data-pct="1.0000">+2.5</span>%</b></td></tr><tr><td>20 Apr&nbsp;&ndash;&nbsp;23 Apr</td><td>4</td><td><b>2</b></td><td>0 / 2</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-1.008</td><td class="neg"><b>-2.0 R</b></td><td class="neg"><b><span data-pct="-2.0000">-5.0</span>%</b></td></tr><tr><td>27 Apr&nbsp;&ndash;&nbsp;30 Apr</td><td>4</td><td><b>3</b></td><td>0 / 3</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-0.857</td><td class="neg"><b>-2.6 R</b></td><td class="neg"><b><span data-pct="-2.6000">-6.5</span>%</b></td></tr><tr><td>04 May&nbsp;&ndash;&nbsp;07 May</td><td>4</td><td><b>2</b></td><td>0 / 2</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-0.764</td><td class="neg"><b>-1.5 R</b></td><td class="neg"><b><span data-pct="-1.5000">-3.8</span>%</b></td></tr><tr><td>11 May&nbsp;&ndash;&nbsp;14 May</td><td>4</td><td><b>1</b></td><td>0 / 1</td><td><span class="seq"><b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-1.014</td><td class="neg"><b>-1.0 R</b></td><td class="neg"><b><span data-pct="-1.0000">-2.5</span>%</b></td></tr><tr><td>18 May&nbsp;&ndash;&nbsp;21 May</td><td>4</td><td><b>1</b></td><td>1 / 0</td><td><span class="seq"><b class="pos">W</b></span></td><td>100%</td><td class="q">&ndash;</td><td class="pos">+1.994</td><td class="pos"><b>+2.0 R</b></td><td class="pos"><b><span data-pct="2.0000">+5.0</span>%</b></td></tr><tr><td>25 May&nbsp;&ndash;&nbsp;28 May</td><td>4</td><td><b>1</b></td><td>1 / 0</td><td><span class="seq"><b class="pos">W</b></span></td><td>100%</td><td class="q">&ndash;</td><td class="pos">+0.226</td><td class="pos"><b>+0.2 R</b></td><td class="pos"><b><span data-pct="0.2000">+0.5</span>%</b></td></tr><tr><td>01 Jun&nbsp;&ndash;&nbsp;04 Jun</td><td>4</td><td><b>2</b></td><td>1 / 1</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b></span></td><td>50%</td><td class="pos">3.89</td><td class="pos">+0.759</td><td class="pos"><b>+1.5 R</b></td><td class="pos"><b><span data-pct="1.5000">+3.8</span>%</b></td></tr><tr><td>08 Jun&nbsp;&ndash;&nbsp;11 Jun</td><td>4</td><td><b>4</b></td><td>0 / 4</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-0.893</td><td class="neg"><b>-3.6 R</b></td><td class="neg"><b><span data-pct="-3.6000">-9.0</span>%</b></td></tr><tr><td>15 Jun&nbsp;&ndash;&nbsp;18 Jun</td><td>4</td><td><b>2</b></td><td>1 / 1</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b></span></td><td>50%</td><td class="neg">0.63</td><td class="neg">-0.187</td><td class="neg"><b>-0.4 R</b></td><td class="neg"><b><span data-pct="-0.4000">-1.0</span>%</b></td></tr><tr><td>22 Jun&nbsp;&ndash;&nbsp;25 Jun</td><td>4</td><td><b>4</b></td><td>0 / 4</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-0.510</td><td class="neg"><b>-2.0 R</b></td><td class="neg"><b><span data-pct="-2.0000">-5.0</span>%</b></td></tr><tr><td>29 Jun&nbsp;&ndash;&nbsp;02 Jul</td><td>4</td><td><b>3</b></td><td>2 / 1</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>67%</td><td class="pos">3.95</td><td class="pos">+1.002</td><td class="pos"><b>+3.0 R</b></td><td class="pos"><b><span data-pct="3.0000">+7.5</span>%</b></td></tr><tr class="q"><td>06 Jul&nbsp;&ndash;&nbsp;09 Jul</td><td>4</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr><tr><td>13 Jul&nbsp;&ndash;&nbsp;16 Jul</td><td>4</td><td><b>1</b></td><td>1 / 0</td><td><span class="seq"><b class="pos">W</b></span></td><td>100%</td><td class="q">&ndash;</td><td class="pos">+1.996</td><td class="pos"><b>+2.0 R</b></td><td class="pos"><b><span data-pct="2.0000">+5.0</span>%</b></td></tr><tr><td>20 Jul&nbsp;&ndash;&nbsp;23 Jul</td><td>4</td><td><b>2</b></td><td>1 / 1</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b></span></td><td>50%</td><td class="pos">3.87</td><td class="pos">+0.739</td><td class="pos"><b>+1.5 R</b></td><td class="pos"><b><span data-pct="1.5000">+3.8</span>%</b></td></tr><tr><td>27 Jul&nbsp;&ndash;&nbsp;30 Jul</td><td>4</td><td><b>2</b></td><td>1 / 1</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b></span></td><td>50%</td><td class="pos">3.90</td><td class="pos">+0.762</td><td class="pos"><b>+1.5 R</b></td><td class="pos"><b><span data-pct="1.5000">+3.8</span>%</b></td></tr><tr><td>03 Aug&nbsp;&ndash;&nbsp;06 Aug</td><td>4</td><td><b>1</b></td><td>0 / 1</td><td><span class="seq"><b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-1.030</td><td class="neg"><b>-1.0 R</b></td><td class="neg"><b><span data-pct="-1.0000">-2.5</span>%</b></td></tr><tr><td>10 Aug&nbsp;&ndash;&nbsp;13 Aug</td><td>4</td><td><b>3</b></td><td>1 / 2</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>33%</td><td class="pos">1.92</td><td class="pos">+0.319</td><td class="pos"><b>+1.0 R</b></td><td class="pos"><b><span data-pct="1.0000">+2.5</span>%</b></td></tr><tr class="q"><td>17 Aug&nbsp;&ndash;&nbsp;20 Aug</td><td>4</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr><tr><td>24 Aug&nbsp;&ndash;&nbsp;27 Aug</td><td>4</td><td><b>2</b></td><td>0 / 2</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-0.783</td><td class="neg"><b>-1.6 R</b></td><td class="neg"><b><span data-pct="-1.6000">-4.0</span>%</b></td></tr><tr><td>31 Aug&nbsp;&ndash;&nbsp;03 Sep</td><td>4</td><td><b>4</b></td><td>0 / 4</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0%</td><td class="neg">0.00</td><td class="neg">-0.637</td><td class="neg"><b>-2.5 R</b></td><td class="neg"><b><span data-pct="-2.5000">-6.2</span>%</b></td></tr><tr class="q"><td>07 Sep&nbsp;&ndash;&nbsp;10 Sep</td><td>3</td><td>0</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr></tbody></table></div>
+
+<p>The pattern worth noticing: <strong>you take a trade on roughly half the days
+available.</strong> 67 trades from 143 eligible sessions. Most weeks
+produce two or three trades, and a handful produce none at all — those are weeks
+where the half-of-the-range rule or the entry window ruled every session out.
+Sitting out is part of the edge, not a failure of it.</p>
+</section>
+
+<!-- ================= 07 RISK ================= -->
+<section id="risk">
+<h2><span class="num">07</span>Risk and sizing</h2>
+<p class="sub">A funded-account challenge is a race between a profit target and
+a drawdown limit. That makes streaks matter more than averages.</p>
+
+<div class="scroll"><table>
+<caption>Simulated on the 2026 outcome distribution. Target +12%, 12% maximum loss, 3% daily, no minimum days.</caption>
+<thead><tr><th>Risk per trade</th><th>Pass</th><th>Trades needed</th><th>~Days</th><th>Total return</th><th>Worst drawdown</th><th>8 losses cost</th><th>Worst single loss</th></tr></thead>
+<tbody><tr data-rowrisk="0.5"><td><b>0.5%</b></td><td class="pos"><b>1.6%</b></td><td>152</td><td>325</td><td class="pos"><b>-4%</b></td><td>8.0%</td><td class="">3.6%</td><td class="">-0.54%</td></tr><tr data-rowrisk="0.75"><td><b>0.75%</b></td><td class="pos"><b>6.2%</b></td><td>88</td><td>188</td><td class="pos"><b>-6%</b></td><td>12.1%</td><td class="">5.3%</td><td class="">-0.81%</td></tr><tr data-rowrisk="1.0"><td><b>1%</b></td><td class="pos"><b>11.0%</b></td><td>57</td><td>122</td><td class="pos"><b>-8%</b></td><td>16.1%</td><td class="">7.1%</td><td class="">-1.09%</td></tr><tr data-rowrisk="1.25"><td><b>1.25%</b></td><td class="pos"><b>15.3%</b></td><td>41</td><td>88</td><td class="pos"><b>-10%</b></td><td>20.1%</td><td class="">8.9%</td><td class="">-1.36%</td></tr><tr data-rowrisk="1.5"><td><b>1.5%</b></td><td class="pos"><b>19.3%</b></td><td>30</td><td>64</td><td class="pos"><b>-12%</b></td><td>24.1%</td><td class="">10.7%</td><td class="">-1.63%</td></tr><tr data-rowrisk="1.75" class="neg"><td><b>1.75%</b></td><td class="pos"><b>22.5%</b></td><td>23</td><td>49</td><td class="pos"><b>-14%</b></td><td>28.2%</td><td class="neg">12.5%</td><td class="">-1.90%</td></tr><tr data-rowrisk="2.0" class="neg"><td><b>2%</b></td><td class="pos"><b>24.3%</b></td><td>18</td><td>38</td><td class="pos"><b>-16%</b></td><td>32.2%</td><td class="neg">14.3%</td><td class="">-2.17%</td></tr><tr data-rowrisk="2.25" class="neg"><td><b>2.25%</b></td><td class="pos"><b>26.6%</b></td><td>15</td><td>32</td><td class="pos"><b>-19%</b></td><td>36.2%</td><td class="neg">16.0%</td><td class="">-2.44%</td></tr><tr data-rowrisk="2.5" class="neg"><td><b>2.5%</b></td><td class="pos"><b>28.0%</b></td><td>13</td><td>28</td><td class="pos"><b>-21%</b></td><td>40.2%</td><td class="neg">17.8%</td><td class="">-2.72%</td></tr></tbody></table></div>
+<p class="sub">The highlighted row is the risk set at the top; the field there accepts any value and
+snaps to a simulated level. Pass, trades and days come from walking the real outcomes against the
+barriers, not from scaling.</p>
+
+
+
+<div class="scroll"><table>
+<caption>Losing runs that actually happened in 2026. The cost is the worst real sequence of that length, not a run of average losses &mdash; the stop move halves some losses, so averaging them understates the run that matters.</caption>
+<thead><tr><th>Consecutive losses</th><th>Times</th><th>Worst it actually cost</th><th>At the risk above</th></tr></thead>
+<tbody><tr class=""><td>1 in a row</td><td>4&times;</td><td>-1.09 R</td><td><span data-pct="1.0860" data-fmt="plain1">2.7</span>% of the account</td></tr><tr class=""><td>2 in a row</td><td>1&times;</td><td>-2.10 R</td><td><span data-pct="2.1010" data-fmt="plain1">5.3</span>% of the account</td></tr><tr class="warn"><td>3 in a row</td><td>1&times;</td><td>-3.12 R</td><td><span data-pct="3.1210" data-fmt="plain1">7.8</span>% of the account</td></tr><tr class="warn"><td>4 in a row</td><td>1&times;</td><td>-4.17 R</td><td><span data-pct="4.1680" data-fmt="plain1">10.4</span>% of the account</td></tr><tr class="neg"><td>5 in a row</td><td>1&times;</td><td>-5.18 R</td><td><span data-pct="5.1830" data-fmt="plain1">13.0</span>% of the account</td></tr><tr class="neg"><td>7 in a row</td><td>1&times;</td><td>-6.73 R</td><td><span data-pct="6.7290" data-fmt="plain1">16.8</span>% of the account</td></tr><tr class="neg"><td>8 in a row</td><td>3&times;</td><td>-7.13 R</td><td><span data-pct="7.1290" data-fmt="plain1">17.8</span>% of the account</td></tr></tbody></table></div>
+
+<div class="note"><div class="t">The one risk that matters</div>
+<p id="runprose">A <strong>8-loss run happened 3 times</strong>, and at 2.5% risk it costs 20% — past the 12% limit.</p>
+<p>Realised drawdown reached <span data-sweep="maxdd">40.2</span>% because a winner landed before that
+run started from a peak. The same sequence hitting a fresh account is the failure case, and it is
+the only one worth planning for &mdash; nearly every simulated failure is one long losing run
+rather than a slow bleed.</p>
+<p id="riskadvice"></p></div>
+
+<h3>Position sizing, worked</h3>
+<ul>
+<li>Account <strong>$10,000</strong>, risk <strong><span data-risk>2.5%</span></strong> → <strong><span data-sweep="money" data-fmt="money">$250</span></strong> per trade, every trade.</li>
+<li>Range is <strong>1,000 points</strong> ($10.00) → stop sits <strong>500 points</strong> ($5.00) away.</li>
+<li>Gold moves <strong>$1 per point per lot</strong>, so $5.00 of stop = <strong>$500 per lot</strong>.</li>
+<li>Size = <span data-sweep="money" data-fmt="money">$250</span> &divide; $500 = <strong><span data-sweep="money" data-fmt="lots">0.50</span> lots</strong>.</li>
+</ul>
+<p>A wider range means a wider stop and therefore a smaller position — the dollar
+risk stays at $200 regardless. That is what makes every result comparable in R.</p>
+</section>
+
+<!-- ================= 08 MONTE CARLO ================= -->
+<section id="montecarlo">
+<h2><span class="num">08</span>Monte Carlo simulation</h2>
+<p class="sub">Draw a trade at random from the 67 real results, add it, repeat until the
+account hits +12% or &minus;12%. That is one attempt. Eighty of them are drawn
+below; the numbers come from 40&nbsp;000.</p>
+
+<div class="mclegend">
+  <span><i class="sw pos"></i>Passed &mdash; reached +12%</span>
+  <span><i class="sw neg"></i>Failed &mdash; hit &minus;12%</span>
+</div>
+
+<div class="fig"><svg viewBox="0 0 1180 300" width="100%" role="img" id="mcsvg" data-mc="1"><title>Eighty simulated challenge attempts</title><desc>Eighty attempts at 2.5% risk; 16 reached the target, 64 hit the maximum loss.</desc><line x1="44" y1="54.6" x2="1156" y2="54.6" stroke="currentColor" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="7 5"/><text x="46" y="54.6" font-size="12" font-weight="640" fill="currentColor" fill-opacity=".65" dy="-6">+12% target</text><line x1="44" y1="226.0" x2="1156" y2="226.0" stroke="currentColor" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="7 5"/><text x="46" y="226.0" font-size="12" font-weight="640" fill="currentColor" fill-opacity=".65" dy="-6">-12% max loss</text><line x1="44" y1="140.3" x2="1156" y2="140.3" stroke="currentColor" stroke-opacity=".18"/><polyline points="44.0,140.3 66.2,158.2 88.5,176.6 110.7,185.7 133.0,194.9 155.2,159.2 177.4,123.6 199.7,143.0 221.9,152.4 244.2,161.9 266.4,126.2 288.6,89.9 310.9,108.2 333.1,107.1 355.4,71.5 377.6,80.5 399.8,98.4 422.1,107.5 444.3,125.7 466.6,143.8 488.8,107.2 511.0,71.6 533.3,80.8 555.5,44.9" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,103.8 88.5,113.0 110.7,111.9 133.0,129.8 155.2,94.1 177.4,103.2 199.7,121.5 221.9,85.8 244.2,84.7 266.4,102.6 288.6,111.6 310.9,129.7 333.1,147.7 355.4,157.1 377.6,166.2 399.8,175.4 422.1,193.8 444.3,157.7 466.6,166.8 488.8,155.2 511.0,118.8 533.3,137.2 555.5,155.6 577.8,164.8 600.0,129.1 622.2,125.0 644.5,143.4 666.7,152.5 689.0,161.7 711.2,179.8 733.4,144.2 755.7,162.6 777.9,127.0 800.2,90.8 822.4,54.2" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,103.2 88.5,67.7 110.7,32.0" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.4 88.5,158.6 110.7,123.0 133.0,141.1 155.2,105.4 177.4,69.8 199.7,68.7 221.9,77.9 244.2,87.0 266.4,96.4 288.6,84.7 310.9,80.7 333.1,98.7 355.4,108.1 377.6,71.5 399.8,89.8 422.1,54.2" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.7 88.5,113.9 110.7,78.0 133.0,87.4 155.2,51.8" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.4 88.5,167.4 110.7,131.2 133.0,94.1 155.2,103.3 177.4,66.3 199.7,75.5 221.9,38.5" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.4 88.5,68.7 110.7,33.1" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.5 88.5,159.0 110.7,168.9 133.0,187.2 155.2,205.3 177.4,214.4 199.7,210.3 221.9,174.8 244.2,192.8 266.4,157.2 288.6,175.5 310.9,139.9 333.1,149.3 355.4,113.5 377.6,131.4 399.8,140.5 422.1,104.9 444.3,123.0 466.6,132.1 488.8,141.2 511.0,105.5 533.3,123.5 555.5,142.9 577.8,161.2 600.0,180.2 622.2,189.4 644.5,208.3 666.7,172.5 689.0,190.4 711.2,153.4 733.4,117.2 755.7,81.5 777.9,99.8 800.2,118.8 822.4,83.1 844.6,46.7" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.3 88.5,167.9 110.7,186.3 133.0,204.6 155.2,222.5 177.4,186.7 199.7,196.1 221.9,214.4 244.2,178.8 266.4,188.2 288.6,197.3 310.9,161.7 333.1,126.1 355.4,90.5 377.6,100.5 399.8,109.8 422.1,127.9 444.3,145.8 466.6,164.1 488.8,182.9 511.0,147.0 533.3,165.2 555.5,174.4 577.8,183.4 600.0,201.5 622.2,165.3 644.5,174.4 666.7,183.6 689.0,201.7 711.2,211.2 733.4,220.4 755.7,184.2 777.9,202.6 800.2,211.6 822.4,175.1 844.6,139.5 866.9,149.0 889.1,112.5 911.4,76.8 933.6,40.6" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.1 88.5,68.2 110.7,64.1 133.0,73.3 155.2,91.3 177.4,79.6 199.7,89.0 221.9,52.4" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,136.2 88.5,145.4 110.7,163.6 133.0,181.6 155.2,146.0 177.4,109.0 199.7,73.1 221.9,91.4 244.2,55.1 266.4,73.1 288.6,82.2 310.9,100.9 333.1,65.1 355.4,53.4" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,177.2 110.7,195.3 133.0,159.4 155.2,168.5 177.4,177.9 199.7,141.3 221.9,150.8 244.2,114.3 266.4,123.4 288.6,87.8 310.9,106.2 333.1,115.6 355.4,79.7 377.6,99.1 399.8,118.5 422.1,136.4 444.3,100.2 466.6,118.2 488.8,82.5 511.0,45.9" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,122.7 110.7,86.3 133.0,95.9 155.2,59.7 177.4,77.9 199.7,87.3 221.9,105.4 244.2,123.7 266.4,88.0 288.6,97.2 310.9,115.4 333.1,125.3 355.4,89.7 377.6,54.1" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,103.2 88.5,66.7 110.7,84.8 133.0,48.2" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.6 88.5,122.9 110.7,132.3 133.0,150.3 155.2,146.3 177.4,109.7 199.7,119.2 221.9,128.3 244.2,92.7 266.4,110.8 288.6,129.2 310.9,138.4 333.1,156.4 355.4,165.8 377.6,175.7 399.8,139.5 422.1,103.6 444.3,121.6 466.6,131.0 488.8,140.1 511.0,103.1 533.3,121.4 555.5,84.4 577.8,93.4 600.0,111.5 622.2,129.9 644.5,94.2 666.7,58.1 689.0,21.1" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.6 88.5,122.9 110.7,141.2 133.0,159.4 155.2,158.2 177.4,121.2 199.7,130.6 221.9,139.9 244.2,149.1 266.4,167.2 288.6,130.1 310.9,139.3 333.1,102.9 355.4,120.9 377.6,85.2 399.8,48.2" fill="none" stroke="var(--pos)" stroke-width="1.1" stroke-opacity=".5" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.5 88.5,176.6 110.7,185.6 133.0,203.9 155.2,213.0 177.4,177.3 199.7,186.7 221.9,151.0 244.2,169.0 266.4,178.1 288.6,142.0 310.9,160.4 333.1,178.8 355.4,187.8 377.6,183.8 399.8,192.9 422.1,156.3 444.3,174.7 466.6,139.0 488.8,148.5 511.0,157.9 533.3,175.9 555.5,185.1 577.8,194.1 600.0,204.0 622.2,213.1 644.5,222.3 666.7,240.7" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.3 88.5,121.8 110.7,139.8 133.0,148.9 155.2,166.9 177.4,185.1 199.7,194.0 221.9,204.0 244.2,166.9 266.4,185.0 288.6,194.0 310.9,158.3 333.1,122.6 355.4,132.1 377.6,141.2 399.8,159.5 422.1,123.8 444.3,87.7 466.6,105.8 488.8,123.9 511.0,141.9 533.3,150.9 555.5,169.1 577.8,188.0 600.0,197.4 622.2,206.6 644.5,225.0 666.7,189.4 689.0,207.3 711.2,170.3 733.4,188.3 755.7,152.7 777.9,116.8 800.2,134.8 822.4,143.9 844.6,107.6 866.9,125.5 889.1,144.3 911.4,162.3 933.6,171.8 955.8,189.8 978.1,208.2 1000.3,172.6 1022.6,191.3 1044.8,200.3 1067.0,218.5 1089.3,236.9" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.7 88.5,176.8 110.7,194.8 133.0,158.6 155.2,157.5 177.4,121.0 199.7,130.2 221.9,148.3 244.2,157.9 266.4,175.9 288.6,140.3 310.9,158.3 333.1,167.5 355.4,131.4 377.6,130.2 399.8,118.6 422.1,128.2 444.3,146.3 466.6,164.2 488.8,182.6 511.0,191.8 533.3,209.8 555.5,227.8" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.7 88.5,167.8 110.7,131.2 133.0,140.2 155.2,158.4 177.4,146.7 199.7,155.8 221.9,174.1 244.2,192.1 266.4,201.3 288.6,219.4 310.9,183.7 333.1,201.8 355.4,164.8 377.6,173.9 399.8,192.1 422.1,210.0 444.3,173.9 466.6,192.2 488.8,188.2 511.0,152.3 533.3,161.4 555.5,179.7 577.8,175.7 600.0,139.2 622.2,157.3 644.5,166.7 666.7,184.7 689.0,194.1 711.2,212.3 733.4,230.2" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.6 88.5,168.2 110.7,186.5 133.0,204.6 155.2,213.8 177.4,222.9 199.7,240.9" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.7 88.5,114.1 110.7,123.3 133.0,132.3 155.2,150.2 177.4,159.6 199.7,123.3 221.9,141.4 244.2,159.8 266.4,178.0 288.6,196.3 310.9,205.5 333.1,223.9 355.4,242.1" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,176.3 110.7,139.8 133.0,138.6 155.2,148.1 177.4,111.1 199.7,110.0 221.9,119.0 244.2,128.4 266.4,146.6 288.6,155.8 310.9,164.7 333.1,182.9 355.4,181.8 377.6,170.1 399.8,188.5 422.1,152.1 444.3,161.3 466.6,179.6 488.8,197.9 511.0,216.0 533.3,179.9 555.5,189.0 577.8,152.5 600.0,161.7 622.2,179.9 644.5,198.3 666.7,216.3 689.0,225.4 711.2,244.2" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.3 88.5,176.6 110.7,185.8 133.0,205.2 155.2,223.1 177.4,232.3" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.7 88.5,167.8 110.7,132.2 133.0,151.0 155.2,169.1 177.4,178.6 199.7,187.7 221.9,205.7 244.2,223.7 266.4,232.8" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.7 88.5,148.6 110.7,157.9 133.0,167.3 155.2,185.3 177.4,203.5 199.7,213.4 221.9,177.2 244.2,195.2 266.4,204.4 288.6,168.3 310.9,187.0 333.1,185.9 355.4,195.1 377.6,213.1 399.8,231.3" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.5 88.5,167.4 110.7,185.5 133.0,204.5 155.2,168.9 177.4,178.1 199.7,196.1 221.9,214.4 244.2,223.6 266.4,241.6" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,154.4 110.7,163.6 133.0,159.5 155.2,123.9 177.4,142.0 199.7,160.1 221.9,169.3 244.2,178.6 266.4,187.8 288.6,205.8 310.9,170.1 333.1,188.4 355.4,184.4 377.6,148.8 399.8,166.8 422.1,176.4 444.3,194.7 466.6,204.3 488.8,213.4 511.0,222.5 533.3,231.7" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,167.4 110.7,131.7 133.0,140.8 155.2,158.8 177.4,154.7 199.7,172.8 221.9,181.9 244.2,199.8 266.4,217.8 288.6,227.3" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.3 88.5,176.4 110.7,185.8 133.0,194.9 155.2,213.0 177.4,222.1 199.7,240.9" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.3 88.5,167.7 110.7,185.6 133.0,194.7 155.2,203.8 177.4,212.8 199.7,222.2 221.9,240.2" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.7 88.5,114.2 110.7,123.4 133.0,132.6 155.2,150.6 177.4,159.8 199.7,168.9 221.9,178.1 244.2,142.4 266.4,106.7 288.6,124.9 310.9,142.9 333.1,161.3 355.4,179.2 377.6,188.6 399.8,197.7 422.1,206.9 444.3,170.3 466.6,134.6 488.8,144.0 511.0,162.3 533.3,180.7 555.5,199.4 577.8,217.7 600.0,235.7" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.1 88.5,122.4 110.7,140.8 133.0,158.8 155.2,168.3 177.4,186.6 199.7,196.1 221.9,215.1 244.2,224.3 266.4,242.3" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,176.5 110.7,185.7 133.0,195.1 155.2,213.0 177.4,231.1" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.7 88.5,167.9 110.7,177.2 133.0,196.2 155.2,192.2 177.4,210.4 199.7,219.5 221.9,182.5 244.2,201.2 266.4,210.4 288.6,228.5" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.2 88.5,176.2 110.7,186.1 133.0,204.5 155.2,213.9 177.4,178.2 199.7,196.1 221.9,205.2 244.2,214.6 266.4,203.0 288.6,167.4 310.9,176.8 333.1,194.7 355.4,213.1 377.6,222.2 399.8,240.2" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.5 88.5,176.5 110.7,185.7 133.0,150.0 155.2,168.4 177.4,167.2 199.7,185.2 221.9,203.6 244.2,212.7 266.4,177.0 288.6,186.1 310.9,195.6 333.1,213.6 355.4,209.6 377.6,218.8 399.8,236.7" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.5 88.5,122.0 110.7,140.0 133.0,149.2 155.2,167.2 177.4,131.0 199.7,95.4 221.9,113.4 244.2,131.7 266.4,140.8 288.6,159.1 310.9,177.1 333.1,186.2 355.4,195.3 377.6,205.2 399.8,214.6 422.1,233.6" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.9 88.5,167.8 110.7,177.0 133.0,195.1 155.2,213.1 177.4,177.4 199.7,141.8 221.9,160.1 244.2,124.4 266.4,88.7 288.6,98.3 310.9,116.3 333.1,125.8 355.4,90.2 377.6,109.0 399.8,126.9 422.1,135.9 444.3,99.4 466.6,117.4 488.8,126.8 511.0,145.2 533.3,154.6 555.5,172.6 577.8,181.7 600.0,199.7 622.2,163.3 644.5,127.4 666.7,145.8 689.0,155.0 711.2,164.4 733.4,128.7 755.7,146.7 777.9,164.7 800.2,184.1 822.4,193.2 844.6,211.1 866.9,229.2" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.3 88.5,158.7 110.7,167.8 133.0,186.2 155.2,204.6 177.4,222.5 199.7,241.3" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,128.6 88.5,92.5 110.7,110.5 133.0,119.6 155.2,138.3 177.4,147.5 199.7,165.6 221.9,174.7 244.2,138.2 266.4,147.4 288.6,156.5 310.9,120.9 333.1,138.9 355.4,157.0 377.6,175.0 399.8,193.0 422.1,210.9 444.3,228.9" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.2 88.5,122.6 110.7,131.9 133.0,150.2 155.2,159.3 177.4,177.2 199.7,196.2 221.9,160.6 244.2,178.8 266.4,187.9 288.6,205.9 310.9,215.1 333.1,224.1 355.4,188.5 377.6,152.9 399.8,162.1 422.1,180.4 444.3,189.6 466.6,207.6 488.8,225.6 511.0,243.6" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,167.4 110.7,185.5 133.0,203.4 155.2,221.7 177.4,239.9" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.6 88.5,167.7 110.7,132.1 133.0,95.5 155.2,104.6 177.4,122.5 199.7,131.7 221.9,130.6 244.2,94.9 266.4,59.2 288.6,77.2 310.9,95.5 333.1,59.4 355.4,68.5 377.6,86.4 399.8,104.6 422.1,122.9 444.3,132.1 466.6,141.6 488.8,105.9 511.0,115.0 533.3,132.9 555.5,151.3 577.8,115.6 600.0,124.8 622.2,143.0 644.5,161.0 666.7,170.4 689.0,169.2 711.2,133.6 733.4,152.0 755.7,170.1 777.9,134.0 800.2,143.5 822.4,153.0 844.6,171.4 866.9,189.4 889.1,153.0 911.4,162.1 933.6,126.5 955.8,144.8 978.1,163.1 1000.3,181.2 1022.6,190.7 1044.8,154.8 1067.0,173.2 1089.3,182.3 1111.5,200.7 1133.8,209.9 1156.0,227.9" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,136.2 88.5,145.4 110.7,164.1 133.0,128.4 155.2,92.6 177.4,110.5 199.7,128.9 221.9,147.0 244.2,165.0 266.4,174.9 288.6,139.3 310.9,158.3 333.1,176.6 355.4,185.7 377.6,184.6 399.8,202.9 422.1,212.1 444.3,221.2 466.6,230.3" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.7 88.5,167.9 110.7,185.8 133.0,204.2 155.2,168.3 177.4,187.3 199.7,205.4 221.9,214.5 244.2,210.4 266.4,228.4" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.4 88.5,158.6 110.7,176.9 133.0,195.3 155.2,213.6 177.4,232.0" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.8 88.5,113.7 110.7,112.5 133.0,121.9 155.2,139.9 177.4,158.0 199.7,122.1 221.9,86.0 244.2,104.3 266.4,122.3 288.6,86.7 310.9,104.6 333.1,123.0 355.4,132.4 377.6,150.5 399.8,114.4 422.1,123.8 444.3,87.4 466.6,83.4 488.8,92.8 511.0,111.1 533.3,74.6 555.5,92.5 577.8,110.6 600.0,128.5 622.2,146.5 644.5,155.7 666.7,173.6 689.0,191.7 711.2,209.9 733.4,198.3 755.7,216.2 777.9,215.1 800.2,233.2" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,167.5 110.7,185.7 133.0,203.7 155.2,222.0 177.4,240.0" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.6 88.5,167.7 110.7,185.9 133.0,204.1 155.2,213.5 177.4,177.9 199.7,196.0 221.9,205.5 244.2,223.6 266.4,211.9 288.6,230.7" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.4 88.5,113.1 110.7,131.8 133.0,149.8 155.2,168.2 177.4,186.4 199.7,204.5 221.9,222.7 244.2,231.7" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,122.8 110.7,141.2 133.0,150.2 155.2,168.1 177.4,186.0 199.7,195.2 221.9,183.6 244.2,192.7 266.4,210.9 288.6,220.2 310.9,238.6" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,103.2 88.5,112.3 110.7,121.5 133.0,130.9 155.2,95.2 177.4,59.0 199.7,68.4 221.9,86.4 244.2,104.3 266.4,122.3 288.6,140.2 310.9,158.2 333.1,176.4 355.4,140.0 377.6,136.0 399.8,145.2 422.1,163.3 444.3,181.6 466.6,199.6 488.8,164.0 511.0,182.0 533.3,200.1 555.5,188.4 577.8,206.5 600.0,170.7 622.2,179.8 644.5,143.2 666.7,152.2 689.0,170.6 711.2,159.0 733.4,177.0 755.7,195.2 777.9,158.2 800.2,168.1 822.4,177.3 844.6,186.9 866.9,206.2 889.1,224.2 911.4,242.5" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,103.8 88.5,102.7 110.7,111.9 133.0,130.0 155.2,148.0 177.4,167.0 199.7,184.9 221.9,203.0 244.2,221.2 266.4,240.6" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.6 88.5,167.7 110.7,185.7 133.0,204.1 155.2,213.2 177.4,177.5 199.7,186.6 221.9,195.9 244.2,205.1 266.4,223.0 288.6,232.4" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.7 88.5,176.6 110.7,186.0 133.0,195.2 155.2,204.7 177.4,222.9 199.7,232.0" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,177.4 110.7,141.7 133.0,159.9 155.2,169.1 177.4,187.0 199.7,205.3 221.9,223.7 244.2,232.8" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.7 88.5,168.2 110.7,177.4 133.0,195.5 155.2,213.9 177.4,178.0 199.7,142.4 221.9,106.7 244.2,116.6 266.4,134.8 288.6,143.9 310.9,161.9 333.1,171.1 355.4,189.2 377.6,208.2 399.8,226.2" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.5 88.5,167.5 110.7,176.7 133.0,186.1 155.2,204.3 177.4,167.3 199.7,185.3 221.9,194.8 244.2,203.8 266.4,221.8 288.6,231.2" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.1 88.5,100.0 110.7,109.4 133.0,127.4 155.2,145.4 177.4,163.5 199.7,181.6 221.9,190.8 244.2,209.1 266.4,218.2 288.6,236.2" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.3 88.5,177.7 110.7,142.1 133.0,151.6 155.2,116.1 177.4,125.1 199.7,143.2 221.9,161.3 244.2,179.3 266.4,143.7 288.6,139.6 310.9,104.0 333.1,122.0 355.4,131.4 377.6,140.6 399.8,158.9 422.1,177.0 444.3,195.3 466.6,213.6 488.8,231.5" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.2 88.5,167.3 110.7,185.4 133.0,173.7 155.2,191.9 177.4,201.1 199.7,210.2 221.9,228.6" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.4 88.5,167.9 110.7,176.9 133.0,172.9 155.2,182.3 177.4,146.7 199.7,165.4 221.9,183.6 244.2,201.8 266.4,211.4 288.6,229.3" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.4 88.5,167.4 110.7,185.4 133.0,148.9 155.2,112.6 177.4,75.6 199.7,84.6 221.9,102.9 244.2,112.1 266.4,130.1 288.6,148.8 310.9,167.2 333.1,131.6 355.4,149.9 377.6,159.1 399.8,168.1 422.1,177.3 444.3,195.3 466.6,159.7 488.8,168.8 511.0,186.8 533.3,204.8 555.5,167.7 577.8,131.4 600.0,140.5 622.2,149.9 644.5,168.1 666.7,177.6 689.0,176.5 711.2,140.9 733.4,150.1 755.7,159.6 777.9,168.8 800.2,186.8 822.4,204.9 844.6,222.8 866.9,240.8" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.6 88.5,167.8 110.7,177.2 133.0,140.7 155.2,149.8 177.4,148.6 199.7,167.0 221.9,185.1 244.2,194.6 266.4,158.3 288.6,176.4 310.9,185.8 333.1,203.7 355.4,213.1 377.6,177.2 399.8,187.1 422.1,205.2 444.3,214.7 466.6,223.6 488.8,232.7" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.1 88.5,113.1 110.7,122.2 133.0,131.3 155.2,140.5 177.4,103.9 199.7,121.9 221.9,140.1 244.2,158.3 266.4,167.5 288.6,176.7 310.9,185.9 333.1,149.7 355.4,112.7 377.6,122.3 399.8,140.4 422.1,158.8 444.3,176.8 466.6,194.8 488.8,203.9 511.0,212.9 533.3,177.3 555.5,186.4 577.8,182.4 600.0,191.5 622.2,200.5 644.5,210.0 666.7,228.7" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.4 88.5,167.4 110.7,186.4 133.0,204.6 155.2,222.9 177.4,241.3" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.6 88.5,122.6 110.7,140.7 133.0,158.9 155.2,177.2 177.4,195.4 199.7,204.4 221.9,213.6 244.2,231.9" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.3 88.5,167.3 110.7,176.3 133.0,194.3 155.2,203.4 177.4,221.4 199.7,239.8" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.4 88.5,158.5 110.7,176.5 133.0,194.6 155.2,212.7 177.4,230.9" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.3 88.5,176.7 110.7,194.6 133.0,203.8 155.2,167.3 177.4,130.7 199.7,148.6 221.9,157.9 244.2,166.9 266.4,184.9 288.6,194.4 310.9,158.1 333.1,154.1 355.4,172.1 377.6,191.1 399.8,209.0 422.1,173.3 444.3,191.6 466.6,200.7 488.8,165.0 511.0,174.1 533.3,137.7 555.5,146.8 577.8,165.7 600.0,174.9 622.2,139.3 644.5,138.2 666.7,156.1 689.0,174.1 711.2,137.6 733.4,155.7 755.7,173.6 777.9,191.6 800.2,155.4 822.4,164.6 844.6,128.9 866.9,147.3 889.1,165.5 911.4,183.6 933.6,192.8 955.8,210.9 978.1,229.1" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.7 88.5,122.8 110.7,131.8 133.0,150.2 155.2,159.2 177.4,122.7 199.7,132.1 221.9,150.3 244.2,168.5 266.4,177.6 288.6,195.6 310.9,205.1 333.1,223.2 355.4,232.2" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.5 88.5,158.7 110.7,177.7 133.0,196.0 155.2,214.0 177.4,232.1" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.7 88.5,177.1 110.7,195.1 133.0,213.3 155.2,177.6 177.4,165.9 199.7,183.9 221.9,148.2 244.2,157.2 266.4,121.6 288.6,85.9 310.9,104.0 333.1,122.4 355.4,131.4 377.6,149.4 399.8,167.6 422.1,186.3 444.3,174.7 466.6,170.6 488.8,179.8 511.0,188.9 533.3,153.3 555.5,171.3 577.8,135.6 600.0,144.7 622.2,153.9 644.5,163.3 666.7,127.6 689.0,145.6 711.2,163.9 733.4,181.9 755.7,190.9 777.9,209.7 800.2,228.1" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.6 88.5,123.1 110.7,141.4 133.0,104.8 155.2,122.9 177.4,132.0 199.7,150.1 221.9,168.0 244.2,156.4 266.4,175.4 288.6,139.8 310.9,149.2 333.1,167.2 355.4,185.2 377.6,203.6 399.8,221.7 422.1,239.8" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,104.7 88.5,122.7 110.7,141.1 133.0,137.0 155.2,100.4 177.4,118.4 199.7,117.3 221.9,126.8 244.2,144.7 266.4,163.1 288.6,181.4 310.9,190.5 333.1,208.6 355.4,217.7 377.6,237.1" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,139.2 88.5,103.6 110.7,121.7 133.0,130.9 155.2,148.9 177.4,167.2 199.7,185.5 221.9,194.5 244.2,203.7 266.4,222.7 288.6,211.0 310.9,207.0 333.1,216.0 355.4,180.4 377.6,176.4 399.8,185.6 422.1,203.8 444.3,222.1 466.6,231.5" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,136.2 88.5,154.6 110.7,172.6 133.0,181.9 155.2,200.3 177.4,218.2 199.7,227.3" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,158.3 88.5,167.4 110.7,185.3 133.0,194.4 155.2,203.6 177.4,221.7 199.7,230.9" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><polyline points="44.0,140.3 66.2,149.7 88.5,159.1 110.7,122.7 133.0,131.9 155.2,149.9 177.4,114.3 199.7,110.2 221.9,128.4 244.2,137.5 266.4,156.5 288.6,165.5 310.9,174.9 333.1,193.1 355.4,211.2 377.6,229.6" fill="none" stroke="var(--neg)" stroke-width="2" stroke-opacity=".95" stroke-linejoin="round"/><text x="44" y="290" font-size="11" fill="currentColor" fill-opacity=".5">trades taken</text></svg></div>
+
+<div class="kpi mcstats">
+  <div class="k"><div class="l">Passed</div><div class="v pos"><span data-sweep="pass_pct">28.0</span>%</div></div>
+  <div class="k"><div class="l">Failed</div><div class="v neg"><span data-sweep="fail_pct">72.0</span>%</div></div>
+  <div class="k"><div class="l">Median trades to pass</div><div class="v"><span data-sweep="trades">13</span></div></div>
+  <div class="k"><div class="l">Attempts simulated</div><div class="v">40,000</div></div>
+</div>
+</section>
+
+<!-- ================= 08 TRADES ================= -->
+<section id="trades">
+<h2><span class="num">09</span>Every trade</h2>
+<p class="sub">All 67 trades of 2026, in order. Each chart shows the range,
+the entry, the stop, the target, where the stop moved to, and the exit. Click any
+one to open it full size.</p>
+<div class="legend">
+  <span><span class="sw" style="background:var(--pos)"></span> win — target reached</span>
+  <span><span class="sw" style="background:var(--neg)"></span> loss — stopped out</span>
+  <span>▲▼ entry &nbsp;·&nbsp; ✕ exit &nbsp;·&nbsp; shaded box = the 15-minute range</span>
+</div>
+<div class="filters"><div class="fgroup"><b>Result</b><button type="button" class="chip" data-f="outcome" data-v="*" aria-pressed="false">All 67</button><button type="button" class="chip win" data-f="outcome" data-v="win" aria-pressed="false">Wins 18</button><button type="button" class="chip loss" data-f="outcome" data-v="loss" aria-pressed="false">Losses 49</button></div><div class="fgroup"><b>Day</b><button type="button" class="chip" data-f="day" data-v="*" aria-pressed="false">All</button><button type="button" class="chip" data-f="day" data-v="Mon" aria-pressed="false">Mon 14</button><button type="button" class="chip" data-f="day" data-v="Tue" aria-pressed="false">Tue 14</button><button type="button" class="chip" data-f="day" data-v="Wed" aria-pressed="false">Wed 19</button><button type="button" class="chip" data-f="day" data-v="Thu" aria-pressed="false">Thu 20</button></div><div class="fgroup"><b>Month</b><button type="button" class="chip" data-f="month" data-v="*" aria-pressed="false">All</button><button type="button" class="chip" data-f="month" data-v="Jan" aria-pressed="false">Jan 7</button><button type="button" class="chip" data-f="month" data-v="Feb" aria-pressed="false">Feb 6</button><button type="button" class="chip" data-f="month" data-v="Mar" aria-pressed="false">Mar 11</button><button type="button" class="chip" data-f="month" data-v="Apr" aria-pressed="false">Apr 8</button><button type="button" class="chip" data-f="month" data-v="May" aria-pressed="false">May 5</button><button type="button" class="chip" data-f="month" data-v="Jun" aria-pressed="false">Jun 14</button><button type="button" class="chip" data-f="month" data-v="Jul" aria-pressed="false">Jul 6</button><button type="button" class="chip" data-f="month" data-v="Aug" aria-pressed="false">Aug 7</button><button type="button" class="chip" data-f="month" data-v="Sep" aria-pressed="false">Sep 3</button></div><div class="fcount" id="fcount"></div></div>
+<div class="gal"><a class="tc win" href="trades-gold-1330-m3/2026-01-05_long_win.png" target="_blank" data-outcome="win" data-day="Mon" data-month="Jan" data-r="1.999"><img src="trades-gold-1330-m3/2026-01-05_long_win.png" alt="2026-01-05 buy" loading="lazy"><span class="tm"><b>05 Jan</b> Mon · BUY · closed top half · <i>+2.00 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-01-06_long_win.png" target="_blank" data-outcome="win" data-day="Tue" data-month="Jan" data-r="1.999"><img src="trades-gold-1330-m3/2026-01-06_long_win.png" alt="2026-01-06 buy" loading="lazy"><span class="tm"><b>06 Jan</b> Tue · BUY · closed top half · <i>+2.00 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-01-07_long_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Jan" data-r="-1.028"><img src="trades-gold-1330-m3/2026-01-07_long_loss.png" alt="2026-01-07 buy" loading="lazy"><span class="tm"><b>07 Jan</b> Wed · BUY · closed top half · <i>-1.03 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-01-15_short_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Jan" data-r="-1.006"><img src="trades-gold-1330-m3/2026-01-15_short_loss.png" alt="2026-01-15 sell" loading="lazy"><span class="tm"><b>15 Jan</b> Thu · SELL · closed bottom half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-01-19_short_loss.png" target="_blank" data-outcome="loss" data-day="Mon" data-month="Jan" data-r="-0.536"><img src="trades-gold-1330-m3/2026-01-19_short_loss.png" alt="2026-01-19 sell" loading="lazy"><span class="tm"><b>19 Jan</b> Mon · SELL · closed bottom half · <i>-0.54 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-01-20_long_win.png" target="_blank" data-outcome="win" data-day="Tue" data-month="Jan" data-r="1.994"><img src="trades-gold-1330-m3/2026-01-20_long_win.png" alt="2026-01-20 buy" loading="lazy"><span class="tm"><b>20 Jan</b> Tue · BUY · closed top half · <i>+1.99 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-01-21_long_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Jan" data-r="-1.063"><img src="trades-gold-1330-m3/2026-01-21_long_loss.png" alt="2026-01-21 buy" loading="lazy"><span class="tm"><b>21 Jan</b> Wed · BUY · closed top half · <i>-1.06 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-02-03_long_loss.png" target="_blank" data-outcome="loss" data-day="Tue" data-month="Feb" data-r="-1.006"><img src="trades-gold-1330-m3/2026-02-03_long_loss.png" alt="2026-02-03 buy" loading="lazy"><span class="tm"><b>03 Feb</b> Tue · BUY · closed top half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-02-12_long_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Feb" data-r="-1.013"><img src="trades-gold-1330-m3/2026-02-12_long_loss.png" alt="2026-02-12 buy" loading="lazy"><span class="tm"><b>12 Feb</b> Thu · BUY · closed top half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-02-16_short_loss.png" target="_blank" data-outcome="loss" data-day="Mon" data-month="Feb" data-r="-1.086"><img src="trades-gold-1330-m3/2026-02-16_short_loss.png" alt="2026-02-16 sell" loading="lazy"><span class="tm"><b>16 Feb</b> Mon · SELL · closed bottom half · <i>-1.09 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-02-18_short_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Feb" data-r="-1.015"><img src="trades-gold-1330-m3/2026-02-18_short_loss.png" alt="2026-02-18 sell" loading="lazy"><span class="tm"><b>18 Feb</b> Wed · SELL · closed bottom half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-02-19_long_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Feb" data-r="-1.020"><img src="trades-gold-1330-m3/2026-02-19_long_loss.png" alt="2026-02-19 buy" loading="lazy"><span class="tm"><b>19 Feb</b> Thu · BUY · closed top half · <i>-1.02 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-02-24_short_loss.png" target="_blank" data-outcome="loss" data-day="Tue" data-month="Feb" data-r="-0.526"><img src="trades-gold-1330-m3/2026-02-24_short_loss.png" alt="2026-02-24 sell" loading="lazy"><span class="tm"><b>24 Feb</b> Tue · SELL · closed bottom half · <i>-0.53 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-03-02_short_win.png" target="_blank" data-outcome="win" data-day="Mon" data-month="Mar" data-r="2.009"><img src="trades-gold-1330-m3/2026-03-02_short_win.png" alt="2026-03-02 sell" loading="lazy"><span class="tm"><b>02 Mar</b> Mon · SELL · closed bottom half · <i>+2.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-03-03_short_loss.png" target="_blank" data-outcome="loss" data-day="Tue" data-month="Mar" data-r="-1.003"><img src="trades-gold-1330-m3/2026-03-03_short_loss.png" alt="2026-03-03 sell" loading="lazy"><span class="tm"><b>03 Mar</b> Tue · SELL · closed bottom half · <i>-1.00 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-03-09_short_loss.png" target="_blank" data-outcome="loss" data-day="Mon" data-month="Mar" data-r="-1.026"><img src="trades-gold-1330-m3/2026-03-09_short_loss.png" alt="2026-03-09 sell" loading="lazy"><span class="tm"><b>09 Mar</b> Mon · SELL · closed bottom half · <i>-1.03 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-03-10_short_loss.png" target="_blank" data-outcome="loss" data-day="Tue" data-month="Mar" data-r="-1.010"><img src="trades-gold-1330-m3/2026-03-10_short_loss.png" alt="2026-03-10 sell" loading="lazy"><span class="tm"><b>10 Mar</b> Tue · SELL · closed bottom half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-03-11_short_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Mar" data-r="-0.513"><img src="trades-gold-1330-m3/2026-03-11_short_loss.png" alt="2026-03-11 sell" loading="lazy"><span class="tm"><b>11 Mar</b> Wed · SELL · closed bottom half · <i>-0.51 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-03-12_short_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Mar" data-r="-0.513"><img src="trades-gold-1330-m3/2026-03-12_short_loss.png" alt="2026-03-12 sell" loading="lazy"><span class="tm"><b>12 Mar</b> Thu · SELL · closed bottom half · <i>-0.51 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-03-19_short_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Mar" data-r="-1.007"><img src="trades-gold-1330-m3/2026-03-19_short_loss.png" alt="2026-03-19 sell" loading="lazy"><span class="tm"><b>19 Mar</b> Thu · SELL · closed bottom half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-03-25_short_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Mar" data-r="-0.506"><img src="trades-gold-1330-m3/2026-03-25_short_loss.png" alt="2026-03-25 sell" loading="lazy"><span class="tm"><b>25 Mar</b> Wed · SELL · closed bottom half · <i>-0.51 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-03-26_long_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Mar" data-r="-1.007"><img src="trades-gold-1330-m3/2026-03-26_long_loss.png" alt="2026-03-26 buy" loading="lazy"><span class="tm"><b>26 Mar</b> Thu · BUY · closed top half · <i>-1.01 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-03-30_short_win.png" target="_blank" data-outcome="win" data-day="Mon" data-month="Mar" data-r="0.063"><img src="trades-gold-1330-m3/2026-03-30_short_win.png" alt="2026-03-30 sell" loading="lazy"><span class="tm"><b>30 Mar</b> Mon · SELL · closed bottom half · <i>+0.06 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-03-31_long_win.png" target="_blank" data-outcome="win" data-day="Tue" data-month="Mar" data-r="2.029"><img src="trades-gold-1330-m3/2026-03-31_long_win.png" alt="2026-03-31 buy" loading="lazy"><span class="tm"><b>31 Mar</b> Tue · BUY · closed top half · <i>+2.03 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-04-02_long_win.png" target="_blank" data-outcome="win" data-day="Thu" data-month="Apr" data-r="2.036"><img src="trades-gold-1330-m3/2026-04-02_long_win.png" alt="2026-04-02 buy" loading="lazy"><span class="tm"><b>02 Apr</b> Thu · BUY · closed top half · <i>+2.04 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-04-13_short_loss.png" target="_blank" data-outcome="loss" data-day="Mon" data-month="Apr" data-r="-1.029"><img src="trades-gold-1330-m3/2026-04-13_short_loss.png" alt="2026-04-13 sell" loading="lazy"><span class="tm"><b>13 Apr</b> Mon · SELL · closed bottom half · <i>-1.03 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-04-16_short_win.png" target="_blank" data-outcome="win" data-day="Thu" data-month="Apr" data-r="2.074"><img src="trades-gold-1330-m3/2026-04-16_short_win.png" alt="2026-04-16 sell" loading="lazy"><span class="tm"><b>16 Apr</b> Thu · SELL · closed bottom half · <i>+2.07 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-04-22_long_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Apr" data-r="-1.007"><img src="trades-gold-1330-m3/2026-04-22_long_loss.png" alt="2026-04-22 buy" loading="lazy"><span class="tm"><b>22 Apr</b> Wed · BUY · closed top half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-04-23_long_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Apr" data-r="-1.009"><img src="trades-gold-1330-m3/2026-04-23_long_loss.png" alt="2026-04-23 buy" loading="lazy"><span class="tm"><b>23 Apr</b> Thu · BUY · closed top half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-04-28_long_loss.png" target="_blank" data-outcome="loss" data-day="Tue" data-month="Apr" data-r="-1.006"><img src="trades-gold-1330-m3/2026-04-28_long_loss.png" alt="2026-04-28 buy" loading="lazy"><span class="tm"><b>28 Apr</b> Tue · BUY · closed top half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-04-29_short_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Apr" data-r="-1.008"><img src="trades-gold-1330-m3/2026-04-29_short_loss.png" alt="2026-04-29 sell" loading="lazy"><span class="tm"><b>29 Apr</b> Wed · SELL · closed bottom half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-04-30_short_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Apr" data-r="-0.556"><img src="trades-gold-1330-m3/2026-04-30_short_loss.png" alt="2026-04-30 sell" loading="lazy"><span class="tm"><b>30 Apr</b> Thu · SELL · closed bottom half · <i>-0.56 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-05-06_long_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="May" data-r="-0.511"><img src="trades-gold-1330-m3/2026-05-06_long_loss.png" alt="2026-05-06 buy" loading="lazy"><span class="tm"><b>06 May</b> Wed · BUY · closed top half · <i>-0.51 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-05-07_short_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="May" data-r="-1.018"><img src="trades-gold-1330-m3/2026-05-07_short_loss.png" alt="2026-05-07 sell" loading="lazy"><span class="tm"><b>07 May</b> Thu · SELL · closed bottom half · <i>-1.02 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-05-13_short_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="May" data-r="-1.014"><img src="trades-gold-1330-m3/2026-05-13_short_loss.png" alt="2026-05-13 sell" loading="lazy"><span class="tm"><b>13 May</b> Wed · SELL · closed bottom half · <i>-1.01 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-05-21_long_win.png" target="_blank" data-outcome="win" data-day="Thu" data-month="May" data-r="1.994"><img src="trades-gold-1330-m3/2026-05-21_long_win.png" alt="2026-05-21 buy" loading="lazy"><span class="tm"><b>21 May</b> Thu · BUY · closed top half · <i>+1.99 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-05-27_long_win.png" target="_blank" data-outcome="win" data-day="Wed" data-month="May" data-r="0.226"><img src="trades-gold-1330-m3/2026-05-27_long_win.png" alt="2026-05-27 buy" loading="lazy"><span class="tm"><b>27 May</b> Wed · BUY · closed top half · <i>+0.23 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-06-01_short_loss.png" target="_blank" data-outcome="loss" data-day="Mon" data-month="Jun" data-r="-0.526"><img src="trades-gold-1330-m3/2026-06-01_short_loss.png" alt="2026-06-01 sell" loading="lazy"><span class="tm"><b>01 Jun</b> Mon · SELL · closed bottom half · <i>-0.53 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-06-02_short_win.png" target="_blank" data-outcome="win" data-day="Tue" data-month="Jun" data-r="2.044"><img src="trades-gold-1330-m3/2026-06-02_short_win.png" alt="2026-06-02 sell" loading="lazy"><span class="tm"><b>02 Jun</b> Tue · SELL · closed bottom half · <i>+2.04 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-06-08_short_loss.png" target="_blank" data-outcome="loss" data-day="Mon" data-month="Jun" data-r="-1.021"><img src="trades-gold-1330-m3/2026-06-08_short_loss.png" alt="2026-06-08 sell" loading="lazy"><span class="tm"><b>08 Jun</b> Mon · SELL · closed bottom half · <i>-1.02 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-06-09_long_loss.png" target="_blank" data-outcome="loss" data-day="Tue" data-month="Jun" data-r="-0.510"><img src="trades-gold-1330-m3/2026-06-09_long_loss.png" alt="2026-06-09 buy" loading="lazy"><span class="tm"><b>09 Jun</b> Tue · BUY · closed top half · <i>-0.51 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-06-10_long_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Jun" data-r="-1.013"><img src="trades-gold-1330-m3/2026-06-10_long_loss.png" alt="2026-06-10 buy" loading="lazy"><span class="tm"><b>10 Jun</b> Wed · BUY · closed top half · <i>-1.01 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-06-11_long_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Jun" data-r="-1.027"><img src="trades-gold-1330-m3/2026-06-11_long_loss.png" alt="2026-06-11 buy" loading="lazy"><span class="tm"><b>11 Jun</b> Thu · BUY · closed top half · <i>-1.03 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-06-17_long_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Jun" data-r="-1.027"><img src="trades-gold-1330-m3/2026-06-17_long_loss.png" alt="2026-06-17 buy" loading="lazy"><span class="tm"><b>17 Jun</b> Wed · BUY · closed top half · <i>-1.03 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-06-18_short_win.png" target="_blank" data-outcome="win" data-day="Thu" data-month="Jun" data-r="0.652"><img src="trades-gold-1330-m3/2026-06-18_short_win.png" alt="2026-06-18 sell" loading="lazy"><span class="tm"><b>18 Jun</b> Thu · SELL · closed bottom half · <i>+0.65 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-06-22_long_loss.png" target="_blank" data-outcome="loss" data-day="Mon" data-month="Jun" data-r="-0.510"><img src="trades-gold-1330-m3/2026-06-22_long_loss.png" alt="2026-06-22 buy" loading="lazy"><span class="tm"><b>22 Jun</b> Mon · BUY · closed top half · <i>-0.51 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-06-23_long_loss.png" target="_blank" data-outcome="loss" data-day="Tue" data-month="Jun" data-r="-0.513"><img src="trades-gold-1330-m3/2026-06-23_long_loss.png" alt="2026-06-23 buy" loading="lazy"><span class="tm"><b>23 Jun</b> Tue · BUY · closed top half · <i>-0.51 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-06-24_long_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Jun" data-r="-0.503"><img src="trades-gold-1330-m3/2026-06-24_long_loss.png" alt="2026-06-24 buy" loading="lazy"><span class="tm"><b>24 Jun</b> Wed · BUY · closed top half · <i>-0.50 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-06-25_short_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Jun" data-r="-0.515"><img src="trades-gold-1330-m3/2026-06-25_short_loss.png" alt="2026-06-25 sell" loading="lazy"><span class="tm"><b>25 Jun</b> Thu · SELL · closed bottom half · <i>-0.52 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-06-29_short_win.png" target="_blank" data-outcome="win" data-day="Mon" data-month="Jun" data-r="2.023"><img src="trades-gold-1330-m3/2026-06-29_short_win.png" alt="2026-06-29 sell" loading="lazy"><span class="tm"><b>29 Jun</b> Mon · SELL · closed bottom half · <i>+2.02 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-06-30_long_win.png" target="_blank" data-outcome="win" data-day="Tue" data-month="Jun" data-r="1.999"><img src="trades-gold-1330-m3/2026-06-30_long_win.png" alt="2026-06-30 buy" loading="lazy"><span class="tm"><b>30 Jun</b> Tue · BUY · closed top half · <i>+2.00 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-07-02_long_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Jul" data-r="-1.017"><img src="trades-gold-1330-m3/2026-07-02_long_loss.png" alt="2026-07-02 buy" loading="lazy"><span class="tm"><b>02 Jul</b> Thu · BUY · closed top half · <i>-1.02 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-07-13_short_win.png" target="_blank" data-outcome="win" data-day="Mon" data-month="Jul" data-r="1.996"><img src="trades-gold-1330-m3/2026-07-13_short_win.png" alt="2026-07-13 sell" loading="lazy"><span class="tm"><b>13 Jul</b> Mon · SELL · closed bottom half · <i>+2.00 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-07-22_long_win.png" target="_blank" data-outcome="win" data-day="Wed" data-month="Jul" data-r="1.993"><img src="trades-gold-1330-m3/2026-07-22_long_win.png" alt="2026-07-22 buy" loading="lazy"><span class="tm"><b>22 Jul</b> Wed · BUY · closed top half · <i>+1.99 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-07-23_short_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Jul" data-r="-0.515"><img src="trades-gold-1330-m3/2026-07-23_short_loss.png" alt="2026-07-23 sell" loading="lazy"><span class="tm"><b>23 Jul</b> Thu · SELL · closed bottom half · <i>-0.52 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-07-29_short_win.png" target="_blank" data-outcome="win" data-day="Wed" data-month="Jul" data-r="2.049"><img src="trades-gold-1330-m3/2026-07-29_short_win.png" alt="2026-07-29 sell" loading="lazy"><span class="tm"><b>29 Jul</b> Wed · SELL · closed bottom half · <i>+2.05 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-07-30_long_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Jul" data-r="-0.525"><img src="trades-gold-1330-m3/2026-07-30_long_loss.png" alt="2026-07-30 buy" loading="lazy"><span class="tm"><b>30 Jul</b> Thu · BUY · closed top half · <i>-0.53 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-08-05_short_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Aug" data-r="-1.030"><img src="trades-gold-1330-m3/2026-08-05_short_loss.png" alt="2026-08-05 sell" loading="lazy"><span class="tm"><b>05 Aug</b> Wed · SELL · closed bottom half · <i>-1.03 R</i></span></a><a class="tc win" href="trades-gold-1330-m3/2026-08-10_short_win.png" target="_blank" data-outcome="win" data-day="Mon" data-month="Aug" data-r="1.993"><img src="trades-gold-1330-m3/2026-08-10_short_win.png" alt="2026-08-10 sell" loading="lazy"><span class="tm"><b>10 Aug</b> Mon · SELL · closed bottom half · <i>+1.99 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-08-12_long_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Aug" data-r="-0.528"><img src="trades-gold-1330-m3/2026-08-12_long_loss.png" alt="2026-08-12 buy" loading="lazy"><span class="tm"><b>12 Aug</b> Wed · BUY · closed top half · <i>-0.53 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-08-13_short_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Aug" data-r="-0.509"><img src="trades-gold-1330-m3/2026-08-13_short_loss.png" alt="2026-08-13 sell" loading="lazy"><span class="tm"><b>13 Aug</b> Thu · SELL · closed bottom half · <i>-0.51 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-08-25_short_loss.png" target="_blank" data-outcome="loss" data-day="Tue" data-month="Aug" data-r="-1.050"><img src="trades-gold-1330-m3/2026-08-25_short_loss.png" alt="2026-08-25 sell" loading="lazy"><span class="tm"><b>25 Aug</b> Tue · SELL · closed bottom half · <i>-1.05 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-08-26_long_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Aug" data-r="-0.516"><img src="trades-gold-1330-m3/2026-08-26_long_loss.png" alt="2026-08-26 buy" loading="lazy"><span class="tm"><b>26 Aug</b> Wed · BUY · closed top half · <i>-0.52 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-08-31_short_loss.png" target="_blank" data-outcome="loss" data-day="Mon" data-month="Aug" data-r="-0.532"><img src="trades-gold-1330-m3/2026-08-31_short_loss.png" alt="2026-08-31 sell" loading="lazy"><span class="tm"><b>31 Aug</b> Mon · SELL · closed bottom half · <i>-0.53 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-09-01_long_loss.png" target="_blank" data-outcome="loss" data-day="Tue" data-month="Sep" data-r="-0.507"><img src="trades-gold-1330-m3/2026-09-01_long_loss.png" alt="2026-09-01 buy" loading="lazy"><span class="tm"><b>01 Sep</b> Tue · BUY · closed top half · <i>-0.51 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-09-02_long_loss.png" target="_blank" data-outcome="loss" data-day="Wed" data-month="Sep" data-r="-0.506"><img src="trades-gold-1330-m3/2026-09-02_long_loss.png" alt="2026-09-02 buy" loading="lazy"><span class="tm"><b>02 Sep</b> Wed · BUY · closed top half · <i>-0.51 R</i></span></a><a class="tc loss" href="trades-gold-1330-m3/2026-09-03_short_loss.png" target="_blank" data-outcome="loss" data-day="Thu" data-month="Sep" data-r="-1.004"><img src="trades-gold-1330-m3/2026-09-03_short_loss.png" alt="2026-09-03 sell" loading="lazy"><span class="tm"><b>03 Sep</b> Thu · SELL · closed bottom half · <i>-1.00 R</i></span></a></div>
+<p class="noresult" id="noresult" hidden>No trades match those filters.</p>
+</section>
+
+<footer>
+<p><b>ORB Asia — gold.</b> Generated 2026-09-09 from 67 MetaTrader 5
+real-tick trades across 143 eligible sessions in 2026. Risk fixed at <span data-risk>2.5%</span>
+of the starting balance; spread and commission included in every R figure.</p>
+<p>Results are historical and specific to 2026 conditions. Not financial advice —
+demo test thoroughly before risking capital.</p>
+</footer>
+</div>
+<div id="lb" role="dialog" aria-modal="true" aria-label="Trade chart">
+<button class="lbbtn" id="lbclose" aria-label="Close">&#10005;</button>
+<button class="lbbtn" id="lbprev" aria-label="Previous trade">&#8249;</button>
+<button class="lbbtn" id="lbnext" aria-label="Next trade">&#8250;</button>
+<figure><img id="lbimg" alt=""><figcaption>
+  <span id="lbcap"></span><span class="lbn" id="lbnum"></span>
+</figcaption></figure></div>
+<script>
+(function(){
+  var all=[].slice.call(document.querySelectorAll('.gal .tc'));
+  if(!all.length) return;
+
+  // ---- filters: one Set per group, empty Set means "no restriction" ----
+  var sets={outcome:new Set(),day:new Set(),month:new Set()};
+  var chips=[].slice.call(document.querySelectorAll('.chip'));
+  var count=document.getElementById('fcount'), none=document.getElementById('noresult');
+
+  function shown(){ return all.filter(function(c){ return !c.hidden; }); }
+
+  // The risk script is defined after this one, so at init orbRisk() does not
+  // exist yet. The select carries the default in the markup, so read that.
+  function riskNow(){
+    if(window.orbRisk) return window.orbRisk();
+    var s = document.getElementById('riskin');
+    return s ? parseFloat(s.value) || 1 : 1;
+  }
+
+  function apply(){
+    all.forEach(function(c){
+      var ok=['outcome','day','month'].every(function(g){
+        return sets[g].size===0 || sets[g].has(c.dataset[g]);
+      });
+      c.hidden=!ok;
+    });
+    var n=shown().length;
+    count.innerHTML='Showing <b>'+n+'</b> of '+all.length+' trades';
+    if(n){
+      var rs=shown().map(function(c){ return parseFloat(c.dataset.r); });
+      var w=rs.filter(function(v){ return v>0; }).length;
+      var tot=rs.reduce(function(a,b){ return a+b; },0);
+      count.innerHTML+=' &nbsp;·&nbsp; <b>'+w+'</b> W / <b>'+(n-w)+'</b> L'
+        +' &nbsp;·&nbsp; <b>'+(100*w/n).toFixed(1)+'%</b> win rate'
+        +' &nbsp;·&nbsp; <b>'+(tot>=0?'+':'')+tot.toFixed(1)+' R</b>'
+        +' &nbsp;·&nbsp; <b data-pct="'+tot.toFixed(4)+'">'+(tot>=0?'+':'')+(tot*riskNow()).toFixed(1)+'%</b>';
+    }
+    none.hidden = n>0;
+    chips.forEach(function(b){
+      var g=b.dataset.f, v=b.dataset.v;
+      b.setAttribute('aria-pressed', v==='*' ? sets[g].size===0 : sets[g].has(v));
+    });
+  }
+
+  chips.forEach(function(b){
+    b.addEventListener('click',function(){
+      var g=b.dataset.f, v=b.dataset.v;
+      if(v==='*') sets[g].clear();
+      else if(sets[g].has(v)) sets[g].delete(v);
+      else sets[g].add(v);
+      apply();
+    });
+  });
+  apply();
+
+  var cards=all;
+  var lb=document.getElementById('lb'), img=document.getElementById('lbimg'),
+      cap=document.getElementById('lbcap'), num=document.getElementById('lbnum'), i=0;
+
+  function show(n){
+    var vis=shown();
+    if(!vis.length) return;
+    i=(n+vis.length)%vis.length;
+    var c=vis[i];
+    img.src=c.getAttribute('href');
+    img.alt=c.querySelector('img').alt;
+    cap.innerHTML=c.querySelector('.tm').innerHTML
+      .replace(/<i>/g,'<i class="'+(c.classList.contains('win')?'lbwin':'lbloss')+'">');
+    num.textContent=(i+1)+' / '+vis.length+'   \u2190 \u2192 to move, Esc to close';
+  }
+  function open(n){ show(n); lb.classList.add('on'); document.body.style.overflow='hidden'; }
+  function close(){ lb.classList.remove('on'); document.body.style.overflow=''; img.src=''; }
+
+  cards.forEach(function(c){
+    c.addEventListener('click',function(e){ e.preventDefault(); open(shown().indexOf(c)); });
+  });
+  document.getElementById('lbclose').onclick=close;
+  document.getElementById('lbprev').onclick=function(e){ e.stopPropagation(); show(i-1); };
+  document.getElementById('lbnext').onclick=function(e){ e.stopPropagation(); show(i+1); };
+  lb.addEventListener('click',function(e){ if(e.target===lb) close(); });
+  document.addEventListener('keydown',function(e){
+    if(!lb.classList.contains('on')) return;
+    if(e.key==='Escape') close();
+    else if(e.key==='ArrowLeft') show(i-1);
+    else if(e.key==='ArrowRight') show(i+1);
+  });
+  window.orbGalleryRefresh = apply;   // the risk script calls this when risk changes
+})();
+</script>
+<script id="riskdata" type="application/json">{"sweep":[{"risk":0.25,"ret":-2.1,"maxdd":4.0,"pass_pct":0.1,"fail_pct":99.9,"trades":341,"days":729,"money":25,"worst_trade":-0.27,"daily_share":0.0,"dd_breaks":false,"run_cost":1.8,"run_breaks":false},{"risk":0.5,"ret":-4.1,"maxdd":8.0,"pass_pct":1.6,"fail_pct":98.4,"trades":152,"days":325,"money":50,"worst_trade":-0.54,"daily_share":0.0,"dd_breaks":false,"run_cost":3.6,"run_breaks":false},{"risk":0.75,"ret":-6.2,"maxdd":12.1,"pass_pct":6.2,"fail_pct":93.8,"trades":88,"days":188,"money":75,"worst_trade":-0.81,"daily_share":0.0,"dd_breaks":true,"run_cost":5.3,"run_breaks":false},{"risk":1.0,"ret":-8.3,"maxdd":16.1,"pass_pct":11.0,"fail_pct":89.0,"trades":57,"days":122,"money":100,"worst_trade":-1.09,"daily_share":0.0,"dd_breaks":true,"run_cost":7.1,"run_breaks":false},{"risk":1.25,"ret":-10.3,"maxdd":20.1,"pass_pct":15.3,"fail_pct":84.7,"trades":41,"days":88,"money":125,"worst_trade":-1.36,"daily_share":0.0,"dd_breaks":true,"run_cost":8.9,"run_breaks":false},{"risk":1.5,"ret":-12.4,"maxdd":24.1,"pass_pct":19.3,"fail_pct":80.7,"trades":30,"days":64,"money":150,"worst_trade":-1.63,"daily_share":0.0,"dd_breaks":true,"run_cost":10.7,"run_breaks":false},{"risk":1.75,"ret":-14.5,"maxdd":28.2,"pass_pct":22.5,"fail_pct":77.5,"trades":23,"days":49,"money":175,"worst_trade":-1.9,"daily_share":0.0,"dd_breaks":true,"run_cost":12.5,"run_breaks":true},{"risk":2.0,"ret":-16.5,"maxdd":32.2,"pass_pct":24.3,"fail_pct":75.7,"trades":18,"days":38,"money":200,"worst_trade":-2.17,"daily_share":0.0,"dd_breaks":true,"run_cost":14.3,"run_breaks":true},{"risk":2.25,"ret":-18.6,"maxdd":36.2,"pass_pct":26.6,"fail_pct":73.4,"trades":15,"days":32,"money":225,"worst_trade":-2.44,"daily_share":0.0,"dd_breaks":true,"run_cost":16.0,"run_breaks":true},{"risk":2.5,"ret":-20.7,"maxdd":40.2,"pass_pct":28.0,"fail_pct":72.0,"trades":13,"days":28,"money":250,"worst_trade":-2.72,"daily_share":0.0,"dd_breaks":true,"run_cost":17.8,"run_breaks":true},{"risk":2.75,"ret":-22.8,"maxdd":44.2,"pass_pct":29.3,"fail_pct":70.7,"trades":11,"days":23,"money":275,"worst_trade":-2.99,"daily_share":0.0,"dd_breaks":true,"run_cost":19.6,"run_breaks":true},{"risk":3.0,"ret":-24.8,"maxdd":48.3,"pass_pct":6.7,"fail_pct":93.3,"trades":2,"days":4,"money":300,"worst_trade":-3.26,"daily_share":41.8,"dd_breaks":true,"run_cost":21.4,"run_breaks":true},{"risk":3.25,"ret":-26.9,"maxdd":52.3,"pass_pct":7.2,"fail_pct":92.8,"trades":2,"days":4,"money":325,"worst_trade":-3.53,"daily_share":41.8,"dd_breaks":true,"run_cost":23.2,"run_breaks":true},{"risk":3.5,"ret":-29.0,"maxdd":56.3,"pass_pct":10.3,"fail_pct":89.7,"trades":2,"days":4,"money":350,"worst_trade":-3.8,"daily_share":41.8,"dd_breaks":true,"run_cost":25.0,"run_breaks":true},{"risk":3.75,"ret":-31.0,"maxdd":60.3,"pass_pct":9.7,"fail_pct":90.3,"trades":3,"days":6,"money":375,"worst_trade":-4.07,"daily_share":41.8,"dd_breaks":true,"run_cost":26.7,"run_breaks":true},{"risk":4.0,"ret":-33.1,"maxdd":64.3,"pass_pct":10.9,"fail_pct":89.1,"trades":3,"days":6,"money":400,"worst_trade":-4.34,"daily_share":41.8,"dd_breaks":true,"run_cost":28.5,"run_breaks":true},{"risk":4.25,"ret":-35.2,"maxdd":68.4,"pass_pct":11.5,"fail_pct":88.5,"trades":3,"days":6,"money":425,"worst_trade":-4.62,"daily_share":41.8,"dd_breaks":true,"run_cost":30.3,"run_breaks":true},{"risk":4.5,"ret":-37.2,"maxdd":72.4,"pass_pct":11.1,"fail_pct":88.9,"trades":3,"days":6,"money":450,"worst_trade":-4.89,"daily_share":41.8,"dd_breaks":true,"run_cost":32.1,"run_breaks":true},{"risk":4.75,"ret":-39.3,"maxdd":76.4,"pass_pct":12.3,"fail_pct":87.7,"trades":3,"days":6,"money":475,"worst_trade":-5.16,"daily_share":41.8,"dd_breaks":true,"run_cost":33.9,"run_breaks":true},{"risk":5.0,"ret":-41.4,"maxdd":80.4,"pass_pct":12.7,"fail_pct":87.3,"trades":3,"days":6,"money":500,"worst_trade":-5.43,"daily_share":41.8,"dd_breaks":true,"run_cost":35.6,"run_breaks":true},{"risk":5.5,"ret":-45.5,"maxdd":88.5,"pass_pct":12.5,"fail_pct":87.5,"trades":3,"days":6,"money":550,"worst_trade":-5.97,"daily_share":43.3,"dd_breaks":true,"run_cost":39.2,"run_breaks":true},{"risk":6.0,"ret":-49.6,"maxdd":96.5,"pass_pct":14.1,"fail_pct":85.9,"trades":1,"days":2,"money":600,"worst_trade":-6.52,"daily_share":73.1,"dd_breaks":true,"run_cost":42.8,"run_breaks":true},{"risk":6.5,"ret":-53.8,"maxdd":104.6,"pass_pct":23.8,"fail_pct":76.2,"trades":1,"days":2,"money":650,"worst_trade":-7.06,"daily_share":73.1,"dd_breaks":true,"run_cost":46.3,"run_breaks":true},{"risk":7.0,"ret":-57.9,"maxdd":112.6,"pass_pct":23.6,"fail_pct":76.4,"trades":1,"days":2,"money":700,"worst_trade":-7.6,"daily_share":73.1,"dd_breaks":true,"run_cost":49.9,"run_breaks":true},{"risk":7.5,"ret":-62.1,"maxdd":120.6,"pass_pct":23.1,"fail_pct":76.9,"trades":1,"days":2,"money":750,"worst_trade":-8.15,"daily_share":73.1,"dd_breaks":true,"run_cost":53.5,"run_breaks":true},{"risk":8.0,"ret":-66.2,"maxdd":128.7,"pass_pct":24.1,"fail_pct":75.9,"trades":1,"days":2,"money":800,"worst_trade":-8.69,"daily_share":73.1,"dd_breaks":true,"run_cost":57.0,"run_breaks":true},{"risk":8.5,"ret":-70.3,"maxdd":136.7,"pass_pct":23.6,"fail_pct":76.4,"trades":1,"days":2,"money":850,"worst_trade":-9.23,"daily_share":73.1,"dd_breaks":true,"run_cost":60.6,"run_breaks":true},{"risk":9.0,"ret":-74.5,"maxdd":144.8,"pass_pct":22.8,"fail_pct":77.2,"trades":1,"days":2,"money":900,"worst_trade":-9.77,"daily_share":73.1,"dd_breaks":true,"run_cost":64.2,"run_breaks":true},{"risk":9.5,"ret":-78.6,"maxdd":152.8,"pass_pct":23.0,"fail_pct":77.0,"trades":1,"days":2,"money":950,"worst_trade":-10.32,"daily_share":73.1,"dd_breaks":true,"run_cost":67.7,"run_breaks":true},{"risk":10.0,"ret":-82.7,"maxdd":160.9,"pass_pct":23.4,"fail_pct":76.6,"trades":1,"days":2,"money":1000,"worst_trade":-10.86,"daily_share":73.1,"dd_breaks":true,"run_cost":71.3,"run_breaks":true},{"risk":10.5,"ret":-86.9,"maxdd":168.9,"pass_pct":23.1,"fail_pct":76.9,"trades":1,"days":2,"money":1050,"worst_trade":-11.4,"daily_share":73.1,"dd_breaks":true,"run_cost":74.9,"run_breaks":true},{"risk":11.0,"ret":-91.0,"maxdd":176.9,"pass_pct":24.4,"fail_pct":75.6,"trades":1,"days":2,"money":1100,"worst_trade":-11.95,"daily_share":73.1,"dd_breaks":true,"run_cost":78.4,"run_breaks":true},{"risk":11.5,"ret":-95.2,"maxdd":185.0,"pass_pct":23.2,"fail_pct":76.8,"trades":1,"days":2,"money":1150,"worst_trade":-12.49,"daily_share":73.1,"dd_breaks":true,"run_cost":82.0,"run_breaks":true},{"risk":12.0,"ret":-99.3,"maxdd":193.0,"pass_pct":23.7,"fail_pct":76.3,"trades":1,"days":2,"money":1200,"worst_trade":-13.03,"daily_share":73.1,"dd_breaks":true,"run_cost":85.5,"run_breaks":true},{"risk":12.5,"ret":-103.4,"maxdd":201.1,"pass_pct":23.1,"fail_pct":76.9,"trades":1,"days":2,"money":1250,"worst_trade":-13.58,"daily_share":73.1,"dd_breaks":true,"run_cost":89.1,"run_breaks":true},{"risk":13.0,"ret":-107.6,"maxdd":209.1,"pass_pct":23.5,"fail_pct":76.5,"trades":1,"days":2,"money":1300,"worst_trade":-14.12,"daily_share":73.1,"dd_breaks":true,"run_cost":92.7,"run_breaks":true},{"risk":13.5,"ret":-111.7,"maxdd":217.2,"pass_pct":23.8,"fail_pct":76.2,"trades":1,"days":2,"money":1350,"worst_trade":-14.66,"daily_share":73.1,"dd_breaks":true,"run_cost":96.2,"run_breaks":true},{"risk":14.0,"ret":-115.8,"maxdd":225.2,"pass_pct":23.5,"fail_pct":76.5,"trades":1,"days":2,"money":1400,"worst_trade":-15.2,"daily_share":73.1,"dd_breaks":true,"run_cost":99.8,"run_breaks":true},{"risk":14.5,"ret":-120.0,"maxdd":233.2,"pass_pct":23.1,"fail_pct":76.9,"trades":1,"days":2,"money":1450,"worst_trade":-15.75,"daily_share":73.1,"dd_breaks":true,"run_cost":103.4,"run_breaks":true},{"risk":15.0,"ret":-124.1,"maxdd":241.3,"pass_pct":23.1,"fail_pct":76.9,"trades":1,"days":2,"money":1500,"worst_trade":-16.29,"daily_share":73.1,"dd_breaks":true,"run_cost":106.9,"run_breaks":true},{"risk":15.5,"ret":-128.2,"maxdd":249.3,"pass_pct":23.2,"fail_pct":76.8,"trades":1,"days":2,"money":1550,"worst_trade":-16.83,"daily_share":73.1,"dd_breaks":true,"run_cost":110.5,"run_breaks":true},{"risk":16.0,"ret":-132.4,"maxdd":257.4,"pass_pct":22.7,"fail_pct":77.3,"trades":1,"days":2,"money":1600,"worst_trade":-17.38,"daily_share":73.1,"dd_breaks":true,"run_cost":114.1,"run_breaks":true},{"risk":16.5,"ret":-136.5,"maxdd":265.4,"pass_pct":23.5,"fail_pct":76.5,"trades":1,"days":2,"money":1650,"worst_trade":-17.92,"daily_share":73.1,"dd_breaks":true,"run_cost":117.6,"run_breaks":true},{"risk":17.0,"ret":-140.7,"maxdd":273.5,"pass_pct":23.5,"fail_pct":76.5,"trades":1,"days":2,"money":1700,"worst_trade":-18.46,"daily_share":73.1,"dd_breaks":true,"run_cost":121.2,"run_breaks":true},{"risk":17.5,"ret":-144.8,"maxdd":281.5,"pass_pct":23.1,"fail_pct":76.9,"trades":1,"days":2,"money":1750,"worst_trade":-19.01,"daily_share":73.1,"dd_breaks":true,"run_cost":124.8,"run_breaks":true},{"risk":18.0,"ret":-148.9,"maxdd":289.5,"pass_pct":23.4,"fail_pct":76.6,"trades":1,"days":2,"money":1800,"worst_trade":-19.55,"daily_share":73.1,"dd_breaks":true,"run_cost":128.3,"run_breaks":true},{"risk":18.5,"ret":-153.1,"maxdd":297.6,"pass_pct":25.1,"fail_pct":74.9,"trades":1,"days":2,"money":1850,"worst_trade":-20.09,"daily_share":73.1,"dd_breaks":true,"run_cost":131.9,"run_breaks":true},{"risk":19.0,"ret":-157.2,"maxdd":305.6,"pass_pct":24.4,"fail_pct":75.6,"trades":1,"days":2,"money":1900,"worst_trade":-20.63,"daily_share":73.1,"dd_breaks":true,"run_cost":135.5,"run_breaks":true},{"risk":19.5,"ret":-161.3,"maxdd":313.7,"pass_pct":25.0,"fail_pct":75.0,"trades":1,"days":2,"money":1950,"worst_trade":-21.18,"daily_share":73.1,"dd_breaks":true,"run_cost":139.0,"run_breaks":true},{"risk":20.0,"ret":-165.5,"maxdd":321.7,"pass_pct":24.4,"fail_pct":75.6,"trades":1,"days":2,"money":2000,"worst_trade":-21.72,"daily_share":73.1,"dd_breaks":true,"run_cost":142.6,"run_breaks":true},{"risk":21,"ret":-173.8,"maxdd":337.8,"pass_pct":24.7,"fail_pct":75.3,"trades":1,"days":2,"money":2100,"worst_trade":-22.81,"daily_share":73.1,"dd_breaks":true,"run_cost":149.7,"run_breaks":true},{"risk":22,"ret":-182.0,"maxdd":353.9,"pass_pct":24.4,"fail_pct":75.6,"trades":1,"days":2,"money":2200,"worst_trade":-23.89,"daily_share":73.1,"dd_breaks":true,"run_cost":156.8,"run_breaks":true},{"risk":23,"ret":-190.3,"maxdd":370.0,"pass_pct":23.9,"fail_pct":76.1,"trades":1,"days":2,"money":2300,"worst_trade":-24.98,"daily_share":73.1,"dd_breaks":true,"run_cost":164.0,"run_breaks":true},{"risk":24,"ret":-198.6,"maxdd":386.1,"pass_pct":24.5,"fail_pct":75.5,"trades":1,"days":2,"money":2400,"worst_trade":-26.06,"daily_share":73.1,"dd_breaks":true,"run_cost":171.1,"run_breaks":true},{"risk":25,"ret":-206.8,"maxdd":402.1,"pass_pct":24.6,"fail_pct":75.4,"trades":1,"days":2,"money":2500,"worst_trade":-27.15,"daily_share":73.1,"dd_breaks":true,"run_cost":178.2,"run_breaks":true},{"risk":26,"ret":-215.1,"maxdd":418.2,"pass_pct":24.9,"fail_pct":75.1,"trades":1,"days":2,"money":2600,"worst_trade":-28.24,"daily_share":73.1,"dd_breaks":true,"run_cost":185.4,"run_breaks":true},{"risk":27,"ret":-223.4,"maxdd":434.3,"pass_pct":25.2,"fail_pct":74.8,"trades":1,"days":2,"money":2700,"worst_trade":-29.32,"daily_share":73.1,"dd_breaks":true,"run_cost":192.5,"run_breaks":true},{"risk":28,"ret":-231.7,"maxdd":450.4,"pass_pct":25.2,"fail_pct":74.8,"trades":1,"days":2,"money":2800,"worst_trade":-30.41,"daily_share":73.1,"dd_breaks":true,"run_cost":199.6,"run_breaks":true},{"risk":29,"ret":-239.9,"maxdd":466.5,"pass_pct":25.1,"fail_pct":74.9,"trades":1,"days":2,"money":2900,"worst_trade":-31.49,"daily_share":73.1,"dd_breaks":true,"run_cost":206.7,"run_breaks":true},{"risk":30,"ret":-248.2,"maxdd":482.6,"pass_pct":25.2,"fail_pct":74.8,"trades":1,"days":2,"money":3000,"worst_trade":-32.58,"daily_share":73.1,"dd_breaks":true,"run_cost":213.9,"run_breaks":true},{"risk":31,"ret":-256.5,"maxdd":498.7,"pass_pct":25.1,"fail_pct":74.9,"trades":1,"days":2,"money":3100,"worst_trade":-33.67,"daily_share":73.1,"dd_breaks":true,"run_cost":221.0,"run_breaks":true},{"risk":32,"ret":-264.8,"maxdd":514.8,"pass_pct":23.8,"fail_pct":76.2,"trades":1,"days":2,"money":3200,"worst_trade":-34.75,"daily_share":73.1,"dd_breaks":true,"run_cost":228.1,"run_breaks":true},{"risk":33,"ret":-273.0,"maxdd":530.8,"pass_pct":24.9,"fail_pct":75.1,"trades":1,"days":2,"money":3300,"worst_trade":-35.84,"daily_share":73.1,"dd_breaks":true,"run_cost":235.3,"run_breaks":true},{"risk":34,"ret":-281.3,"maxdd":546.9,"pass_pct":24.2,"fail_pct":75.8,"trades":1,"days":2,"money":3400,"worst_trade":-36.92,"daily_share":73.1,"dd_breaks":true,"run_cost":242.4,"run_breaks":true},{"risk":35,"ret":-289.6,"maxdd":563.0,"pass_pct":24.5,"fail_pct":75.5,"trades":1,"days":2,"money":3500,"worst_trade":-38.01,"daily_share":73.1,"dd_breaks":true,"run_cost":249.5,"run_breaks":true},{"risk":36,"ret":-297.9,"maxdd":579.1,"pass_pct":24.6,"fail_pct":75.4,"trades":1,"days":2,"money":3600,"worst_trade":-39.1,"daily_share":73.1,"dd_breaks":true,"run_cost":256.6,"run_breaks":true},{"risk":37,"ret":-306.1,"maxdd":595.2,"pass_pct":23.9,"fail_pct":76.1,"trades":1,"days":2,"money":3700,"worst_trade":-40.18,"daily_share":73.1,"dd_breaks":true,"run_cost":263.8,"run_breaks":true},{"risk":38,"ret":-314.4,"maxdd":611.3,"pass_pct":24.5,"fail_pct":75.5,"trades":1,"days":2,"money":3800,"worst_trade":-41.27,"daily_share":73.1,"dd_breaks":true,"run_cost":270.9,"run_breaks":true},{"risk":39,"ret":-322.7,"maxdd":627.4,"pass_pct":23.5,"fail_pct":76.5,"trades":1,"days":2,"money":3900,"worst_trade":-42.35,"daily_share":73.1,"dd_breaks":true,"run_cost":278.0,"run_breaks":true},{"risk":40,"ret":-331.0,"maxdd":643.4,"pass_pct":23.9,"fail_pct":76.1,"trades":1,"days":2,"money":4000,"worst_trade":-43.44,"daily_share":73.1,"dd_breaks":true,"run_cost":285.2,"run_breaks":true},{"risk":41,"ret":-339.2,"maxdd":659.5,"pass_pct":24.4,"fail_pct":75.6,"trades":1,"days":2,"money":4100,"worst_trade":-44.53,"daily_share":73.1,"dd_breaks":true,"run_cost":292.3,"run_breaks":true},{"risk":42,"ret":-347.5,"maxdd":675.6,"pass_pct":24.2,"fail_pct":75.8,"trades":1,"days":2,"money":4200,"worst_trade":-45.61,"daily_share":73.1,"dd_breaks":true,"run_cost":299.4,"run_breaks":true},{"risk":43,"ret":-355.8,"maxdd":691.7,"pass_pct":25.1,"fail_pct":74.9,"trades":1,"days":2,"money":4300,"worst_trade":-46.7,"daily_share":73.1,"dd_breaks":true,"run_cost":306.5,"run_breaks":true},{"risk":44,"ret":-364.1,"maxdd":707.8,"pass_pct":24.4,"fail_pct":75.6,"trades":1,"days":2,"money":4400,"worst_trade":-47.78,"daily_share":73.1,"dd_breaks":true,"run_cost":313.7,"run_breaks":true},{"risk":45,"ret":-372.3,"maxdd":723.9,"pass_pct":24.6,"fail_pct":75.4,"trades":1,"days":2,"money":4500,"worst_trade":-48.87,"daily_share":73.1,"dd_breaks":true,"run_cost":320.8,"run_breaks":true},{"risk":46,"ret":-380.6,"maxdd":740.0,"pass_pct":24.6,"fail_pct":75.4,"trades":1,"days":2,"money":4600,"worst_trade":-49.96,"daily_share":73.1,"dd_breaks":true,"run_cost":327.9,"run_breaks":true},{"risk":47,"ret":-388.9,"maxdd":756.0,"pass_pct":25.4,"fail_pct":74.6,"trades":1,"days":2,"money":4700,"worst_trade":-51.04,"daily_share":73.1,"dd_breaks":true,"run_cost":335.1,"run_breaks":true},{"risk":48,"ret":-397.2,"maxdd":772.1,"pass_pct":24.7,"fail_pct":75.3,"trades":1,"days":2,"money":4800,"worst_trade":-52.13,"daily_share":73.1,"dd_breaks":true,"run_cost":342.2,"run_breaks":true},{"risk":49,"ret":-405.4,"maxdd":788.2,"pass_pct":24.6,"fail_pct":75.4,"trades":1,"days":2,"money":4900,"worst_trade":-53.21,"daily_share":73.1,"dd_breaks":true,"run_cost":349.3,"run_breaks":true},{"risk":50,"ret":-413.7,"maxdd":804.3,"pass_pct":24.4,"fail_pct":75.6,"trades":1,"days":2,"money":5000,"worst_trade":-54.3,"daily_share":73.1,"dd_breaks":true,"run_cost":356.4,"run_breaks":true},{"risk":51,"ret":-422.0,"maxdd":820.4,"pass_pct":24.3,"fail_pct":75.7,"trades":1,"days":2,"money":5100,"worst_trade":-55.39,"daily_share":73.1,"dd_breaks":true,"run_cost":363.6,"run_breaks":true},{"risk":52,"ret":-430.2,"maxdd":836.5,"pass_pct":24.9,"fail_pct":75.1,"trades":1,"days":2,"money":5200,"worst_trade":-56.47,"daily_share":73.1,"dd_breaks":true,"run_cost":370.7,"run_breaks":true},{"risk":53,"ret":-438.5,"maxdd":852.6,"pass_pct":25.3,"fail_pct":74.7,"trades":1,"days":2,"money":5300,"worst_trade":-57.56,"daily_share":73.1,"dd_breaks":true,"run_cost":377.8,"run_breaks":true},{"risk":54,"ret":-446.8,"maxdd":868.6,"pass_pct":25.4,"fail_pct":74.6,"trades":1,"days":2,"money":5400,"worst_trade":-58.64,"daily_share":73.1,"dd_breaks":true,"run_cost":385.0,"run_breaks":true},{"risk":55,"ret":-455.1,"maxdd":884.7,"pass_pct":24.6,"fail_pct":75.4,"trades":1,"days":2,"money":5500,"worst_trade":-59.73,"daily_share":73.1,"dd_breaks":true,"run_cost":392.1,"run_breaks":true},{"risk":56,"ret":-463.3,"maxdd":900.8,"pass_pct":26.6,"fail_pct":73.4,"trades":1,"days":2,"money":5600,"worst_trade":-60.82,"daily_share":73.1,"dd_breaks":true,"run_cost":399.2,"run_breaks":true},{"risk":57,"ret":-471.6,"maxdd":916.9,"pass_pct":26.6,"fail_pct":73.4,"trades":1,"days":2,"money":5700,"worst_trade":-61.9,"daily_share":73.1,"dd_breaks":true,"run_cost":406.4,"run_breaks":true},{"risk":58,"ret":-479.9,"maxdd":933.0,"pass_pct":25.6,"fail_pct":74.4,"trades":1,"days":2,"money":5800,"worst_trade":-62.99,"daily_share":73.1,"dd_breaks":true,"run_cost":413.5,"run_breaks":true},{"risk":59,"ret":-488.2,"maxdd":949.1,"pass_pct":25.9,"fail_pct":74.1,"trades":1,"days":2,"money":5900,"worst_trade":-64.07,"daily_share":73.1,"dd_breaks":true,"run_cost":420.6,"run_breaks":true},{"risk":60,"ret":-496.4,"maxdd":965.2,"pass_pct":25.5,"fail_pct":74.5,"trades":1,"days":2,"money":6000,"worst_trade":-65.16,"daily_share":73.1,"dd_breaks":true,"run_cost":427.7,"run_breaks":true},{"risk":61,"ret":-504.7,"maxdd":981.2,"pass_pct":26.0,"fail_pct":74.0,"trades":1,"days":2,"money":6100,"worst_trade":-66.25,"daily_share":73.1,"dd_breaks":true,"run_cost":434.9,"run_breaks":true},{"risk":62,"ret":-513.0,"maxdd":997.3,"pass_pct":24.3,"fail_pct":75.7,"trades":1,"days":2,"money":6200,"worst_trade":-67.33,"daily_share":73.1,"dd_breaks":true,"run_cost":442.0,"run_breaks":true},{"risk":63,"ret":-521.3,"maxdd":1013.4,"pass_pct":25.4,"fail_pct":74.6,"trades":1,"days":2,"money":6300,"worst_trade":-68.42,"daily_share":73.1,"dd_breaks":true,"run_cost":449.1,"run_breaks":true},{"risk":64,"ret":-529.5,"maxdd":1029.5,"pass_pct":25.8,"fail_pct":74.2,"trades":1,"days":2,"money":6400,"worst_trade":-69.5,"daily_share":73.1,"dd_breaks":true,"run_cost":456.3,"run_breaks":true},{"risk":65,"ret":-537.8,"maxdd":1045.6,"pass_pct":25.7,"fail_pct":74.3,"trades":1,"days":2,"money":6500,"worst_trade":-70.59,"daily_share":73.1,"dd_breaks":true,"run_cost":463.4,"run_breaks":true},{"risk":66,"ret":-546.1,"maxdd":1061.7,"pass_pct":25.3,"fail_pct":74.7,"trades":1,"days":2,"money":6600,"worst_trade":-71.68,"daily_share":73.1,"dd_breaks":true,"run_cost":470.5,"run_breaks":true},{"risk":67,"ret":-554.4,"maxdd":1077.8,"pass_pct":25.8,"fail_pct":74.2,"trades":1,"days":2,"money":6700,"worst_trade":-72.76,"daily_share":73.1,"dd_breaks":true,"run_cost":477.6,"run_breaks":true},{"risk":68,"ret":-562.6,"maxdd":1093.8,"pass_pct":25.4,"fail_pct":74.6,"trades":1,"days":2,"money":6800,"worst_trade":-73.85,"daily_share":73.1,"dd_breaks":true,"run_cost":484.8,"run_breaks":true},{"risk":69,"ret":-570.9,"maxdd":1109.9,"pass_pct":25.7,"fail_pct":74.3,"trades":1,"days":2,"money":6900,"worst_trade":-74.93,"daily_share":73.1,"dd_breaks":true,"run_cost":491.9,"run_breaks":true},{"risk":70,"ret":-579.2,"maxdd":1126.0,"pass_pct":25.8,"fail_pct":74.2,"trades":1,"days":2,"money":7000,"worst_trade":-76.02,"daily_share":73.1,"dd_breaks":true,"run_cost":499.0,"run_breaks":true},{"risk":71,"ret":-587.5,"maxdd":1142.1,"pass_pct":25.2,"fail_pct":74.8,"trades":1,"days":2,"money":7100,"worst_trade":-77.11,"daily_share":73.1,"dd_breaks":true,"run_cost":506.2,"run_breaks":true},{"risk":72,"ret":-595.7,"maxdd":1158.2,"pass_pct":26.4,"fail_pct":73.6,"trades":1,"days":2,"money":7200,"worst_trade":-78.19,"daily_share":73.1,"dd_breaks":true,"run_cost":513.3,"run_breaks":true},{"risk":73,"ret":-604.0,"maxdd":1174.3,"pass_pct":26.0,"fail_pct":74.0,"trades":1,"days":2,"money":7300,"worst_trade":-79.28,"daily_share":73.1,"dd_breaks":true,"run_cost":520.4,"run_breaks":true},{"risk":74,"ret":-612.3,"maxdd":1190.4,"pass_pct":26.3,"fail_pct":73.7,"trades":1,"days":2,"money":7400,"worst_trade":-80.36,"daily_share":73.1,"dd_breaks":true,"run_cost":527.5,"run_breaks":true},{"risk":75,"ret":-620.5,"maxdd":1206.4,"pass_pct":25.1,"fail_pct":74.9,"trades":1,"days":2,"money":7500,"worst_trade":-81.45,"daily_share":73.1,"dd_breaks":true,"run_cost":534.7,"run_breaks":true},{"risk":76,"ret":-628.8,"maxdd":1222.5,"pass_pct":25.2,"fail_pct":74.8,"trades":1,"days":2,"money":7600,"worst_trade":-82.54,"daily_share":73.1,"dd_breaks":true,"run_cost":541.8,"run_breaks":true},{"risk":77,"ret":-637.1,"maxdd":1238.6,"pass_pct":25.4,"fail_pct":74.6,"trades":1,"days":2,"money":7700,"worst_trade":-83.62,"daily_share":73.1,"dd_breaks":true,"run_cost":548.9,"run_breaks":true},{"risk":78,"ret":-645.4,"maxdd":1254.7,"pass_pct":26.0,"fail_pct":74.0,"trades":1,"days":2,"money":7800,"worst_trade":-84.71,"daily_share":73.1,"dd_breaks":true,"run_cost":556.1,"run_breaks":true},{"risk":79,"ret":-653.6,"maxdd":1270.8,"pass_pct":26.1,"fail_pct":73.9,"trades":1,"days":2,"money":7900,"worst_trade":-85.79,"daily_share":73.1,"dd_breaks":true,"run_cost":563.2,"run_breaks":true},{"risk":80,"ret":-661.9,"maxdd":1286.9,"pass_pct":25.5,"fail_pct":74.5,"trades":1,"days":2,"money":8000,"worst_trade":-86.88,"daily_share":73.1,"dd_breaks":true,"run_cost":570.3,"run_breaks":true},{"risk":81,"ret":-670.2,"maxdd":1303.0,"pass_pct":25.6,"fail_pct":74.4,"trades":1,"days":2,"money":8100,"worst_trade":-87.97,"daily_share":73.1,"dd_breaks":true,"run_cost":577.4,"run_breaks":true},{"risk":82,"ret":-678.5,"maxdd":1319.1,"pass_pct":25.8,"fail_pct":74.2,"trades":1,"days":2,"money":8200,"worst_trade":-89.05,"daily_share":73.1,"dd_breaks":true,"run_cost":584.6,"run_breaks":true},{"risk":83,"ret":-686.7,"maxdd":1335.1,"pass_pct":24.8,"fail_pct":75.2,"trades":1,"days":2,"money":8300,"worst_trade":-90.14,"daily_share":73.1,"dd_breaks":true,"run_cost":591.7,"run_breaks":true},{"risk":84,"ret":-695.0,"maxdd":1351.2,"pass_pct":25.6,"fail_pct":74.4,"trades":1,"days":2,"money":8400,"worst_trade":-91.22,"daily_share":73.1,"dd_breaks":true,"run_cost":598.8,"run_breaks":true},{"risk":85,"ret":-703.3,"maxdd":1367.3,"pass_pct":25.9,"fail_pct":74.1,"trades":1,"days":2,"money":8500,"worst_trade":-92.31,"daily_share":73.1,"dd_breaks":true,"run_cost":606.0,"run_breaks":true},{"risk":86,"ret":-711.6,"maxdd":1383.4,"pass_pct":25.3,"fail_pct":74.7,"trades":1,"days":2,"money":8600,"worst_trade":-93.4,"daily_share":73.1,"dd_breaks":true,"run_cost":613.1,"run_breaks":true},{"risk":87,"ret":-719.8,"maxdd":1399.5,"pass_pct":26.5,"fail_pct":73.5,"trades":1,"days":2,"money":8700,"worst_trade":-94.48,"daily_share":73.1,"dd_breaks":true,"run_cost":620.2,"run_breaks":true},{"risk":88,"ret":-728.1,"maxdd":1415.6,"pass_pct":25.6,"fail_pct":74.4,"trades":1,"days":2,"money":8800,"worst_trade":-95.57,"daily_share":73.1,"dd_breaks":true,"run_cost":627.4,"run_breaks":true},{"risk":89,"ret":-736.4,"maxdd":1431.7,"pass_pct":25.1,"fail_pct":74.9,"trades":1,"days":2,"money":8900,"worst_trade":-96.65,"daily_share":73.1,"dd_breaks":true,"run_cost":634.5,"run_breaks":true},{"risk":90,"ret":-744.7,"maxdd":1447.7,"pass_pct":25.1,"fail_pct":74.9,"trades":1,"days":2,"money":9000,"worst_trade":-97.74,"daily_share":73.1,"dd_breaks":true,"run_cost":641.6,"run_breaks":true},{"risk":91,"ret":-752.9,"maxdd":1463.8,"pass_pct":26.4,"fail_pct":73.6,"trades":1,"days":2,"money":9100,"worst_trade":-98.83,"daily_share":73.1,"dd_breaks":true,"run_cost":648.7,"run_breaks":true},{"risk":92,"ret":-761.2,"maxdd":1479.9,"pass_pct":25.4,"fail_pct":74.6,"trades":1,"days":2,"money":9200,"worst_trade":-99.91,"daily_share":73.1,"dd_breaks":true,"run_cost":655.9,"run_breaks":true},{"risk":93,"ret":-769.5,"maxdd":1496.0,"pass_pct":25.8,"fail_pct":74.2,"trades":1,"days":2,"money":9300,"worst_trade":-101.0,"daily_share":73.1,"dd_breaks":true,"run_cost":663.0,"run_breaks":true},{"risk":94,"ret":-777.8,"maxdd":1512.1,"pass_pct":26.2,"fail_pct":73.8,"trades":1,"days":2,"money":9400,"worst_trade":-102.08,"daily_share":73.1,"dd_breaks":true,"run_cost":670.1,"run_breaks":true},{"risk":95,"ret":-786.0,"maxdd":1528.2,"pass_pct":26.1,"fail_pct":73.9,"trades":1,"days":2,"money":9500,"worst_trade":-103.17,"daily_share":73.1,"dd_breaks":true,"run_cost":677.3,"run_breaks":true},{"risk":96,"ret":-794.3,"maxdd":1544.3,"pass_pct":25.3,"fail_pct":74.7,"trades":1,"days":2,"money":9600,"worst_trade":-104.26,"daily_share":73.1,"dd_breaks":true,"run_cost":684.4,"run_breaks":true},{"risk":97,"ret":-802.6,"maxdd":1560.3,"pass_pct":25.3,"fail_pct":74.7,"trades":1,"days":2,"money":9700,"worst_trade":-105.34,"daily_share":73.1,"dd_breaks":true,"run_cost":691.5,"run_breaks":true},{"risk":98,"ret":-810.9,"maxdd":1576.4,"pass_pct":26.5,"fail_pct":73.5,"trades":1,"days":2,"money":9800,"worst_trade":-106.43,"daily_share":73.1,"dd_breaks":true,"run_cost":698.6,"run_breaks":true},{"risk":99,"ret":-819.1,"maxdd":1592.5,"pass_pct":25.9,"fail_pct":74.1,"trades":1,"days":2,"money":9900,"worst_trade":-107.51,"daily_share":73.1,"dd_breaks":true,"run_cost":705.8,"run_breaks":true}],"chips":[1,1.5,2,2.5],"maxrisk":99,"risk":2.5,"R":[1.999,1.999,-1.028,-1.006,-0.536,1.994,-1.063,-1.006,-1.013,-1.086,-1.015,-1.02,-0.526,2.009,-1.003,-1.026,-1.01,-0.513,-0.513,-1.007,-0.506,-1.007,0.063,2.029,2.036,-1.029,2.074,-1.007,-1.009,-1.006,-1.008,-0.556,-0.511,-1.018,-1.014,1.994,0.226,-0.526,2.044,-1.021,-0.51,-1.013,-1.027,-1.027,0.652,-0.51,-0.513,-0.503,-0.515,2.023,1.999,-1.017,1.996,1.993,-0.515,2.049,-0.525,-1.03,1.993,-0.528,-0.509,-1.05,-0.516,-0.532,-0.507,-0.506,-1.004],"mc":[[11,8,20,15,60,1,37,0,30,60,49,57,25,20,36,46,55,25,1,63,56,30,46,64,31,60,62,25,30,7,22,7,58,39,61,1,5,17,11,4,22,16,64,61,14,55,46,63,7,12,29,40,36,43,43,26,55,23,34,65],[27,38,30,60,28,33,47,31,26,16,64,0,50,63,20,42,1,49,51,34,66,64,10,6,56,62,25,35,14,26,28,35,13,21,46,24,66,61,16,63,19,25,53,61,47,39,57,8,66,18,46,60,58,35,16,18,10,6,15,59],[25,33,66,49,22,38,48,34,4,27,58,28,54,49,22,44,4,8,27,43,62,29,16,27,4,23,44,1,7,57,38,59,48,46,60,8,1,48,63,42,1,33,60,0,11,1,62,48,32,26,31,3,24,48,53,20,26,65,1,8],[56,34,55,64,10,44,60,43,3,17,51,50,41,26,18,10,66,49,42,36,13,60,42,36,38,8,37,28,37,39,14,39,13,25,62,36,32,37,24,16,55,50,57,1,51,25,23,21,51,44,4,10,63,62,65,38,17,16,17,13],[43,4,42,8,18,46,29,20,12,28,23,66,11,51,63,4,58,39,53,22,46,17,58,60,58,11,32,22,12,1,39,65,17,23,15,11,41,50,11,29,14,60,44,22,0,1,13,58,43,49,46,59,12,2,24,44,55,20,11,59],[53,59,46,65,14,12,24,33,2,51,43,62,25,33,12,12,13,46,55,4,62,6,16,33,11,26,45,43,32,42,48,23,49,28,54,37,51,21,47,32,11,60,35,42,62,58,49,27,47,21,12,53,6,58,40,26,40,64,44,42],[41,3,55,22,63,26,22,20,59,10,54,47,33,22,44,15,24,46,2,15,41,49,32,38,54,33,57,3,17,61,27,66,12,10,35,55,12,40,45,60,40,4,6,18,6,29,44,2,6,44,27,37,33,9,33,31,3,48,8,16],[7,2,60,48,52,52,9,59,63,50,24,43,22,5,47,21,64,51,33,55,52,17,13,16,51,27,45,56,63,0,29,16,55,48,20,61,52,38,48,19,49,4,59,56,50,32,35,56,31,13,20,41,63,44,12,36,1,42,60,63],[27,25,54,9,14,17,21,9,61,28,34,15,47,12,6,50,4,27,23,14,33,62,19,58,15,22,52,55,24,30,20,52,49,64,4,36,10,36,25,11,65,25,63,28,35,37,49,25,31,33,65,36,45,14,31,42,28,18,59,9],[59,10,58,61,10,59,17,3,21,17,6,24,64,37,56,35,4,17,5,48,27,59,56,48,15,48,21,45,60,30,65,20,2,24,32,49,1,21,31,19,4,28,52,48,18,42,44,50,27,47,19,37,58,31,45,0,14,62,25,16],[12,22,12,37,29,11,31,23,27,54,49,61,22,48,28,39,59,60,60,16,18,46,31,40,44,35,64,50,43,53,33,54,22,53,51,52,20,13,63,51,39,21,44,11,39,30,19,20,11,5,26,18,25,7,47,22,38,47,23,36],[54,29,41,6,35,54,27,2,48,7,19,50,21,53,47,19,34,19,4,21,21,14,37,40,29,22,40,7,12,1,12,49,55,4,23,5,57,7,26,6,26,5,66,5,10,28,51,7,3,17,40,36,11,21,4,48,19,2,1,61],[38,54,22,29,50,32,39,1,22,14,65,41,27,12,17,17,57,49,18,44,24,57,43,62,0,36,43,17,32,33,5,2,58,23,55,22,21,7,47,29,52,55,60,42,32,57,6,42,2,29,60,39,51,35,8,66,24,5,41,9],[51,36,46,36,58,16,8,48,56,40,28,1,42,36,58,30,4,42,4,40,17,62,55,66,17,42,28,29,24,30,29,46,18,6,32,20,15,3,3,58,37,53,36,39,26,23,60,53,20,63,42,36,23,33,47,36,15,49,66,31],[10,20,0,65,19,36,34,65,14,19,63,4,7,60,45,5,64,23,57,45,62,25,42,54,65,61,37,54,15,53,48,53,7,62,17,27,16,41,63,9,65,18,22,34,6,3,32,34,6,46,10,41,57,14,46,27,64,8,34,43],[27,34,56,32,34,18,61,21,14,27,45,0,49,47,65,24,16,8,45,17,2,48,47,20,2,10,14,45,26,40,60,7,51,60,10,11,66,63,8,11,49,33,12,66,16,43,34,44,31,23,57,42,21,29,43,1,61,25,33,47],[26,53,0,58,49,50,25,30,32,59,52,15,17,9,12,32,27,8,21,48,62,10,22,23,26,46,19,54,23,30,56,63,38,35,11,61,41,59,16,10,2,15,14,14,2,29,57,54,25,57,50,12,66,46,27,42,8,25,6,40],[64,42,7,40,20,47,37,41,3,7,57,52,10,21,3,32,33,11,5,5,27,64,14,44,24,61,45,56,1,41,26,14,46,66,1,16,25,42,35,20,41,18,52,4,35,40,12,64,45,6,35,46,55,28,59,11,66,31,62,0],[58,63,62,17,16,46,46,32,0,5,51,29,57,29,56,45,46,55,0,12,42,42,61,43,66,0,56,17,61,49,20,57,8,38,41,44,32,16,43,24,47,9,48,14,54,20,22,37,58,28,40,31,40,51,11,2,26,9,16,12],[23,57,15,16,63,43,63,6,48,30,2,45,16,19,27,7,2,10,17,35,26,56,14,9,34,6,33,18,2,0,33,48,60,3,4,44,6,7,66,12,28,41,7,5,49,31,33,30,3,37,7,9,63,32,23,34,62,66,14,63],[8,10,17,37,7,34,28,58,44,54,55,15,49,30,5,25,42,13,34,61,15,28,24,6,62,24,21,31,19,31,34,48,2,36,1,12,65,23,44,26,18,42,58,17,30,57,62,49,64,1,62,59,29,60,4,46,43,47,29,60],[25,54,12,6,36,51,18,26,61,46,34,5,29,16,30,31,0,9,12,48,65,64,9,10,5,11,9,17,25,26,35,52,12,39,61,36,51,33,3,33,15,36,44,36,28,46,30,62,39,62,50,49,61,63,33,31,65,5,10,40],[7,29,31,43,56,50,14,18,56,44,53,12,66,2,17,19,33,12,29,17,31,19,52,20,39,52,15,36,8,60,9,10,29,22,10,47,39,47,26,56,19,48,27,33,22,0,3,16,0,29,39,28,55,27,8,19,64,42,12,57],[11,21,62,1,25,22,30,42,60,1,17,63,27,36,54,29,34,33,50,54,42,17,20,2,2,8,50,62,37,31,56,65,0,21,25,7,11,37,55,21,41,17,29,24,11,40,64,23,55,19,7,12,51,64,64,44,62,36,62,55],[39,38,21,48,28,23,58,7,43,40,15,19,45,40,31,12,6,36,19,52,54,45,0,27,45,0,46,47,15,51,62,62,8,45,39,65,38,30,8,45,21,31,19,46,64,26,59,9,2,9,0,39,51,35,30,59,12,38,21,34],[4,7,48,41,3,0,5,15,52,0,4,30,63,5,61,14,64,38,28,12,25,37,28,32,14,24,13,57,46,56,5,19,30,9,20,3,41,65,37,16,1,19,0,66,37,58,38,47,31,60,26,20,54,60,59,8,4,25,17,19],[47,59,32,43,57,3,61,62,30,9,17,27,65,31,64,35,63,65,40,62,19,2,16,6,16,57,40,10,55,22,62,15,8,17,11,22,62,38,61,60,30,47,17,27,44,62,52,25,2,66,27,17,46,1,27,53,58,44,12,30],[40,17,58,33,0,35,22,62,65,37,44,36,21,37,55,25,53,20,23,43,33,40,51,55,2,26,41,51,63,53,55,32,12,36,63,66,58,27,37,42,7,10,22,43,58,37,41,18,23,36,20,14,51,65,1,36,14,33,13,62],[44,49,3,45,61,18,8,40,38,46,32,5,19,33,27,30,14,19,7,28,29,44,57,58,66,61,19,19,25,32,39,56,10,47,42,3,49,40,2,59,29,10,64,64,3,44,13,32,15,20,5,26,18,30,23,17,31,8,62,30],[3,0,12,11,32,29,6,58,51,45,30,54,47,53,53,54,15,54,30,7,28,56,62,53,28,36,32,4,26,60,48,21,2,34,63,17,16,54,52,38,45,27,14,30,53,13,42,8,25,10,6,24,34,43,9,65,61,6,55,54],[34,64,28,14,15,39,52,8,3,26,57,14,57,2,61,8,53,57,15,10,44,50,37,12,21,52,14,23,18,32,35,47,27,54,36,41,16,1,7,55,43,42,42,41,57,17,22,53,59,17,20,43,48,20,14,6,61,31,49,56],[15,60,53,55,60,66,18,22,1,52,21,15,49,64,7,51,15,17,63,1,40,14,25,0,62,11,19,56,22,58,25,41,49,63,63,57,28,24,40,35,39,2,8,63,13,42,46,42,48,28,31,50,58,40,41,18,32,52,8,10],[36,32,61,50,13,3,2,51,29,31,52,6,15,45,22,42,48,64,40,66,32,34,24,66,64,20,9,62,11,5,50,59,42,5,19,50,4,9,8,15,64,35,23,64,42,33,19,57,57,63,47,63,14,54,37,33,18,65,63,56],[25,54,3,42,13,6,10,60,36,14,14,38,33,13,31,21,25,28,48,18,46,39,61,18,45,34,24,16,38,49,39,25,56,50,26,40,32,3,17,18,45,6,52,47,24,31,39,34,20,25,0,40,46,63,63,36,47,48,64,30],[58,54,13,59,35,26,63,38,15,57,27,31,16,65,31,25,14,33,49,64,17,21,22,33,26,64,64,63,42,58,48,25,3,0,11,56,66,58,47,12,39,26,62,2,66,34,36,7,60,2,60,16,41,30,21,0,0,9,6,8],[18,32,25,43,2,25,53,44,37,19,0,3,31,65,65,36,42,12,30,43,22,38,36,18,28,24,55,12,31,9,42,21,30,51,25,57,50,37,61,62,55,50,37,38,21,11,45,37,55,26,41,52,44,20,38,44,21,25,59,12],[63,49,22,56,3,41,13,49,43,30,58,14,43,12,33,49,56,24,36,56,25,55,21,28,29,21,46,29,41,11,44,29,22,16,45,44,18,41,66,55,59,57,66,18,6,51,28,54,34,22,2,36,66,63,15,2,30,22,14,65],[41,46,51,3,42,28,38,49,23,47,41,5,10,9,3,3,49,54,59,57,62,61,0,5,54,34,22,66,42,63,56,2,62,31,0,63,33,58,66,21,65,38,13,15,24,57,25,66,60,10,59,2,18,12,49,44,22,21,52,39],[32,27,23,26,62,26,48,26,54,2,45,57,1,30,56,55,65,1,24,19,33,54,23,13,41,29,3,35,64,10,16,18,15,39,11,62,37,8,4,38,51,17,16,20,21,29,1,9,31,51,44,8,20,60,33,28,53,65,40,49],[43,40,11,33,12,35,41,63,41,44,61,0,66,17,7,42,66,52,1,10,7,24,31,55,0,23,8,3,37,31,42,1,29,56,37,59,11,21,22,2,44,2,50,27,9,35,35,36,57,64,37,59,24,38,39,26,7,33,47,30],[18,24,61,27,2,33,34,39,65,15,21,18,36,62,9,11,55,3,15,25,30,19,26,43,14,58,7,13,19,1,15,29,36,20,5,30,15,9,29,45,59,57,4,34,50,45,56,26,10,20,57,0,57,16,6,17,42,61,18,10],[51,5,43,47,14,3,17,44,54,10,56,25,15,27,43,4,45,52,30,55,7,33,60,11,54,49,37,3,27,14,22,23,66,29,36,45,64,38,65,50,14,18,63,55,53,23,22,56,17,12,66,46,2,2,58,33,59,17,52,6],[13,50,58,20,16,64,54,9,52,20,4,9,42,50,18,64,50,44,64,48,12,29,41,59,6,27,36,52,11,34,2,22,21,26,28,7,27,47,56,9,49,12,20,21,44,21,63,43,24,41,22,28,26,37,63,58,38,6,36,24],[26,65,54,12,52,23,12,7,14,28,66,30,33,24,36,48,8,43,29,58,27,41,44,34,13,32,55,20,57,44,16,11,26,31,46,4,9,14,42,41,52,28,25,61,18,63,53,29,42,48,62,45,18,34,55,26,12,41,2,20],[38,22,54,51,21,6,7,41,33,9,53,14,3,53,28,22,39,63,43,62,23,41,26,9,27,30,31,7,19,46,57,0,3,27,61,35,64,44,59,43,58,41,63,14,64,1,47,27,34,34,25,20,41,36,40,55,58,48,15,66],[2,60,27,2,32,50,64,37,18,14,59,33,61,30,16,36,35,33,39,60,36,45,21,14,51,62,60,48,43,39,17,3,64,33,64,35,1,59,37,58,14,18,27,66,31,26,28,4,20,2,30,53,15,26,37,38,45,1,62,4],[25,29,12,46,4,10,60,12,5,42,10,1,18,25,13,2,63,60,42,34,26,21,44,12,32,40,45,16,4,54,41,64,25,31,6,28,6,53,12,37,31,23,20,60,65,47,17,15,8,35,57,63,10,54,23,11,47,38,41,27],[10,6,1,33,54,14,2,15,46,27,28,18,65,47,21,23,59,29,28,26,11,62,16,2,20,44,32,9,26,23,5,28,45,13,11,21,38,40,36,56,28,45,17,61,38,48,0,15,5,7,13,57,34,17,2,33,40,25,7,2],[25,4,18,34,2,13,53,50,31,51,45,16,62,16,6,41,7,5,10,50,35,42,46,29,12,23,10,40,10,14,36,64,8,50,33,11,49,18,55,20,22,24,9,63,43,19,19,43,63,64,28,49,14,8,2,39,26,31,46,55],[33,65,18,59,39,26,27,63,20,16,12,11,44,15,40,29,35,28,6,36,15,28,47,14,28,9,39,55,41,32,18,39,5,28,35,32,44,56,12,42,45,29,21,16,58,37,48,20,50,54,53,6,27,7,55,29,17,30,63,23],[48,63,31,43,28,45,36,53,41,52,43,58,37,13,14,17,58,8,60,65,0,30,9,2,6,18,6,13,21,26,23,1,42,6,1,24,5,49,17,9,18,32,49,51,8,45,28,8,17,40,37,20,62,20,62,28,66,28,55,9],[23,36,12,19,21,8,33,18,42,20,19,62,54,36,27,6,32,2,7,9,3,24,44,65,3,56,41,49,40,5,29,56,24,11,28,43,33,48,48,48,25,58,17,41,38,66,60,18,48,8,26,63,41,49,6,14,40,19,2,17],[19,9,58,4,53,64,10,34,66,5,36,52,28,59,17,43,41,15,39,14,26,36,6,0,26,3,25,37,8,55,8,49,54,32,64,12,16,35,30,30,21,62,60,7,21,47,22,22,10,41,37,15,64,6,26,29,30,37,28,23],[16,4,25,42,66,13,12,25,58,56,32,58,35,35,31,56,28,66,42,61,13,33,54,20,8,23,46,17,8,4,40,49,42,20,38,58,63,38,0,23,50,0,65,38,44,59,19,20,2,36,40,15,65,31,29,57,4,21,64,35],[29,65,41,44,33,62,60,42,15,5,22,14,48,60,10,21,61,29,63,13,32,6,14,4,56,8,26,13,35,30,27,46,38,47,35,30,14,20,63,54,14,13,31,60,18,44,28,59,5,36,3,58,5,35,14,13,13,10,30,46],[23,13,36,17,19,44,12,55,51,19,1,65,58,13,27,8,10,42,4,59,33,52,29,56,28,53,35,56,32,52,32,17,36,44,29,16,20,61,28,40,55,17,23,50,34,46,38,0,36,39,66,20,29,1,36,31,44,24,43,17],[51,59,20,36,12,35,61,51,11,4,14,38,13,55,9,35,58,12,8,59,33,13,34,60,45,9,44,12,17,27,42,9,12,2,6,39,7,8,2,58,59,54,2,54,7,65,45,27,60,23,18,18,37,5,46,17,22,56,26,23],[36,46,33,16,5,26,13,43,24,21,45,61,13,44,36,12,50,5,13,66,47,13,36,41,36,29,24,64,36,34,59,24,36,31,51,12,28,61,31,26,26,66,30,23,65,1,42,25,29,10,62,51,5,45,16,44,46,14,20,29],[18,30,66,38,23,26,47,43,46,21,61,57,35,43,32,20,48,30,5,32,29,21,26,24,45,12,33,4,22,53,62,63,17,29,34,21,19,50,18,33,25,22,63,42,39,23,63,56,50,47,36,11,32,17,10,25,18,3,9,41],[42,48,59,55,40,22,25,34,59,23,41,56,66,56,13,31,8,59,47,64,20,37,26,39,25,53,52,28,35,35,31,17,17,32,19,65,64,31,6,7,2,37,44,41,51,2,12,0,54,57,33,54,13,59,35,21,66,6,6,39],[10,61,34,13,40,59,55,59,38,46,53,43,56,13,9,9,19,23,21,50,55,64,48,30,61,10,37,65,53,33,38,29,43,42,8,6,9,64,49,65,23,61,52,35,29,39,44,16,5,16,56,33,64,58,29,27,48,13,46,33],[23,65,60,18,17,55,16,33,33,46,54,48,49,26,4,41,57,41,3,64,65,58,40,36,32,65,59,61,33,63,59,47,33,21,25,14,48,2,46,33,11,7,4,31,47,59,26,45,45,59,25,62,24,59,19,37,28,45,43,4],[8,0,24,4,23,39,59,34,39,50,48,39,31,53,53,56,39,0,32,37,3,0,4,61,26,9,57,19,32,56,10,40,18,58,43,61,9,61,6,47,10,10,52,33,23,8,40,10,36,52,3,10,13,31,15,36,2,46,54,26],[18,27,6,51,2,42,36,38,46,6,47,44,32,5,47,51,19,62,41,33,35,53,66,60,9,51,54,15,48,6,56,64,16,38,48,22,29,8,45,42,61,39,63,6,14,54,59,46,24,61,42,23,25,36,62,52,50,24,48,23],[52,30,28,39,2,51,65,45,57,64,50,63,41,44,48,44,57,12,42,8,23,46,19,18,64,27,38,51,18,26,50,34,13,19,60,30,46,15,48,66,45,30,66,29,43,42,8,36,41,17,14,32,29,30,23,55,26,65,64,12],[64,3,47,19,46,29,57,57,0,42,34,31,60,14,49,24,48,2,37,57,4,1,15,45,18,33,5,41,28,49,10,17,13,40,33,50,66,25,36,27,16,1,61,65,44,49,15,27,62,14,1,53,0,8,50,54,51,64,29,18],[18,64,29,33,16,11,33,14,62,30,1,1,49,9,20,53,4,31,19,48,46,50,59,60,49,60,0,19,54,0,16,42,18,2,53,28,6,17,58,7,58,23,26,8,30,50,27,27,6,8,14,15,13,0,7,52,61,35,37,66],[16,25,14,17,38,55,29,62,64,29,4,24,36,28,6,14,0,42,45,1,20,24,64,6,18,35,22,27,66,38,8,19,27,23,46,35,42,11,41,54,41,39,57,6,49,58,20,37,52,50,45,45,24,20,27,26,63,66,64,19],[58,41,47,57,60,38,12,33,51,45,16,59,34,65,40,9,19,56,35,28,4,44,33,13,59,35,0,15,40,51,15,30,4,2,23,52,34,31,26,17,57,64,2,8,52,27,44,25,5,62,13,38,0,44,9,47,63,52,19,45],[48,54,6,43,3,51,33,44,47,58,35,16,28,25,34,15,25,42,17,34,57,30,54,13,58,22,32,8,48,23,1,35,25,6,37,20,19,2,7,0,18,61,5,41,63,10,59,41,7,30,46,30,49,10,54,13,15,36,24,54],[26,55,34,55,23,28,56,2,11,40,32,33,11,8,31,16,34,3,36,20,24,26,32,2,50,35,57,59,61,37,39,24,19,19,51,16,25,52,32,12,48,45,32,2,29,43,61,66,44,32,27,19,55,35,61,58,6,24,26,29],[57,25,41,10,0,44,7,50,65,35,50,41,42,65,29,11,61,44,36,54,64,35,27,52,40,54,12,0,7,15,21,20,61,57,55,50,12,61,34,12,25,44,31,26,65,8,28,62,19,7,57,64,60,45,49,18,12,39,66,17],[2,50,37,3,36,55,63,32,52,33,2,17,16,12,31,23,13,29,59,32,26,42,26,20,41,57,1,49,26,8,36,46,45,9,10,10,22,65,55,48,4,39,34,2,12,66,53,56,5,44,1,25,64,37,33,34,10,41,5,3],[2,53,2,55,8,64,34,7,44,6,53,12,27,8,42,41,8,23,50,51,44,28,37,9,27,47,2,61,36,23,12,45,14,31,34,32,48,64,40,16,28,15,53,61,38,23,0,11,27,64,16,44,31,4,51,51,66,0,42,18],[53,27,57,36,55,27,22,63,66,25,43,64,10,20,9,17,9,1,49,56,33,58,50,27,25,65,59,33,10,3,64,41,59,6,29,53,22,26,1,48,55,18,47,30,50,36,29,53,45,22,63,49,2,35,32,31,30,32,58,15],[22,5,51,17,28,42,39,65,48,6,44,36,65,35,36,48,11,43,12,27,22,0,25,56,11,48,54,20,13,42,30,22,59,35,27,49,50,60,66,33,17,37,41,39,48,22,35,15,49,2,18,62,26,25,29,44,57,64,20,66],[1,2,11,11,22,26,59,62,48,34,26,46,24,66,35,26,44,48,42,4,45,0,42,39,6,33,47,28,18,38,64,25,19,51,41,56,18,42,35,48,14,15,38,63,49,36,2,7,48,45,56,49,56,12,51,20,7,15,30,66],[36,42,7,56,2,29,65,47,64,29,12,10,31,11,31,42,11,51,37,45,27,30,1,30,49,43,65,56,44,61,55,53,8,24,65,58,41,43,33,49,42,12,11,5,47,23,22,2,13,62,28,62,10,62,45,12,58,44,0,40],[19,18,14,20,54,51,18,47,51,42,22,19,22,28,23,40,66,7,17,4,60,44,53,43,21,51,41,45,52,5,26,37,34,18,66,59,65,19,65,14,55,45,22,34,32,22,35,4,14,58,21,54,65,18,34,9,41,4,23,2],[37,37,24,17,21,58,36,33,60,6,65,56,33,51,42,41,23,52,65,38,31,0,57,59,64,48,1,4,29,22,58,65,37,4,15,43,10,60,40,12,1,65,55,63,51,33,53,15,52,15,61,34,64,2,53,50,39,65,16,20]],"maxloss":12.0,"daily":3.0,"target":12.0,"worst_run":8,"worst_run_times":"3 times","worst_run_r":7.129,"worst_trade_r":1.086,"deposit":10000.0}</script>
+<script>
+(function(){
+  var D = JSON.parse(document.getElementById('riskdata').textContent);
+  var input = document.getElementById('riskin');
+  var chips = document.getElementById('riskchips');
+  var warn  = document.getElementById('riskwarn');
+
+  // Exact lookup, never nearest. The options ARE the simulated rows, so the page
+  // structurally cannot pair a scaled percent with a pass rate measured at some
+  // other risk -- a combination that would look measured and be invented.
+  var ROWS = {};
+  D.sweep.forEach(function(s){ ROWS[s.risk.toFixed(2)] = s; });
+  function rowFor(r){ return ROWS[r.toFixed(2)]; }
+  function num(r){ return (Math.round(r*100)/100).toString(); }
+  function fmt(v, f){
+    if(f === 'signint') return (v>=0?'+':'') + Math.round(v);
+    if(f === 'int')     return String(Math.round(v));
+    if(f === 'money')   return '$' + Math.round(v).toLocaleString();
+    if(f === 'lots')    return (v/500).toFixed(2);
+    if(f === 'plain1')  return v.toFixed(1);
+    if(f === 'plain2')  return v.toFixed(2);
+    return (v>=0?'+':'') + v.toFixed(1);
+  }
+  // Redraw the sample attempts. Same eighty sequences every time -- only the
+  // barriers move -- so the picture never reshuffles under the reader.
+  function drawMC(risk){
+    var svg = document.getElementById('mcsvg');
+    if(!svg || !D.mc) return;
+    var W=1180,H=300,PAD=44, T=D.target, L=-D.maxloss,
+        hi=T*1.45, lo=L*1.35, runs=[], longest=1;
+    D.mc.forEach(function(seq){
+      var eq=0, pts=[0], out='open';
+      for(var i=0;i<seq.length;i++){
+        eq += risk*D.R[seq[i]]; pts.push(eq);
+        if(eq>=T){ out='pass'; break; }
+        if(eq<=L){ out='fail'; break; }
+      }
+      runs.push([out,pts]); if(pts.length>longest) longest=pts.length;
+    });
+    var X=function(i){ return PAD + i*(W-PAD-24)/Math.max(longest-1,1); },
+        Y=function(v){ return H-PAD - (v-lo)*(H-PAD-16)/(hi-lo); }, g=[];
+    [[T,'+'+T+'% target'],[L,L+'% max loss']].forEach(function(b){
+      g.push('<line x1="'+PAD+'" y1="'+Y(b[0]).toFixed(1)+'" x2="'+(W-24)+'" y2="'+Y(b[0]).toFixed(1)+
+             '" stroke="currentColor" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="7 5"/>');
+      g.push('<text x="'+(PAD+2)+'" y="'+Y(b[0]).toFixed(1)+'" font-size="12" font-weight="640" '+
+             'fill="currentColor" fill-opacity=".65" dy="-6">'+b[1]+'</text>');
+    });
+    g.push('<line x1="'+PAD+'" y1="'+Y(0).toFixed(1)+'" x2="'+(W-24)+'" y2="'+Y(0).toFixed(1)+
+           '" stroke="currentColor" stroke-opacity=".18"/>');
+    runs.sort(function(a,b){ return (a[0]==='fail') - (b[0]==='fail'); }).forEach(function(r){
+      var fail = r[0]==='fail';
+      g.push('<polyline points="'+r[1].map(function(v,i){ return X(i).toFixed(1)+','+Y(v).toFixed(1); }).join(' ')+
+             '" fill="none" stroke="'+(fail?'var(--neg)':'var(--pos)')+'" stroke-width="'+(fail?2:1.1)+
+             '" stroke-opacity="'+(fail?'.95':'.5')+'" stroke-linejoin="round"/>');
+    });
+    var nf = runs.filter(function(r){ return r[0]==='fail'; }).length;
+    svg.innerHTML = '<title>Eighty simulated challenge attempts</title><desc>Eighty attempts at ' +
+      num(risk) + '% risk; ' + (runs.length-nf) + ' reached the target, ' + nf + ' hit the maximum loss.</desc>' +
+      g.join('') + '<text x="'+PAD+'" y="'+(H-10)+'" font-size="11" fill="currentColor" fill-opacity=".5">trades taken</text>';
+  }
+
+  window.orbRisk = function(){ return CUR; };
+  var CUR = parseFloat(D.risk);
+
+  function apply(r){
+    var row = rowFor(r);
+    if(!row) return;                       // an unsimulated risk is not offered
+    CUR = r;
+    document.querySelectorAll('[data-pct]').forEach(function(el){
+      el.textContent = fmt(parseFloat(el.dataset.pct) * r, el.dataset.fmt || 'sign1');
+    });
+    document.querySelectorAll('[data-sweep]').forEach(function(el){
+      var v = row[el.dataset.sweep];
+      el.textContent = el.dataset.fmt ? fmt(v, el.dataset.fmt) : String(v);
+    });
+    document.querySelectorAll('[data-risk]').forEach(function(el){ el.textContent = num(r) + '%'; });
+
+    document.querySelectorAll('tr[data-rowrisk]').forEach(function(tr){
+      tr.classList.toggle('sel', Math.abs(parseFloat(tr.dataset.rowrisk) - row.risk) < 1e-9);
+    });
+    Array.prototype.forEach.call(chips.querySelectorAll('button'), function(b){
+      b.setAttribute('aria-pressed', Math.abs(parseFloat(b.dataset.v) - r) < 1e-9);
+    });
+
+    var run = document.getElementById('runprose');
+    if(run)
+      run.innerHTML = 'A <strong>' + D.worst_run + '-loss run happened ' + D.worst_run_times +
+        '</strong>, and at <span data-risk>' + num(r) + '%</span> it costs <strong>' +
+        row.run_cost.toFixed(1) + '%</strong> ' + (row.run_breaks
+          ? '&mdash; past the ' + D.maxloss + '% limit, so that sequence fails the account.'
+          : 'against the ' + D.maxloss + '% limit.');
+
+    // The two ways one number can end a challenge, stated whenever they apply.
+    var bad = [];
+    if(row.run_breaks)
+      bad.push('A run of <b>' + D.worst_run + ' losses</b> costs <b>' + row.run_cost.toFixed(1) +
+               '%</b>, past the ' + D.maxloss + '% maximum loss. That run is in this data.');
+    if(row.trades <= 2)
+      bad.push('At this size passing or failing is decided by <b>one or two trades</b>, not by the edge.');
+    if(D.daily && Math.abs(row.worst_trade) > D.daily)
+      bad.push('The worst single loss on record is <b>' + Math.abs(row.worst_trade).toFixed(2) +
+               '%</b>, past the ' + D.daily + '% daily limit &mdash; one trade could end it.');
+    warn.hidden = bad.length === 0;
+    warn.innerHTML = bad.join(' ');
+
+    var dd = document.getElementById('ddcard');
+    if(dd) dd.querySelector('.v').className = 'v' + (row.dd_breaks ? ' neg' : '');
+
+    var adv = document.getElementById('riskadvice');
+    if(adv){
+      var safe = D.sweep.filter(function(s){
+        return s.risk <= D.maxrisk && !s.run_breaks && Math.abs(s.worst_trade) <= (D.daily || 99); });
+      var best = safe.length ? safe[safe.length-1] : null;
+      adv.innerHTML = best
+        ? 'The most you can risk and still survive that run is <b>' + num(best.risk) + '%</b>: ' +
+          best.pass_pct.toFixed(1) + '% pass rate, about ' + best.days + ' trading days, ' +
+          fmt(best.ret, 'signint') + '% on the year. Halving it to <b>' + num(best.risk/2) +
+          '%</b> roughly doubles the calendar time and takes the drawdown down with it &mdash; ' +
+          'which is the trade to make once the account is funded rather than being won.'
+        : '';
+    }
+    drawMC(r);
+    // The gallery footer has its own percent; recompute it against the new risk.
+    if(window.orbGalleryRefresh) window.orbGalleryRefresh();
+    try { history.replaceState(null, '', '?risk=' + num(r)); } catch(e){}
+  }
+
+  D.chips.forEach(function(v){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = num(v) + '%'; b.dataset.v = v;
+    b.addEventListener('click', function(){ input.value = num(v); apply(v); });
+    chips.appendChild(b);
+  });
+
+  // Any typed value snaps to the nearest simulated row and is written back, so
+  // what the page shows is always the risk that was actually walked -- never a
+  // scaled percent paired with someone else's pass rate.
+  var KEYS = D.sweep.map(function(s){ return s.risk; });
+  function snap(r){
+    return KEYS.reduce(function(a, b){
+      return Math.abs(b - r) < Math.abs(a - r) ? b : a; });
+  }
+  function read(){
+    var r = parseFloat(input.value);
+    if(!isFinite(r) || r <= 0) return;
+    var s = snap(Math.min(99, Math.max(1, r)));
+    input.value = num(s);
+    apply(s);
+  }
+  input.addEventListener('change', read);
+
+  // ?risk=2 is honoured only when it names a simulated level; anything else
+  // leaves the page at its default rather than snapping to a near neighbour.
+  var q = parseFloat(new URLSearchParams(location.search).get('risk'));
+  if(isFinite(q) && q > 0) input.value = num(snap(Math.min(99, Math.max(1, q))));
+  apply(parseFloat(input.value));
+})();
+</script>
+</body></html>
