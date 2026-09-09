@@ -274,7 +274,8 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
     <a href="#curve"><span>05</span>Results</a>
     <a href="#weeks"><span>06</span>Week by week</a>
     <a href="#risk"><span>07</span>Risk &amp; sizing</a>
-    <a href="#trades"><span>08</span>Every trade</a>
+    <a href="#montecarlo"><span>08</span>Monte Carlo simulation</a>
+    <a href="#trades"><span>09</span>Every trade</a>
   </nav>
 </header>
 
@@ -522,16 +523,7 @@ a drawdown limit. That makes streaks matter more than averages.</p>
 snaps to a simulated level. Pass, trades and days come from walking the real outcomes against the
 barriers, not from scaling.</p>
 
-<figure><div class="fig">{{MCSVG}}</div>
-<figcaption>Eighty simulated attempts at the risk set above. Each line is one challenge: trades are
-drawn at random from the {{TRADES}} real results and added up until the account reaches the target
-or the maximum loss. Green finished; red died. The pass rate in the table comes from 40&nbsp;000 of
-these, not from the eighty drawn here.</figcaption></figure>
 
-<p>Failure has one shape. A challenge needs <span data-pct="{{EVR}}" data-fmt="plain2"></span>% per
-trade on average, so the target arrives in a handful of trades &mdash; and the only way to lose is a
-long losing run before that average has time to show up. Nearly every red line above is exactly
-that.</p>
 
 <div class="scroll"><table>
 <caption>Losing runs that actually happened in {{PERIOD}}. The cost is the worst real sequence of that length, not a run of average losses &mdash; the stop move halves some losses, so averaging them understates the run that matters.</caption>
@@ -557,9 +549,37 @@ rather than a slow bleed.</p>
 risk stays at $200 regardless. That is what makes every result comparable in R.</p>
 </section>
 
+<!-- ================= 08 MONTE CARLO ================= -->
+<section id="montecarlo">
+<h2><span class="num">08</span>Monte Carlo simulation</h2>
+<p class="sub">The pass rate above is not a formula. It is eighty thousand simulated attempts at the
+challenge, and this is what eighty of them look like.</p>
+
+<figure><div class="fig">{{MCSVG}}</div>
+<figcaption>Eighty attempts at the risk set at the top of the page. Each line is one challenge:
+trades are drawn at random from the {{TRADES}} real results and added up until the account reaches
+the target or the maximum loss. Green finished, red died. Change the risk and the same eighty
+attempts are redrawn against the new limits.</figcaption></figure>
+
+<p><b>How it works.</b> Take the {{TRADES}} real trades. Draw one at random, add it to the account,
+draw another, and keep going until the account either reaches the target or hits the maximum loss.
+That is one attempt. Do it 40&nbsp;000 times and count how many reached the target &mdash; that
+number is the pass rate.</p>
+
+<p><b>Why it comes out where it does.</b> A trade is worth
+<span data-pct="{{EVR}}" data-fmt="plain2"></span>% on average at this risk, so the target is a
+handful of trades away. The only way to lose is a long losing run arriving before that average has
+had time to show up. Nearly every red line above is exactly that, and nothing else.</p>
+
+<p><b>What it assumes.</b> That the next trades look like the {{TRADES}} already taken &mdash; same
+win rate, same sizes, in a random order. It does not know whether the edge weakens. That is the
+real risk here, and no amount of simulation can measure it: it can only be settled by trades this
+strategy has not seen yet.</p>
+</section>
+
 <!-- ================= 08 TRADES ================= -->
 <section id="trades">
-<h2><span class="num">08</span>Every trade</h2>
+<h2><span class="num">09</span>Every trade</h2>
 <p class="sub">All {{TRADES}} trades of 2026, in order. Each chart shows the range,
 the entry, the stop, the target, where the stop moved to, and the exit. Click any
 one to open it full size.</p>

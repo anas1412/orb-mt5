@@ -31,11 +31,15 @@ file at a path you invented.
 Source of truth is this repo. Files are **symlinked** into the MT5 tree —
 verified working under Wine, so there is no copy step and no `docker cp`.
 
+Everything a run produces lives inside the repo, once. The pipeline used to
+write the report and the charts into `~/orb` and then copy them in for GitHub
+Pages, which left two of each and no way to tell which was current.
+
 ```
 ~/orb/
 ├── orb-engine-plan.md      design doc
 ├── creds.txt               accounts, offsets, paths (gitignored, chmod 600)
-└── strategy/               <- this repo
+└── strategy/               <- this repo, and the only place output lands
     ├── CLAUDE.md
     ├── TimeZones.mqh       broker time <-> UTC <-> session time
     ├── Panel.mqh           on-chart control panel (toggle + editable settings)
@@ -48,6 +52,9 @@ verified working under Wine, so there is no copy step and no `docker cp`.
     ├── update.sh           the one command; tester.ini / dump.ini / sync.ini / d1.ini beside it
     ├── index.html          THE report and the Pages landing page (generated)
     ├── full-report.html    a redirect to index.html, kept because the old URL is linked
+    ├── client-example.html the $1,000-account explainer (generated)
+    ├── trades/             one chart per trade (generated, drawn straight here)
+    ├── trades-<spec>/      the same for a spec report
     ├── accounts/           broker logins, one .env per account (ignored; example.env tracked)
     └── research/           the pipeline, the builders and the data
         ├── mt5.sh          the ONLY MetaTrader launcher: login block, journal watch, reset

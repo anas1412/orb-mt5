@@ -1,4 +1,8 @@
-"""Generate ~/orb/ORB-asia-report.html from report_data.json + trade_index.json."""
+"""Generate the report from report_data.json + trade_index.json.
+
+Writes one file, ctx.REPORT_PAGES, and the charts are already where the page
+links to them -- all_trades.py draws them straight into that folder.
+"""
 import rules_svg, halves_svg
 from curve import curve_svg
 import json, os, re, datetime as dt
@@ -8,10 +12,7 @@ idx=json.load(open(ctx.INDEX_JSON))
 RISK=ctx.RISK
 HOLD=ctx.HOLD
 H=d['headline']
-OUT   = ctx.REPORT_LOCAL
 PAGES = ctx.REPORT_PAGES
-TRADES_SRC = ctx.TRADES_DIR
-TRADES_DST = os.path.join(ctx.REPO, ctx.TRADES_WEB)
 
 def pfc(v, cls=""):
     """One cell. A period with no losses has no meaningful ratio, so it shows a
@@ -356,16 +357,8 @@ def fill_warning(html):
                         '<div id="riskwarn" class="riskwarn">%s</div>' % " ".join(bad))
 
 html = fill_warning(fill_defaults(html))
-open(OUT,"w").write(html)
 open(PAGES,"w").write(html)
 
-# Pages serves from the repo, so the charts have to live there too
-import shutil
-if os.path.isdir(TRADES_SRC):
-    os.makedirs(TRADES_DST, exist_ok=True)
-    n=0
-    for f in os.listdir(TRADES_SRC):
-        if f.endswith(".png"):
-            shutil.copy2(os.path.join(TRADES_SRC,f), os.path.join(TRADES_DST,f)); n+=1
-    print("copied %d charts into the repo for Pages" % n)
-print("wrote %s  (%.0f KB)" % (OUT, os.path.getsize(OUT)/1024))
+# The charts are drawn straight into the folder the page links to, so there is
+# nothing to copy. That copy step is why every chart existed twice.
+print("wrote %s  (%.0f KB)" % (PAGES, os.path.getsize(PAGES)/1024))

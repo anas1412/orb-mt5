@@ -42,21 +42,24 @@ BENCH = dict(key=SPEC["report"]["benchmark"], label=_label, text=_text,
              p1=_b[0] if _b else None, p2=_b[1] if _b else None,
              maxloss=_b[2] if _b else None, daily=_b[3] if _b else None, mindays=_b[4] if _b else 0)
 
+# Everything a run produces lives inside the repo, once. The pipeline used to
+# write into ~/orb and then copy into the repo for GitHub Pages, which left two
+# of every report and two of every chart and no way to tell which was current.
 if DEFAULT:
     OUT_DIR      = HERE
     CSV_LIVE     = os.path.join(D, "live_cp0.50.csv")
     CSV_ALL      = os.path.join(D, "live_cp0.00.csv")
-    TRADES_DIR   = os.path.expanduser("~/orb/trades")
+    TRADES_DIR   = os.path.join(REPO, "trades")
     TRADES_WEB   = "trades"
-    REPORT_LOCAL = os.path.expanduser("~/orb/ORB-asia-report.html")
     REPORT_PAGES = os.path.join(REPO, "index.html")      # the GitHub Pages landing page
+    REPORT_LOCAL = None
 else:
     OUT_DIR      = os.path.join(HERE, "out", NAME)
     CSV_LIVE     = os.path.join(OUT_DIR, "live_cp0.50.csv")
     CSV_ALL      = os.path.join(OUT_DIR, "live_cp0.00.csv")
     TRADES_DIR   = os.path.join(OUT_DIR, "trades")
     TRADES_WEB   = "trades-" + NAME
-    REPORT_LOCAL = os.path.join(OUT_DIR, "report.html")
+    REPORT_LOCAL = None
     REPORT_PAGES = os.path.join(REPO, SPEC["report"]["output"] or NAME + "-full-report.html")
     os.makedirs(TRADES_DIR, exist_ok=True)
 DATA_JSON   = os.path.join(OUT_DIR, "report_data.json")
