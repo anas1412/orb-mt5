@@ -1,0 +1,64 @@
+# The one configuration out of 1,534,680 that reached EV >= 0.20 R net of costs
+# in 2024, 2025 and 2026 separately AND survived being chosen on 2024-25 alone.
+# It is a candidate, not a result: see the last two rows of [notes].
+name = "gold-0530-r60"
+
+[session]
+tz               = "UTC"
+start            = "05:30"      # 07:30 UTC+2 -- the Asia-to-Europe handover
+range_min        = 60           # 05:30 - 06:29, so the last range candle is 06:29
+entry_window_min = 15           # a break must close by 06:44 or the day is done
+hold_min         = 180          # three hours, then flat at market
+signal_tf        = "M1"
+
+[rules]
+rr              = 3.0
+sl_pct_of_range = 50.0          # the midpoint of the box
+stop_move_at_r  = 0             # OFF -- moving the stop cost 0.10 R a trade here
+direction       = "long"        # upside breaks only
+days            = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+
+[risk]
+# The worst real losing run here is SIX trades. At 2% that run costs 12.1% and
+# breaks the 12% maximum loss on its own; 1.5% keeps it at 9.1%. The published
+# Asia default of 2.5% is not survivable on this configuration.
+per_trade = 1.5
+
+[dates]
+from = 2024-01-01               # three years, because the only claim is consistency
+to   = "today"
+
+[report]
+benchmark = "fundingpips-1step-flex"
+output    = "gold-0530-r60.html"
+title     = "ORB 05:30 UTC — Gold, longs only"
+h1        = "The 05:30 UTC Opening Range"
+h1_em     = "on Gold, longs only"
+short     = "ORB 05:30 UTC — gold, longs only."
+lede      = """One long a day at most, Monday to Friday, from a one-hour box that \
+closes at 06:29 UTC. Found by searching 1.5 million rule combinations, so read \
+the evidence rows before the results."""
+
+[notes]
+why = [
+  ["05:30 UTC",
+   "No market argument — this came out of an exhaustive search over every 30-minute open from 00:00 to 14:00 UTC. It is the Asia-to-Europe handover, and it is the only opening time whose result held in all three years."],
+  ["60-minute range",
+   "Measured, and the opposite of what the Asia setup found. A 15-minute box at this hour gives EV +0.02 R; the hour-long box gives +0.34 R. Shorter is not universally better — it was better at 00:00 UTC."],
+  ["Longs only",
+   "This is the weak point, not a feature. Allowing both directions drops EV from +0.34 R to +0.08 R, and shorts alone lose 0.17 R a trade. The filter is a bet that gold keeps rising, which it did across the whole test window."],
+  ["3R target",
+   "1R gives +0.06 R a trade here and 5R gives +0.24 R with a 34% win rate. 3R is the balance: 46% win rate at +0.34 R."],
+  ["Stop at the midpoint",
+   "Tested against 25%, 75%, 100% and 150% of the range, against ATR multiples and against fixed dollar stops. The midpoint won, but every rule within $3 of it scored the same — the distance matters, the formula does not."],
+  ["No stop move",
+   "Unlike the Asia setup. Moving the stop to -0.5R at +0.5R cost 0.10 R a trade, because a 3R target needs room the tightened stop takes away."],
+  ["180-minute cap",
+   "A 3R move from an hour-long box needs time. At 90 minutes EV falls to +0.19 R; at 60 minutes to +0.11 R."],
+  ["Monday to Friday",
+   "Friday is not the losing day at this hour that it is at 00:00 UTC. Dropping it removes 30 trades and lowers EV."],
+  ["Cost sensitivity — read this",
+   "The stop is narrow in the early years: a $2.80 median in 2024 against a $10.81 median in 2026. At $0.60 round-trip cost EV is +0.34 R; at $1.50 it is +0.10 R; at $2.00 it is negative. Slippage on stop exits is NOT modelled, and it bites hardest exactly where the stop is tightest."],
+  ["Evidence strength — read this too",
+   "Of 1,534,680 combinations tested, 35,771 reached EV +0.20 R in 2026 alone and only 11 did so in all three years. Selecting on 2024-25 and then measuring 2026, 430 candidates averaged -0.11 R and just 5.3% still cleared +0.20 R — against a 2.48% base rate. This configuration is one of that 5.3%. Chance alone predicts about 23 such survivors."],
+]
