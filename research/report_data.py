@@ -221,11 +221,17 @@ def sweep_at(risk, paths=40000):
                 dd_breaks=bool(B['maxloss'] and out['maxdd_r']*risk > B['maxloss']),
                 run_cost=round(out['worst_run_r']*risk,1),
                 run_breaks=bool(B['maxloss'] and out['worst_run_r']*risk > B['maxloss']))
-# Nothing above 2.5% is a real choice: the worst run on record already breaks
-# the maximum loss there, and past 2.74% a single worst-case trade breaches the
-# daily limit on its own -- the pass rate falls off a cliff rather than a slope.
-STEPS=[round(0.25*i,2) for i in range(2,11)]           # 0.50% .. 2.50%
-out['sweep']=[sweep_at(x) for x in sorted(set(STEPS) | {round(RISK,2)}) if x<=2.5]
+# The reader can type any risk from 1% to 99%, so every value the input can hold
+# needs a simulated row -- the alternative is scaling a percent against a pass
+# rate measured somewhere else, which looks measured and is invented. Fine
+# where the answer is still interesting, coarse where it is obviously zero.
+STEPS=([round(0.25*i,2) for i in range(1,21)]          # 0.25 .. 5.00 in quarters
+       + [round(0.5*i,2) for i in range(11,41)]        # 5.5 .. 20 in halves
+       + list(range(21,100)))                          # 21 .. 99 whole
+# Above ~3% almost every path fails on the first bad trade, so the answer needs
+# far fewer walks to be stable. Keeps a 130-row sweep to a few seconds.
+out['sweep']=[sweep_at(x, 40000 if x <= 3 else 6000)
+              for x in sorted(set(STEPS) | {round(RISK,2)})]
 
 # Where each rule starts to bite, in risk-per-trade. A limit divided by an R is
 # risk-independent, so these are fixed prose -- but they were typed into the

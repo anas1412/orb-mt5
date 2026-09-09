@@ -197,8 +197,9 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
   margin:0 0 18px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
 .riskbar label{font-size:13px;font-weight:640;letter-spacing:.01em}
 .riskin{display:flex;align-items:center;gap:6px}
-.riskin select{font:inherit;font-weight:700;font-size:19px;padding:6px 10px;
-  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit}
+.riskin input{width:5.6rem;font:inherit;font-weight:700;font-size:19px;padding:6px 9px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;text-align:right}
+.riskin input:focus{outline:2px solid var(--acc);outline-offset:1px}
 .riskin span{font-size:15px;color:var(--mut);font-weight:640}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{font:inherit;font-size:12.5px;padding:5px 11px;border:1px solid var(--line);
@@ -208,13 +209,19 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
 .riskwarn{margin:0 0 18px;padding:12px 16px;border-radius:12px;font-size:13.5px;line-height:1.6;
   border:1px solid var(--neg);background:color-mix(in srgb,var(--neg) 9%,transparent)}
 .riskwarn b{color:var(--neg)}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--mut)}
+::-webkit-scrollbar-corner{background:transparent}
 tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:640}
 @media (max-width:640px){.riskbar{grid-template-columns:1fr auto}.chips{grid-column:1/-1}}
 </style></head><body>
 <div class="wrap">
 
 <header>
-  <div class="eyebrow"><span class="dot"></span> Live configuration &middot; 2026 data through {{LASTDATE}}</div>
+  <div class="eyebrow"><span class="dot"></span> FundingPips 1 Step Flex &middot; +{{TARGET}}% target &middot; {{MAXLOSS}}% max loss &middot; {{DAILY}}% daily</div>
   <h1>The Asia Opening Range<br><em>on Gold</em></h1>
   <p class="lede">One trade a day, Monday to Thursday, decided in the fifteen
   minutes after midnight UTC. This is the complete rule set, why each rule is
@@ -222,15 +229,12 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
 
   <div class="riskbar">
     <label for="riskin">Risk per trade</label>
-    <div class="riskin">{{RISKSELECT}}</div>
+    <div class="riskin"><input id="riskin" type="number" min="1" max="99" step="0.25"
+      value="{{RISKNUM}}" inputmode="decimal" aria-label="Risk per trade, percent"><span>%</span></div>
     <div class="chips" id="riskchips"></div>
-    <p class="risknote">Every percentage on this page is <b>R &times; risk</b>. Change the number and
-    the report follows &mdash; returns, drawdown, pass rate, position size. Trade count, win rate,
-    expectancy in R and profit factor do not move: they are risk-independent. The scale stops at
-    <b>2.5%</b> because nothing above it is a real choice: past <b>{{CLIFFLOSS}}%</b> the worst run
-    on record breaks the maximum loss, and past <b>{{CLIFFDAILY}}%</b> a single worst-case trade
-    breaches the daily limit on its own. Only the levels the simulation actually walked are
-    offered.</p>
+    <p class="risknote">Every percentage here is <b>R &times; risk</b>. R values, win rate and
+    profit factor do not move. Past <b>{{CLIFFLOSS}}%</b> the worst run on record breaks the maximum
+    loss; past <b>{{CLIFFDAILY}}%</b> one bad trade breaches the daily limit alone.</p>
   </div>
   <div id="riskwarn" class="riskwarn" hidden></div>
 
@@ -514,9 +518,9 @@ a drawdown limit. That makes streaks matter more than averages.</p>
 <caption>Simulated on the {{PERIOD}} outcome distribution. {{BENCHTEXT}}.</caption>
 <thead><tr><th>Risk per trade</th><th>Pass</th><th>Trades needed</th><th>~Days</th><th>Total return</th><th>Worst drawdown</th><th>{{WORSTRUN}} losses cost</th><th>Worst single loss</th></tr></thead>
 <tbody>{{SWEEPROWS}}</tbody></table></div>
-<p class="sub">The highlighted row is the risk set at the top. Pass rate, trades and days come from
-walking the real trade outcomes against the barriers 20&nbsp;000 times per row &mdash; simulated,
-not arithmetic, which is why they are precomputed rather than scaled.</p>
+<p class="sub">The highlighted row is the risk set at the top; the field there accepts any value and
+snaps to a simulated level. Pass, trades and days come from walking the real outcomes against the
+barriers, not from scaling.</p>
 
 <div class="scroll"><table>
 <caption>Losing runs that actually happened in {{PERIOD}}. The cost is the worst real sequence of that length, not a run of average losses &mdash; the stop move halves some losses, so averaging them understates the run that matters.</caption>
@@ -723,6 +727,8 @@ demo test thoroughly before risking capital.</p>
     if(row.run_breaks)
       bad.push('A run of <b>' + D.worst_run + ' losses</b> costs <b>' + row.run_cost.toFixed(1) +
                '%</b>, past the ' + D.maxloss + '% maximum loss. That run is in this data.');
+    if(row.trades <= 2)
+      bad.push('At this size passing or failing is decided by <b>one or two trades</b>, not by the edge.');
     if(D.daily && Math.abs(row.worst_trade) > D.daily)
       bad.push('The worst single loss on record is <b>' + Math.abs(row.worst_trade).toFixed(2) +
                '%</b>, past the ' + D.daily + '% daily limit &mdash; one trade could end it.');
@@ -753,16 +759,31 @@ demo test thoroughly before risking capital.</p>
   D.chips.forEach(function(v){
     var b = document.createElement('button');
     b.type = 'button'; b.textContent = num(v) + '%'; b.dataset.v = v;
-    b.addEventListener('click', function(){ input.value = v.toFixed(2); apply(v); });
+    b.addEventListener('click', function(){ input.value = num(v); apply(v); });
     chips.appendChild(b);
   });
 
-  input.addEventListener('change', function(){ apply(parseFloat(input.value)); });
+  // Any typed value snaps to the nearest simulated row and is written back, so
+  // what the page shows is always the risk that was actually walked -- never a
+  // scaled percent paired with someone else's pass rate.
+  var KEYS = D.sweep.map(function(s){ return s.risk; });
+  function snap(r){
+    return KEYS.reduce(function(a, b){
+      return Math.abs(b - r) < Math.abs(a - r) ? b : a; });
+  }
+  function read(){
+    var r = parseFloat(input.value);
+    if(!isFinite(r) || r <= 0) return;
+    var s = snap(Math.min(99, Math.max(1, r)));
+    input.value = num(s);
+    apply(s);
+  }
+  input.addEventListener('change', read);
 
   // ?risk=2 is honoured only when it names a simulated level; anything else
   // leaves the page at its default rather than snapping to a near neighbour.
   var q = parseFloat(new URLSearchParams(location.search).get('risk'));
-  if(isFinite(q) && ROWS[q.toFixed(2)]) input.value = q.toFixed(2);
+  if(isFinite(q) && q > 0) input.value = num(snap(Math.min(99, Math.max(1, q))));
   apply(parseFloat(input.value));
 })();
 </script>

@@ -82,6 +82,9 @@ def sweep_rows():
     daily=ctx.BENCH['daily'] or 0
     out=[]
     for s in d['sweep']:
+        # The input accepts anything to 99%, but a table of 129 rows is not a
+        # table. Show the range where the answer is still a decision.
+        if s['risk'] > 3 or s['risk'] < 0.5 or (s['risk']*4) % 1: continue
         cls=[]
         if s['run_breaks']: cls.append('neg')
         if daily and abs(s['worst_trade'])>daily: cls.append('neg')
@@ -173,14 +176,6 @@ def filters():
     return '<div class="filters">' + "".join(g) + '</div>'
 
 wins=H['wins']; losses=H['trades']-wins
-def riskselect():
-    """The options ARE the simulated rows, built from the same list the script
-    keys on, so an option can never name a risk the simulation never walked."""
-    return '<select id="riskin" aria-label="Risk per trade">%s</select>' % "".join(
-        '<option value="%.2f"%s>%g%%</option>'
-        % (s["risk"], " selected" if abs(s["risk"] - RISK) < 1e-9 else "", s["risk"])
-        for s in d["sweep"])
-
 def riskdata():
     """What the page needs to answer "what changes if I risk X?" offline.
 
@@ -190,7 +185,7 @@ def riskdata():
     """
     hist=dict(d['streaks']['loss_hist'])
     run=d['streaks']['worst_loss']
-    return dict(sweep=d['sweep'], chips=[0.5,1,1.5,2,2.5], maxrisk=2.5, risk=RISK,
+    return dict(sweep=d['sweep'], chips=[1,1.5,2,2.5,3], maxrisk=99, risk=RISK,
                 maxloss=ctx.BENCH['maxloss'], daily=ctx.BENCH['daily'],
                 target=ctx.BENCH['p1'], worst_run=run,
                 worst_run_times="once" if hist.get(run,1)==1 else "%d times"%hist.get(run,1),
@@ -262,7 +257,8 @@ html=(tpl
  .replace("{{MAXLOSS}}", "%g" % ctx.BENCH["maxloss"]).replace("{{BENCHTEXT}}", ctx.BENCH["text"])
  .replace("{{DEPOSIT}}", "$%s" % format(int(ctx.DEPOSIT), ",")).replace("{{RISKMONEY}}", "$%s" % format(int(round(ctx.RISK_MONEY)), ","))
  .replace("{{QBLOCK}}", qblock()).replace("{{RUNPROSE}}", runprose())
- .replace("{{RISKSELECT}}", riskselect())
+ .replace("{{RISKNUM}}", "%g" % ctx.RISK)
+ .replace("{{DAILY}}", "%g" % (ctx.BENCH["daily"] or 0))
  .replace("{{TARGET}}", "%g" % ctx.BENCH["p1"])
  .replace("{{CLIFFLOSS}}", "%g" % (d["cliffs"]["maxloss"] or 0))
  .replace("{{CLIFFDAILY}}", "%g" % (d["cliffs"]["daily"] or 0))
