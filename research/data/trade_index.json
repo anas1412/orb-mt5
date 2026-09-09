@@ -9,34 +9,10 @@
   "range_pts": 957,
   "held": 14,
   "file": "2026-01-05_long_win.png",
-  "sig": "4461824c720fc5d3"
+  "sig": "2256f30ad448c290"
  },
  {
   "n": 2,
-  "date": "2026-01-06",
-  "day": "Tue",
-  "dir": "buy",
-  "R": -0.537,
-  "score": 0.757,
-  "range_pts": 518,
-  "held": 16,
-  "file": "2026-01-06_long_loss.png",
-  "sig": "dc87671f80a03ba6"
- },
- {
-  "n": 3,
-  "date": "2026-01-08",
-  "day": "Thu",
-  "dir": "buy",
-  "R": -1.037,
-  "score": 0.935,
-  "range_pts": 336,
-  "held": 2,
-  "file": "2026-01-08_long_loss.png",
-  "sig": "7e10ceb3a39363d7"
- },
- {
-  "n": 4,
   "date": "2026-01-12",
   "day": "Mon",
   "dir": "buy",
@@ -45,10 +21,10 @@
   "range_pts": 1797,
   "held": 19,
   "file": "2026-01-12_long_win.png",
-  "sig": "3aff734086ea1ee7"
+  "sig": "b656cffdbbd33b56"
  },
  {
-  "n": 5,
+  "n": 3,
   "date": "2026-01-13",
   "day": "Tue",
   "dir": "sell",
@@ -57,10 +33,10 @@
   "range_pts": 739,
   "held": 37,
   "file": "2026-01-13_short_win.png",
-  "sig": "275bf42e2071cc9e"
+  "sig": "6e9584f83d720031"
  },
  {
-  "n": 6,
+  "n": 4,
   "date": "2026-01-14",
   "day": "Wed",
   "dir": "buy",
@@ -69,10 +45,10 @@
   "range_pts": 1078,
   "held": 90,
   "file": "2026-01-14_long_win.png",
-  "sig": "3c8d21c2f64811ad"
+  "sig": "d9584ca7f6ae5beb"
  },
  {
-  "n": 7,
+  "n": 5,
   "date": "2026-01-19",
   "day": "Mon",
   "dir": "sell",
@@ -81,22 +57,10 @@
   "range_pts": 1083,
   "held": 5,
   "file": "2026-01-19_short_loss.png",
-  "sig": "9c69d78f05954be9"
+  "sig": "839433856507bac8"
  },
  {
-  "n": 8,
-  "date": "2026-01-20",
-  "day": "Tue",
-  "dir": "buy",
-  "R": -1.067,
-  "score": 1.0,
-  "range_pts": 367,
-  "held": 1,
-  "file": "2026-01-20_long_loss.png",
-  "sig": "5810aff5c3cda87a"
- },
- {
-  "n": 9,
+  "n": 6,
   "date": "2026-01-21",
   "day": "Wed",
   "dir": "buy",
@@ -105,10 +69,10 @@
   "range_pts": 692,
   "held": 36,
   "file": "2026-01-21_long_win.png",
-  "sig": "4c37a5cfb2a7353d"
+  "sig": "9bfc035043af662c"
  },
  {
-  "n": 10,
+  "n": 7,
   "date": "2026-02-02",
   "day": "Mon",
   "dir": "buy",
@@ -117,10 +81,10 @@
   "range_pts": 10523,
   "held": 29,
   "file": "2026-02-02_long_loss.png",
-  "sig": "07c976c8720dca8c"
+  "sig": "925f919e65c44496"
  },
  {
-  "n": 11,
+  "n": 8,
   "date": "2026-02-03",
   "day": "Tue",
   "dir": "buy",
@@ -129,10 +93,10 @@
   "range_pts": 3021,
   "held": 39,
   "file": "2026-02-03_long_loss.png",
-  "sig": "c4c851c725ac418f"
+  "sig": "9bc276fdd853242d"
  },
  {
-  "n": 12,
+  "n": 9,
   "date": "2026-02-04",
   "day": "Wed",
   "dir": "buy",
@@ -141,10 +105,10 @@
   "range_pts": 4125,
   "held": 51,
   "file": "2026-02-04_long_win.png",
-  "sig": "bd5dd38562fc0a48"
+  "sig": "040030ba65e379ff"
  },
  {
-  "n": 13,
+  "n": 10,
   "date": "2026-02-11",
   "day": "Wed",
   "dir": "sell",
@@ -153,10 +117,10 @@
   "range_pts": 1364,
   "held": 1,
   "file": "2026-02-11_short_loss.png",
-  "sig": "3e22d54f2850efd6"
+  "sig": "401308613fafa6d5"
  },
  {
-  "n": 14,
+  "n": 11,
   "date": "2026-02-17",
   "day": "Tue",
   "dir": "sell",
@@ -165,10 +129,10 @@
   "range_pts": 1569,
   "held": 26,
   "file": "2026-02-17_short_win.png",
-  "sig": "157a69e66e0ab286"
+  "sig": "13cc9a91bc16e6fa"
  },
  {
-  "n": 15,
+  "n": 12,
   "date": "2026-02-18",
   "day": "Wed",
   "dir": "buy",
@@ -177,10 +141,10 @@
   "range_pts": 1112,
   "held": 27,
   "file": "2026-02-18_long_win.png",
-  "sig": "00974a2f2bdb426b"
+  "sig": "76abc2c57e2707ca"
  },
  {
-  "n": 16,
+  "n": 13,
   "date": "2026-02-23",
   "day": "Mon",
   "dir": "sell",
@@ -189,10 +153,10 @@
   "range_pts": 3396,
   "held": 9,
   "file": "2026-02-23_short_loss.png",
-  "sig": "4be39d8b236b1afd"
+  "sig": "6d8c8fc5689c485a"
  },
  {
-  "n": 17,
+  "n": 14,
   "date": "2026-02-24",
   "day": "Tue",
   "dir": "buy",
@@ -201,10 +165,10 @@
   "range_pts": 1728,
   "held": 6,
   "file": "2026-02-24_long_loss.png",
-  "sig": "5ef33713d1e75144"
+  "sig": "2b01d26bc0498ace"
  },
  {
-  "n": 18,
+  "n": 15,
   "date": "2026-02-26",
   "day": "Thu",
   "dir": "buy",
@@ -213,10 +177,10 @@
   "range_pts": 1386,
   "held": 29,
   "file": "2026-02-26_long_win.png",
-  "sig": "c1ca0fb9082d8144"
+  "sig": "5fc0d942bf8ddcb8"
  },
  {
-  "n": 19,
+  "n": 16,
   "date": "2026-03-02",
   "day": "Mon",
   "dir": "sell",
@@ -225,10 +189,10 @@
   "range_pts": 2347,
   "held": 11,
   "file": "2026-03-02_short_loss.png",
-  "sig": "084b4377daef2795"
+  "sig": "b021504814db2bc1"
  },
  {
-  "n": 20,
+  "n": 17,
   "date": "2026-03-03",
   "day": "Tue",
   "dir": "buy",
@@ -237,10 +201,10 @@
   "range_pts": 1255,
   "held": 37,
   "file": "2026-03-03_long_loss.png",
-  "sig": "9880a7a9467b0b2d"
+  "sig": "5d29ac7a63c54926"
  },
  {
-  "n": 21,
+  "n": 18,
   "date": "2026-03-05",
   "day": "Thu",
   "dir": "buy",
@@ -249,10 +213,10 @@
   "range_pts": 1330,
   "held": 19,
   "file": "2026-03-05_long_loss.png",
-  "sig": "b8a5658cc1d7c051"
+  "sig": "2f64953d54484c54"
  },
  {
-  "n": 22,
+  "n": 19,
   "date": "2026-03-11",
   "day": "Wed",
   "dir": "buy",
@@ -261,10 +225,10 @@
   "range_pts": 1143,
   "held": 90,
   "file": "2026-03-11_long_win.png",
-  "sig": "d68f2266fb2cf7bf"
+  "sig": "6105bbc205bd6077"
  },
  {
-  "n": 23,
+  "n": 20,
   "date": "2026-03-12",
   "day": "Thu",
   "dir": "buy",
@@ -273,10 +237,10 @@
   "range_pts": 1654,
   "held": 45,
   "file": "2026-03-12_long_win.png",
-  "sig": "71f17c383349be96"
+  "sig": "acd655751161dd25"
  },
  {
-  "n": 24,
+  "n": 21,
   "date": "2026-03-17",
   "day": "Tue",
   "dir": "sell",
@@ -285,10 +249,10 @@
   "range_pts": 1182,
   "held": 33,
   "file": "2026-03-17_short_loss.png",
-  "sig": "8236732b227ca0ae"
+  "sig": "10d4935b0377f497"
  },
  {
-  "n": 25,
+  "n": 22,
   "date": "2026-03-23",
   "day": "Mon",
   "dir": "sell",
@@ -297,10 +261,10 @@
   "range_pts": 4787,
   "held": 20,
   "file": "2026-03-23_short_win.png",
-  "sig": "a3410fc5b6d63f95"
+  "sig": "6e63f28327cad4f1"
  },
  {
-  "n": 26,
+  "n": 23,
   "date": "2026-03-24",
   "day": "Tue",
   "dir": "sell",
@@ -309,10 +273,10 @@
   "range_pts": 2596,
   "held": 11,
   "file": "2026-03-24_short_win.png",
-  "sig": "bcaaf36453bd8bbe"
+  "sig": "c3f567174d41dad7"
  },
  {
-  "n": 27,
+  "n": 24,
   "date": "2026-03-25",
   "day": "Wed",
   "dir": "buy",
@@ -321,10 +285,10 @@
   "range_pts": 1752,
   "held": 63,
   "file": "2026-03-25_long_win.png",
-  "sig": "85f1811967085bdf"
+  "sig": "c8e82747f8d0ba70"
  },
  {
-  "n": 28,
+  "n": 25,
   "date": "2026-03-26",
   "day": "Thu",
   "dir": "buy",
@@ -333,10 +297,10 @@
   "range_pts": 2961,
   "held": 90,
   "file": "2026-03-26_long_win.png",
-  "sig": "4e072bb2edebda75"
+  "sig": "5682e5d4d147ea07"
  },
  {
-  "n": 29,
+  "n": 26,
   "date": "2026-03-31",
   "day": "Tue",
   "dir": "sell",
@@ -345,10 +309,10 @@
   "range_pts": 1758,
   "held": 4,
   "file": "2026-03-31_short_win.png",
-  "sig": "9000dd720392df9f"
+  "sig": "1d8fe8af8e0a7d70"
  },
  {
-  "n": 30,
+  "n": 27,
   "date": "2026-04-01",
   "day": "Wed",
   "dir": "buy",
@@ -357,10 +321,10 @@
   "range_pts": 1157,
   "held": 12,
   "file": "2026-04-01_long_win.png",
-  "sig": "ef841530ceb1a551"
+  "sig": "7faf88d71c13a958"
  },
  {
-  "n": 31,
+  "n": 28,
   "date": "2026-04-02",
   "day": "Thu",
   "dir": "buy",
@@ -369,10 +333,10 @@
   "range_pts": 1819,
   "held": 29,
   "file": "2026-04-02_long_loss.png",
-  "sig": "21b8122ab6255c1e"
+  "sig": "8a6c38148057616d"
  },
  {
-  "n": 32,
+  "n": 29,
   "date": "2026-04-06",
   "day": "Mon",
   "dir": "buy",
@@ -381,10 +345,10 @@
   "range_pts": 1890,
   "held": 3,
   "file": "2026-04-06_long_loss.png",
-  "sig": "86e2969262828d3d"
+  "sig": "4ce0f9e2f9f8b6f0"
  },
  {
-  "n": 33,
+  "n": 30,
   "date": "2026-04-08",
   "day": "Wed",
   "dir": "sell",
@@ -393,10 +357,10 @@
   "range_pts": 2684,
   "held": 59,
   "file": "2026-04-08_short_win.png",
-  "sig": "07bec9b26c355cbf"
+  "sig": "8b092e2fd504a28c"
  },
  {
-  "n": 34,
+  "n": 31,
   "date": "2026-04-13",
   "day": "Mon",
   "dir": "buy",
@@ -405,10 +369,10 @@
   "range_pts": 856,
   "held": 36,
   "file": "2026-04-13_long_win.png",
-  "sig": "c7a97533ca1d7fbb"
+  "sig": "0b69693cac707fe5"
  },
  {
-  "n": 35,
+  "n": 32,
   "date": "2026-04-14",
   "day": "Tue",
   "dir": "buy",
@@ -417,10 +381,10 @@
   "range_pts": 889,
   "held": 11,
   "file": "2026-04-14_long_loss.png",
-  "sig": "5db6671a5891188c"
+  "sig": "fb3199f3086d1231"
  },
  {
-  "n": 36,
+  "n": 33,
   "date": "2026-04-15",
   "day": "Wed",
   "dir": "sell",
@@ -429,10 +393,10 @@
   "range_pts": 831,
   "held": 6,
   "file": "2026-04-15_short_loss.png",
-  "sig": "7e44977c28cd5742"
+  "sig": "cc2ad78e2bde26b6"
  },
  {
-  "n": 37,
+  "n": 34,
   "date": "2026-04-20",
   "day": "Mon",
   "dir": "buy",
@@ -441,10 +405,10 @@
   "range_pts": 1047,
   "held": 43,
   "file": "2026-04-20_long_win.png",
-  "sig": "cbf21f7208423fd3"
+  "sig": "b45c7546c5448be4"
  },
  {
-  "n": 38,
+  "n": 35,
   "date": "2026-04-23",
   "day": "Thu",
   "dir": "sell",
@@ -453,10 +417,10 @@
   "range_pts": 2961,
   "held": 2,
   "file": "2026-04-23_short_loss.png",
-  "sig": "cc7b2fa8a43291ec"
+  "sig": "2700c27db02330df"
  },
  {
-  "n": 39,
+  "n": 36,
   "date": "2026-04-27",
   "day": "Mon",
   "dir": "buy",
@@ -465,10 +429,10 @@
   "range_pts": 896,
   "held": 29,
   "file": "2026-04-27_long_win.png",
-  "sig": "208002bafce5c309"
+  "sig": "ef3cb617ff99ca4e"
  },
  {
-  "n": 40,
+  "n": 37,
   "date": "2026-05-11",
   "day": "Mon",
   "dir": "sell",
@@ -477,10 +441,10 @@
   "range_pts": 1111,
   "held": 4,
   "file": "2026-05-11_short_loss.png",
-  "sig": "f55d90d8acabe5bc"
+  "sig": "2174c6896d0a5378"
  },
  {
-  "n": 41,
+  "n": 38,
   "date": "2026-05-12",
   "day": "Tue",
   "dir": "buy",
@@ -489,10 +453,10 @@
   "range_pts": 1072,
   "held": 5,
   "file": "2026-05-12_long_loss.png",
-  "sig": "2f79a41638a3c6de"
+  "sig": "80b4e639917af058"
  },
  {
-  "n": 42,
+  "n": 39,
   "date": "2026-05-14",
   "day": "Thu",
   "dir": "buy",
@@ -501,10 +465,10 @@
   "range_pts": 988,
   "held": 18,
   "file": "2026-05-14_long_loss.png",
-  "sig": "1eec4b5ec9f9bed3"
+  "sig": "ffe489cdbff717bc"
  },
  {
-  "n": 43,
+  "n": 40,
   "date": "2026-05-18",
   "day": "Mon",
   "dir": "sell",
@@ -513,10 +477,10 @@
   "range_pts": 1957,
   "held": 15,
   "file": "2026-05-18_short_win.png",
-  "sig": "813f08e8a58f01b6"
+  "sig": "7c08310a040cf3f9"
  },
  {
-  "n": 44,
+  "n": 41,
   "date": "2026-05-19",
   "day": "Tue",
   "dir": "sell",
@@ -525,10 +489,10 @@
   "range_pts": 1237,
   "held": 35,
   "file": "2026-05-19_short_win.png",
-  "sig": "e774ced028351ae5"
+  "sig": "3e01636ed7ae6e33"
  },
  {
-  "n": 45,
+  "n": 42,
   "date": "2026-05-20",
   "day": "Wed",
   "dir": "buy",
@@ -537,10 +501,10 @@
   "range_pts": 1084,
   "held": 5,
   "file": "2026-05-20_long_win.png",
-  "sig": "02f34eee2d64c08c"
+  "sig": "c0e4facd7e5bc1d6"
  },
  {
-  "n": 46,
+  "n": 43,
   "date": "2026-05-21",
   "day": "Thu",
   "dir": "buy",
@@ -549,10 +513,10 @@
   "range_pts": 845,
   "held": 2,
   "file": "2026-05-21_long_loss.png",
-  "sig": "eb47b58bd86b5b40"
+  "sig": "195557852ca15d59"
  },
  {
-  "n": 47,
+  "n": 44,
   "date": "2026-05-26",
   "day": "Tue",
   "dir": "sell",
@@ -561,10 +525,10 @@
   "range_pts": 1130,
   "held": 90,
   "file": "2026-05-26_short_win.png",
-  "sig": "ed82dd924c2c1b03"
+  "sig": "4c080dbf5fce8ab5"
  },
  {
-  "n": 48,
+  "n": 45,
   "date": "2026-06-02",
   "day": "Tue",
   "dir": "buy",
@@ -573,10 +537,10 @@
   "range_pts": 847,
   "held": 26,
   "file": "2026-06-02_long_loss.png",
-  "sig": "42f837a40c3111ea"
+  "sig": "f15af02fd41fdb98"
  },
  {
-  "n": 49,
+  "n": 46,
   "date": "2026-06-04",
   "day": "Thu",
   "dir": "sell",
@@ -585,10 +549,10 @@
   "range_pts": 1217,
   "held": 47,
   "file": "2026-06-04_short_loss.png",
-  "sig": "8a409638c7a939b0"
+  "sig": "bf812617001c1e89"
  },
  {
-  "n": 50,
+  "n": 47,
   "date": "2026-06-10",
   "day": "Wed",
   "dir": "buy",
@@ -597,10 +561,10 @@
   "range_pts": 999,
   "held": 6,
   "file": "2026-06-10_long_loss.png",
-  "sig": "f32915240ff9ab9e"
+  "sig": "1ae2fe9c5c807d8b"
  },
  {
-  "n": 51,
+  "n": 48,
   "date": "2026-06-11",
   "day": "Thu",
   "dir": "buy",
@@ -609,10 +573,10 @@
   "range_pts": 2349,
   "held": 43,
   "file": "2026-06-11_long_win.png",
-  "sig": "f7cef0fc3909d9a0"
+  "sig": "dfa49e55c156041f"
  },
  {
-  "n": 52,
+  "n": 49,
   "date": "2026-06-15",
   "day": "Mon",
   "dir": "buy",
@@ -621,22 +585,10 @@
   "range_pts": 765,
   "held": 14,
   "file": "2026-06-15_long_loss.png",
-  "sig": "dddf0c0b9404155f"
+  "sig": "7d441fc72a85abec"
  },
  {
-  "n": 53,
-  "date": "2026-06-16",
-  "day": "Tue",
-  "dir": "sell",
-  "R": 1.985,
-  "score": 0.94,
-  "range_pts": 499,
-  "held": 9,
-  "file": "2026-06-16_short_win.png",
-  "sig": "387a1fe39dd85dad"
- },
- {
-  "n": 54,
+  "n": 50,
   "date": "2026-06-17",
   "day": "Wed",
   "dir": "buy",
@@ -645,10 +597,10 @@
   "range_pts": 1148,
   "held": 28,
   "file": "2026-06-17_long_loss.png",
-  "sig": "283ff46b6e8b46cd"
+  "sig": "bf72d8ac24b49794"
  },
  {
-  "n": 55,
+  "n": 51,
   "date": "2026-06-18",
   "day": "Thu",
   "dir": "buy",
@@ -657,10 +609,10 @@
   "range_pts": 2262,
   "held": 41,
   "file": "2026-06-18_long_win.png",
-  "sig": "fd5fda6cbb4b119a"
+  "sig": "ffdde62f8521445c"
  },
  {
-  "n": 56,
+  "n": 52,
   "date": "2026-06-22",
   "day": "Mon",
   "dir": "buy",
@@ -669,10 +621,10 @@
   "range_pts": 2247,
   "held": 35,
   "file": "2026-06-22_long_win.png",
-  "sig": "6f5d6a31d7a2b46c"
+  "sig": "51778859fe0a736b"
  },
  {
-  "n": 57,
+  "n": 53,
   "date": "2026-06-25",
   "day": "Thu",
   "dir": "sell",
@@ -681,10 +633,10 @@
   "range_pts": 1239,
   "held": 16,
   "file": "2026-06-25_short_win.png",
-  "sig": "638253727ddd8fda"
+  "sig": "8b912f9f5f9f3e8d"
  },
  {
-  "n": 58,
+  "n": 54,
   "date": "2026-06-29",
   "day": "Mon",
   "dir": "sell",
@@ -693,10 +645,10 @@
   "range_pts": 1097,
   "held": 11,
   "file": "2026-06-29_short_loss.png",
-  "sig": "31a2a7bcf1d1cc4c"
+  "sig": "57cc816c78cbd681"
  },
  {
-  "n": 59,
+  "n": 55,
   "date": "2026-07-02",
   "day": "Thu",
   "dir": "buy",
@@ -705,10 +657,10 @@
   "range_pts": 1533,
   "held": 17,
   "file": "2026-07-02_long_loss.png",
-  "sig": "fc94f27aacafa3a7"
+  "sig": "6e7c574abea2d505"
  },
  {
-  "n": 60,
+  "n": 56,
   "date": "2026-07-09",
   "day": "Thu",
   "dir": "buy",
@@ -717,10 +669,10 @@
   "range_pts": 1121,
   "held": 6,
   "file": "2026-07-09_long_loss.png",
-  "sig": "e80c48d4d3911a6b"
+  "sig": "a8a6f542651f858a"
  },
  {
-  "n": 61,
+  "n": 57,
   "date": "2026-07-20",
   "day": "Mon",
   "dir": "buy",
@@ -729,10 +681,10 @@
   "range_pts": 1613,
   "held": 51,
   "file": "2026-07-20_long_win.png",
-  "sig": "99b2089a472b6991"
+  "sig": "9a64119a99ab1cb9"
  },
  {
-  "n": 62,
+  "n": 58,
   "date": "2026-07-21",
   "day": "Tue",
   "dir": "buy",
@@ -741,10 +693,10 @@
   "range_pts": 885,
   "held": 59,
   "file": "2026-07-21_long_win.png",
-  "sig": "7093efdba527d151"
+  "sig": "d9edd68e0067d2bf"
  },
  {
-  "n": 63,
+  "n": 59,
   "date": "2026-07-22",
   "day": "Wed",
   "dir": "buy",
@@ -753,10 +705,10 @@
   "range_pts": 1595,
   "held": 48,
   "file": "2026-07-22_long_win.png",
-  "sig": "aaf664f944974f38"
+  "sig": "75908274dc610490"
  },
  {
-  "n": 64,
+  "n": 60,
   "date": "2026-07-28",
   "day": "Tue",
   "dir": "sell",
@@ -765,10 +717,10 @@
   "range_pts": 1208,
   "held": 61,
   "file": "2026-07-28_short_win.png",
-  "sig": "577d749f6692b76e"
+  "sig": "5b1295c2e3252a5e"
  },
  {
-  "n": 65,
+  "n": 61,
   "date": "2026-07-30",
   "day": "Thu",
   "dir": "sell",
@@ -777,10 +729,10 @@
   "range_pts": 750,
   "held": 23,
   "file": "2026-07-30_short_win.png",
-  "sig": "49e1be18cf828aae"
+  "sig": "e4d95f0e1d05df09"
  },
  {
-  "n": 66,
+  "n": 62,
   "date": "2026-08-03",
   "day": "Mon",
   "dir": "sell",
@@ -789,10 +741,10 @@
   "range_pts": 891,
   "held": 22,
   "file": "2026-08-03_short_win.png",
-  "sig": "80a5d5ad2fe8c305"
+  "sig": "ef5a57fc7b528148"
  },
  {
-  "n": 67,
+  "n": 63,
   "date": "2026-08-11",
   "day": "Tue",
   "dir": "buy",
@@ -801,10 +753,10 @@
   "range_pts": 1251,
   "held": 37,
   "file": "2026-08-11_long_loss.png",
-  "sig": "f7cec80645dd3711"
+  "sig": "051b7b7b413692a8"
  },
  {
-  "n": 68,
+  "n": 64,
   "date": "2026-08-12",
   "day": "Wed",
   "dir": "buy",
@@ -813,10 +765,10 @@
   "range_pts": 1292,
   "held": 88,
   "file": "2026-08-12_long_win.png",
-  "sig": "90763bc4cf37ae30"
+  "sig": "9b6843cd1da94a1a"
  },
  {
-  "n": 69,
+  "n": 65,
   "date": "2026-08-13",
   "day": "Thu",
   "dir": "buy",
@@ -825,10 +777,10 @@
   "range_pts": 929,
   "held": 7,
   "file": "2026-08-13_long_win.png",
-  "sig": "863c4585768da43a"
+  "sig": "971d6fda3a0892ef"
  },
  {
-  "n": 70,
+  "n": 66,
   "date": "2026-08-17",
   "day": "Mon",
   "dir": "buy",
@@ -837,10 +789,10 @@
   "range_pts": 1141,
   "held": 15,
   "file": "2026-08-17_long_win.png",
-  "sig": "efa204fc1f88f1c4"
+  "sig": "d5c4e0042645698e"
  },
  {
-  "n": 71,
+  "n": 67,
   "date": "2026-08-19",
   "day": "Wed",
   "dir": "buy",
@@ -849,10 +801,10 @@
   "range_pts": 1335,
   "held": 39,
   "file": "2026-08-19_long_loss.png",
-  "sig": "44d9ccd7561fac88"
+  "sig": "c24b767596db1903"
  },
  {
-  "n": 72,
+  "n": 68,
   "date": "2026-08-20",
   "day": "Thu",
   "dir": "buy",
@@ -861,10 +813,10 @@
   "range_pts": 849,
   "held": 3,
   "file": "2026-08-20_long_loss.png",
-  "sig": "5a8646c22c6f33a3"
+  "sig": "efd055f03ff9f6c3"
  },
  {
-  "n": 73,
+  "n": 69,
   "date": "2026-08-26",
   "day": "Wed",
   "dir": "sell",
@@ -873,10 +825,10 @@
   "range_pts": 654,
   "held": 15,
   "file": "2026-08-26_short_win.png",
-  "sig": "16e5e887d629004b"
+  "sig": "3cd8eca62f35a37f"
  },
  {
-  "n": 74,
+  "n": 70,
   "date": "2026-08-27",
   "day": "Thu",
   "dir": "sell",
@@ -885,10 +837,10 @@
   "range_pts": 1085,
   "held": 9,
   "file": "2026-08-27_short_loss.png",
-  "sig": "38ff1460eab67c52"
+  "sig": "a10fce2d433de474"
  },
  {
-  "n": 75,
+  "n": 71,
   "date": "2026-08-31",
   "day": "Mon",
   "dir": "buy",
@@ -897,10 +849,10 @@
   "range_pts": 1005,
   "held": 5,
   "file": "2026-08-31_long_loss.png",
-  "sig": "a514462a0feaf9e9"
+  "sig": "1c58fd4f0eb1ec94"
  },
  {
-  "n": 76,
+  "n": 72,
   "date": "2026-09-01",
   "day": "Tue",
   "dir": "buy",
@@ -909,10 +861,10 @@
   "range_pts": 1164,
   "held": 23,
   "file": "2026-09-01_long_loss.png",
-  "sig": "023787461b5b863d"
+  "sig": "4e924b0719d36df0"
  },
  {
-  "n": 77,
+  "n": 73,
   "date": "2026-09-02",
   "day": "Wed",
   "dir": "buy",
@@ -921,10 +873,10 @@
   "range_pts": 1415,
   "held": 9,
   "file": "2026-09-02_long_loss.png",
-  "sig": "6f7e8daa762be4c2"
+  "sig": "83d460062301368f"
  },
  {
-  "n": 78,
+  "n": 74,
   "date": "2026-09-07",
   "day": "Mon",
   "dir": "buy",
@@ -933,6 +885,6 @@
   "range_pts": 633,
   "held": 10,
   "file": "2026-09-07_long_loss.png",
-  "sig": "8cf4ac20c0f01cb8"
+  "sig": "2e67145f4bcc6fd4"
  }
 ]

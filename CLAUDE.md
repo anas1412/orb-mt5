@@ -323,13 +323,23 @@ Every one of these looked like something else first.
 ### A pair of reports that differ by one rule
 
 `InpMinRangePercent` skips a session whose range is under a percent of price.
-OFF by default; the published numbers do not use it. It exists because a
+**ON at 0.14%**, and the published numbers use it. It exists because a
 minimum in POINTS drifts: 636 points was a wide gold range in 2024 and a narrow
 one in 2026. Measured against price the Asia range ran 0.079% in 2024, 0.142%
 in 2025 and 0.261% in 2026, and pooling all three years the narrowest quarter
 of sessions won 14.7% for -0.474 R against the widest quarter's 44.9% for
 +0.381 R. The years the strategy lost are the years the box was too small to
 pay for itself.
+
+The filter runs through `ctx.row_ok`, which every reader of a trade CSV goes
+through -- `report_data`, `all_trades`, `check_charts`. It used to be applied by
+writing a pre-filtered CSV, which meant a spec on the DEFAULT path, reading the
+shared tester file, could set `min_range_pct` and be **silently ignored**. One
+predicate, four call sites.
+
+Section 08 shows what the filter is for, pooled over every session in the file
+rather than the reported window: in 2026 the box was never narrow, so the
+gradient only appears across all three years.
 
 Showing both answers is **two specs and two pages**, not one page toggling its
 own numbers. `report.variant` / `variant_alt` / `variant_alt_href` render a

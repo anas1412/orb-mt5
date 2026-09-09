@@ -308,6 +308,7 @@ def sections():
             ("curve",      "Results",                      True),
             ("weeks",      "Week by week",                 True),
             ("risk",       "Risk &amp; sizing",            True),
+            ("rangefilter","The range filter",             bool(d.get("rangefilter"))),
             ("montecarlo", "Monte Carlo simulation",       True),
             ("trades",     "Every trade",                  True)]
 
@@ -332,6 +333,109 @@ def renumber(html):
     if n[0]!=want:
         raise SystemExit("build_report: numbered %d sections, nav lists %d" % (n[0], want))
     return html
+
+def range_section():
+    """Section before the Monte Carlo: what the range filter is for.
+
+    Pooled over every session in the file, because the reported year never had a
+    narrow box -- 2026's tightest sessions are wider than 2024's median."""
+    rf = d.get("rangefilter")
+    if not rf:
+        return ""
+    B, Y = rf["buckets"], rf["years"]
+    evs = [b["ev"] for b in B]
+    lo, hi = min(min(evs), 0) * 1.25, max(max(evs), 0) * 1.3
+    W, H, PADL, PADB, PADT = 560, 250, 52, 46, 22
+    def ex(i): return PADL + (i + 0.5) * (W - PADL - 14) / len(B)
+    def ey(v): return H - PADB - (v - lo) / (hi - lo) * (H - PADB - PADT)
+    bw = (W - PADL - 14) / len(B) * 0.5
+    g = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Expectancy by range width">']
+    for tv in (-0.4, -0.2, 0.0, 0.2, 0.4):
+        if not lo <= tv <= hi: continue
+        y = ey(tv)
+        g.append(f'<line x1="{PADL}" y1="{y:.1f}" x2="{W-14}" y2="{y:.1f}" stroke="currentColor" '
+                 f'stroke-opacity="{0.45 if tv==0 else 0.13}" stroke-width="1"/>')
+        g.append(f'<text x="{PADL-7}" y="{y+3.5:.1f}" font-size="10.5" text-anchor="end" '
+                 f'fill="currentColor" fill-opacity=".55">{tv:+.1f}</text>')
+    for i, b in enumerate(B):
+        y0, y1 = ey(0), ey(b["ev"])
+        col = "var(--pos)" if b["ev"] > 0 else "var(--neg)"
+        g.append(f'<rect x="{ex(i)-bw/2:.1f}" y="{min(y0,y1):.1f}" width="{bw:.1f}" '
+                 f'height="{max(abs(y1-y0),1):.1f}" fill="{col}" fill-opacity=".8"/>')
+        vy = y1 - 7 if b["ev"] > 0 else y1 + 14
+        g.append(f'<text x="{ex(i):.1f}" y="{vy:.1f}" font-size="12" font-weight="640" '
+                 f'text-anchor="middle" fill="{col}">{b["ev"]:+.2f} R</text>')
+        g.append(f'<text x="{ex(i):.1f}" y="{H-PADB+16:.1f}" font-size="10.5" '
+                 f'text-anchor="middle" fill="currentColor" fill-opacity=".62">'
+                 f'{b["lo"]:.2f}&#8211;{b["hi"]:.2f}%</text>')
+        g.append(f'<text x="{ex(i):.1f}" y="{H-PADB+30:.1f}" font-size="11" font-weight="600" '
+                 f'text-anchor="middle" fill="currentColor" fill-opacity=".8">'
+                 f'{b["wr"]:.0f}% won</text>')
+    g.append(f'<text x="{(PADL+W-14)/2:.0f}" y="{H-4}" font-size="10.5" text-anchor="middle" '
+             f'fill="currentColor" fill-opacity=".5">range width, as a share of price</text>')
+    c1 = "\n".join(g) + "</svg>"
+
+    ymax = max(max(y["med"] for y in Y), rf["pct"]) * 1.35
+    W2, H2 = 560, 250
+    def yx(i): return PADL + (i + 0.5) * (W2 - PADL - 14) / len(Y)
+    def yy(v): return H2 - PADB - v / ymax * (H2 - PADB - PADT)
+    bw2 = (W2 - PADL - 14) / len(Y) * 0.42
+    g = [f'<svg viewBox="0 0 {W2} {H2}" role="img" aria-label="Median range width by year">']
+    for tv in (0.0, 0.1, 0.2, 0.3):
+        if tv > ymax: continue
+        y = yy(tv)
+        g.append(f'<line x1="{PADL}" y1="{y:.1f}" x2="{W2-14}" y2="{y:.1f}" stroke="currentColor" '
+                 f'stroke-opacity=".13" stroke-width="1"/>')
+        g.append(f'<text x="{PADL-7}" y="{y+3.5:.1f}" font-size="10.5" text-anchor="end" '
+                 f'fill="currentColor" fill-opacity=".55">{tv:.1f}%</text>')
+    for i, y_ in enumerate(Y):
+        h = H2 - PADB - yy(y_["med"])
+        col = "var(--pos)" if y_["ev"] > 0 else "var(--neg)"
+        g.append(f'<rect x="{yx(i)-bw2/2:.1f}" y="{yy(y_["med"]):.1f}" width="{bw2:.1f}" '
+                 f'height="{max(h,1):.1f}" fill="{col}" fill-opacity=".8"/>')
+        g.append(f'<text x="{yx(i):.1f}" y="{yy(y_["med"])-8:.1f}" font-size="12" '
+                 f'font-weight="640" text-anchor="middle" fill="{col}">{y_["med"]:.3f}%</text>')
+        g.append(f'<text x="{yx(i):.1f}" y="{H2-PADB+16:.1f}" font-size="11.5" font-weight="600" '
+                 f'text-anchor="middle" fill="currentColor">{y_["year"]}</text>')
+        g.append(f'<text x="{yx(i):.1f}" y="{H2-PADB+30:.1f}" font-size="10.5" '
+                 f'text-anchor="middle" fill="currentColor" fill-opacity=".62">'
+                 f'gold ${y_["px"]:,} &middot; {y_["ev"]:+.2f} R</text>')
+    if rf["pct"] > 0:
+        y = yy(rf["pct"])
+        g.append(f'<line x1="{PADL}" y1="{y:.1f}" x2="{W2-14}" y2="{y:.1f}" stroke="var(--acc)" '
+                 f'stroke-width="1.6" stroke-dasharray="6 4"/>')
+        g.append(f'<text x="{W2-16}" y="{y-6:.1f}" font-size="11" font-weight="640" '
+                 f'text-anchor="end" fill="var(--acc)">filter at {rf["pct"]:g}%</text>')
+    c2 = "\n".join(g) + "</svg>"
+
+    rows = "".join(
+        '<tr><th scope="row">%s</th><td class="num">%.3f&#8211;%.3f%%</td><td class="num">%d</td>'
+        '<td class="num">%.1f%%</td><td class="num %s">%+.3f R</td><td class="num %s">%+.1f R</td></tr>'
+        % (b["label"], b["lo"], b["hi"], b["n"], b["wr"],
+           "pos" if b["ev"] > 0 else "neg", b["ev"],
+           "pos" if b["total"] > 0 else "neg", b["total"]) for b in B)
+    onoff = ('<p class="sub">Filter <b>on</b> at %g%%: %d of %d sessions traded, '
+             '%+.3f R a trade instead of %+.3f, %.1f%% won instead of %.1f%%.</p>'
+             % (rf["pct"], rf["n_kept"], rf["n_all"], rf["ev_kept"], rf["ev_all"],
+                rf["wr_kept"], rf["wr_all"])) if rf["pct"] > 0 else \
+            ('<p class="sub">Filter <b>off</b>: all %d sessions traded, %+.3f R a trade.</p>'
+             % (rf["n_all"], rf["ev_all"]))
+    return ('<section id="rangefilter">\n'
+            '<h2><span class="num">08</span>The range filter</h2>\n'
+            + onoff +
+            '<div class="twofig">'
+            '<figure><div class="fig">' + c1 + '</div>'
+            '<figcaption>Every session in the record, sorted by how wide its box was '
+            'and split into four equal groups.</figcaption></figure>'
+            '<figure><div class="fig">' + c2 + '</div>'
+            '<figcaption>The same box, year by year, measured against gold\'s price.</figcaption>'
+            '</figure></div>\n'
+            '<div class="scroll"><table>'
+            '<caption>Range width against result, all %d sessions on file</caption>'
+            '<thead><tr><th>Group</th><th class="num">Range width</th><th class="num">Sessions</th>'
+            '<th class="num">Win rate</th><th class="num">EV per trade</th>'
+            '<th class="num">Total R</th></tr></thead><tbody>%s</tbody></table></div>\n'
+            '</section>' % (rf["n_all"], rows))
 
 def toggle():
     """The switch between a pair of reports that differ by one rule.
@@ -418,6 +522,7 @@ html=(tpl
  .replace("{{HALVESSECTION}}", halves_section())
  .replace("{{NAV}}", nav_links())
  .replace("{{TOGGLE}}", toggle())
+ .replace("{{RANGESECTION}}", range_section())
  .replace("{{SKIPREASON}}", "the half-of-the-range rule or the entry window"
                             if ctx.HALF_FILTER else "the entry window")
  .replace("{{LOSSNOTE}}", ("%d of %d halved by the stop move" % (d["losses"]["halved"], d["losses"]["n"]))

@@ -22,7 +22,7 @@ for d,b in bars.items():
     st=ctx.session_start(d)
     if len([m for m in range(st,st+ctx.RANGE_MIN) if m in b])>=ctx.RANGE_MIN: sessions.add(d)
 
-rows=[r for r in csv.DictReader(open(ctx.CSV_LIVE)) if ctx.row_in_range(r)]
+rows=[r for r in csv.DictReader(open(ctx.CSV_LIVE)) if ctx.row_ok(r)]
 for r in rows:
     r['R']=float(r['R']); r['t']=dt.datetime.strptime(r['entry_time'],"%Y.%m.%d %H:%M")
     r['date']=r['t'].date()
@@ -257,11 +257,50 @@ out['cliffs']=dict(
     maxloss=round(ctx.BENCH['maxloss']/out['worst_run_r'],2) if out['worst_run_r'] else None,
     daily=round(ctx.BENCH['daily']/out['worst_trade_r'],2) if ctx.BENCH['daily'] and out['worst_trade_r'] else None)
 
+# the range filter, measured on every date-eligible session -- row_ok would have
+# removed the narrow ones, and the whole point of the section is to show them
+def rangefilter():
+    # Every session in the file, not just the reported window. The filter is
+    # justified by what happened when the box was small, and in the reported
+    # year it never was -- 2026's narrowest sessions are wider than 2024's median.
+    allrows=list(csv.DictReader(open(ctx.CSV_LIVE)))
+    if not allrows: return None
+    v=sorted(((ctx.range_pct(r), float(r["R"])) for r in allrows), key=lambda x: x[0])
+    years={}
+    for r in allrows:
+        y=int(r["entry_time"][:4])
+        years.setdefault(y,[]).append((ctx.range_pct(r), float(r["R"]), float(r["entry"])))
+    per=[dict(year=y,
+              n=len(a),
+              med=round(statistics.median([p_ for p_,_,_ in a]),4),
+              px=round(statistics.median([x for _,_,x in a])),
+              ev=round(sum(r for _,r,_ in a)/len(a),3),
+              wr=round(100.0*len([1 for _,r,_ in a if r>0])/len(a),1))
+         for y,a in sorted(years.items())]
+    q=len(v)//4
+    buckets=[]
+    for i,lab in enumerate(("Narrowest 25%","Second 25%","Third 25%","Widest 25%")):
+        seg=v[i*q:(i+1)*q] if i<3 else v[3*q:]
+        rs=[r for _,r in seg]
+        buckets.append(dict(label=lab, lo=round(seg[0][0],4), hi=round(seg[-1][0],4),
+                            n=len(rs), wr=round(100.0*len([x for x in rs if x>0])/len(rs),1),
+                            ev=round(sum(rs)/len(rs),3), total=round(sum(rs),1)))
+    kept=[r for p_,r in v if ctx.MIN_RANGE_PCT<=0 or p_>=ctx.MIN_RANGE_PCT]
+    return dict(pct=ctx.MIN_RANGE_PCT, buckets=buckets, years=per,
+                n_all=len(v), n_kept=len(kept),
+                ev_all=round(sum(r for _,r in v)/len(v),3),
+                ev_kept=round(sum(kept)/len(kept),3) if kept else None,
+                wr_all=round(100.0*len([1 for _,r in v if r>0])/len(v),1),
+                wr_kept=round(100.0*len([1 for x in kept if x>0])/len(kept),1) if kept else None,
+                widths=[round(p_,4) for p_,_ in v],
+                med=round(statistics.median([p_ for p_,_ in v]),4))
+out['rangefilter']=rangefilter()
+
 # the half-of-the-range rule, measured against the same config with the filter off
 def halves():
     v=[]
     for r in csv.DictReader(open(ctx.CSV_ALL)):
-        if not ctx.row_in_range(r): continue
+        if not ctx.row_ok(r): continue
         v.append((float(r['close_pos']), float(r['R'])))
     def st(x):
         n=len(x); w=len([y for y in x if y>0])

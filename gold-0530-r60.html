@@ -224,6 +224,16 @@ footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:v
 ::-webkit-scrollbar-corner{background:transparent}
 tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:640}
 @media (max-width:640px){.riskbar{grid-template-columns:1fr auto}.chips{grid-column:1/-1}}
+.vtog{display:inline-flex;margin:18px 0 0;border:1px solid var(--line);border-radius:2px;
+  overflow:hidden;font:500 12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+.vtog a,.vtog span{padding:9px 15px;text-decoration:none;display:block;letter-spacing:.02em}
+.vtog span{background:var(--acc);color:#fff}
+.vtog a{color:var(--ink);background:transparent}
+.vtog a:hover{background:var(--line)}
+.vtog .lbl{background:transparent;color:var(--mut);border-right:1px solid var(--line);
+  font-weight:400;cursor:default}
+.twofig{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin:16px 0 0}
+.twofig figure{margin:0}
 </style></head><body>
 <div class="wrap">
 
@@ -231,6 +241,7 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
   <div class="eyebrow"><span class="dot"></span> FundingPips 1 Step Flex &middot; +12% target &middot; 12% max loss &middot; 3% daily</div>
   <h1>The 05:30 UTC Opening Range<br><em>on Gold, longs only</em></h1>
   <p class="lede">One long a day at most, Monday to Friday, from a one-hour box that closes at 06:29 UTC. Found by searching 1.5 million rule combinations, so read the evidence rows before the results.</p>
+
 
   <div class="riskbar">
     <label for="riskin">Risk per trade</label>
@@ -515,7 +526,10 @@ rather than a slow bleed.</p>
 risk stays at $200 regardless. That is what makes every result comparable in R.</p>
 </section>
 
-<!-- ================= 08 MONTE CARLO ================= -->
+<!-- ================= 08 RANGE FILTER ================= -->
+
+
+<!-- ================= 09 MONTE CARLO ================= -->
 <section id="montecarlo">
 <h2><span class="num">08</span>Monte Carlo simulation</h2>
 <p class="sub">Draw a trade at random from the 144 real results, add it, repeat until the

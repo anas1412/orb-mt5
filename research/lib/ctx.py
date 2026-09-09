@@ -109,8 +109,25 @@ TO   = (dt.date.today() + dt.timedelta(days=1)) if SPEC["dates"]["to"] == "today
 def in_range(t):
     d = t.date() if isinstance(t, dt.datetime) else t
     return FROM <= d < TO
+MIN_RANGE_PCT = float(SPEC["rules"]["min_range_pct"])
+
 def row_in_range(row):
     return in_range(dt.datetime.strptime(row["entry_time"], "%Y.%m.%d %H:%M"))
+
+def range_pct(row):
+    """The session's range as a share of price, the way InpMinRangePercent reads it."""
+    return 100.0 * (int(row["range_pts"]) * 0.01) / float(row["entry"])
+
+def row_ok(row):
+    """Every reader of a trade CSV goes through this.
+
+    Date window plus rules.min_range_pct. The filter used to be applied by writing
+    a pre-filtered CSV, which meant a spec on the DEFAULT path -- reading the
+    shared tester file -- set min_range_pct and was silently ignored. One
+    predicate, four call sites, no way to read the file unfiltered by accident."""
+    if not row_in_range(row):
+        return False
+    return MIN_RANGE_PCT <= 0 or range_pct(row) >= MIN_RANGE_PCT
 _last = TO - dt.timedelta(days=1)
 PERIOD = str(FROM.year) if FROM.year == _last.year else "%d\u2013%d" % (FROM.year, _last.year)
 
@@ -134,7 +151,6 @@ WHY   = SPEC["notes"]["why"]
 VARIANT      = _rep["variant"]
 VARIANT_ALT  = _rep["variant_alt"]
 VARIANT_HREF = _rep["variant_alt_href"]
-MIN_RANGE_PCT = float(SPEC["rules"]["min_range_pct"])
 
 _b = S.BENCHMARKS[SPEC["report"]["benchmark"]]
 _label, _text = S.BENCH_TEXT[SPEC["report"]["benchmark"]]

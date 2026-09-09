@@ -37,7 +37,7 @@ for src in ("bars_XAUUSD.csv","bars_XAUUSD_extra.csv"):
         t=dt.datetime.strptime(row["time"],"%Y.%m.%d %H:%M")
         bars.setdefault(t.date(),{})[t.hour*60+t.minute]=(
             float(row["open"]),float(row["high"]),float(row["low"]),float(row["close"]))
-rows=[r for r in csv.DictReader(open(ctx.CSV_LIVE)) if ctx.row_in_range(r)]
+rows=[r for r in csv.DictReader(open(ctx.CSV_LIVE)) if ctx.row_ok(r)]
 for r in rows:
     r['t']=dt.datetime.strptime(r['entry_time'],"%Y.%m.%d %H:%M"); r['R']=float(r['R'])
 rows.sort(key=lambda r:r['t'])

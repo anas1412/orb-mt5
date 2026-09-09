@@ -1,0 +1,27 @@
+# The published Asia configuration with its range filter switched OFF. Everything
+# else is identical to asia-gold.toml, so the two reports differ by that rule
+# alone and the switch in the masthead moves between them.
+#
+# Why 0.14%: pooling 2024-2026, the narrowest quarter of Asia sessions won 14.7%
+# of the time for -0.474 R and the widest quarter won 44.9% for +0.381 R. The
+# median range was 0.079% of price in 2024, 0.142% in 2025 and 0.261% in 2026 --
+# so the years the strategy lost are the years the box was too small to pay for
+# itself, and a points threshold would have drifted while a percent one does not.
+name = "asia-gold-nofilter"
+
+[rules]
+min_range_pct = 0
+
+[report]
+benchmark = "fundingpips-1step-flex"
+output    = "asia-nofilter.html"
+title     = "ORB Asia — Gold, every session"
+h1        = "The Asia Opening Range"
+h1_em     = "on Gold, every session"
+short     = "ORB Asia — gold, no range filter."
+lede      = """One trade a day, Monday to Thursday, decided in the fifteen minutes after \
+midnight UTC, with no minimum on how wide that box has to be. The published configuration \
+skips a box under 0.14% of gold's price; this is the same rules without that filter."""
+variant          = "Off"
+variant_alt      = "On, 0.14%"
+variant_alt_href = "index.html"

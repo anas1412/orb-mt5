@@ -23,7 +23,7 @@ bad = []
 def fail(what, msg):
     bad.append("%-12s %s" % (what, msg))
 
-rows = [r for r in csv.DictReader(open(ctx.CSV_LIVE)) if ctx.row_in_range(r)]
+rows = [r for r in csv.DictReader(open(ctx.CSV_LIVE)) if ctx.row_ok(r)]
 for r in rows:
     r["t"] = dt.datetime.strptime(r["entry_time"], "%Y.%m.%d %H:%M")
     r["Rf"] = float(r["R"])

@@ -15,9 +15,7 @@ from mt5paths import COMMON as D
 
 SRC_LIVE = os.path.join(D, "live_cp0.50.csv")
 SRC_ALL  = os.path.join(D, "live_cp0.00.csv")
-PCT = ctx.MIN_RANGE_PCT
-if PCT <= 0:
-    sys.exit("apply_range_filter: rules.min_range_pct is 0 on %s -- nothing to filter" % ctx.NAME)
+PCT = ctx.MIN_RANGE_PCT   # 0 copies the run through unchanged, which is a variant too
 
 def pct_of_price(row):
     """The range as a share of price. range_pts is in points; entry is the fill."""
@@ -27,7 +25,7 @@ os.makedirs(ctx.OUT_DIR, exist_ok=True)
 for src, dst in ((SRC_LIVE, ctx.CSV_LIVE), (SRC_ALL, ctx.CSV_ALL)):
     rows = list(csv.DictReader(open(src)))
     cols = list(rows[0].keys())
-    kept = [r for r in rows if pct_of_price(r) >= PCT]
+    kept = [r for r in rows if PCT <= 0 or pct_of_price(r) >= PCT]
     bal = ctx.DEPOSIT
     for r in kept:
         rm = bal * ctx.RISK / 100.0
@@ -37,5 +35,6 @@ for src, dst in ((SRC_LIVE, ctx.CSV_LIVE), (SRC_ALL, ctx.CSV_ALL)):
         r["profit_money"] = round(pm, 2)
     with open(dst, "w", newline="") as fh:
         w = csv.DictWriter(fh, cols); w.writeheader(); w.writerows(kept)
-    print("  %-22s %d of %d sessions kept (range >= %g%% of price)"
-          % (os.path.basename(dst), len(kept), len(rows), PCT))
+    print("  %-22s %d of %d sessions (%s)"
+          % (os.path.basename(dst), len(kept), len(rows),
+             "range >= %g%% of price" % PCT if PCT > 0 else "no range filter"))
