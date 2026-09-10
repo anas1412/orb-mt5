@@ -187,7 +187,13 @@ HTML = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Previous-day level fade — gold, Asia session</title>
-<style>%(css)s</style>
+<style>%(css)s
+/* The gallery images carry width and height attributes so the browser can
+   reserve each card's box before a lazy image arrives. Without height:auto the
+   attribute is the used height and every thumbnail stretches to 562px tall at
+   full width -- the attributes must only inform the ratio. */
+.tc img{height:auto}
+</style>
 </head><body><div class="wrap">
 
 <header>

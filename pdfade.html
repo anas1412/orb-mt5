@@ -234,6 +234,12 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
   font-weight:400;cursor:default}
 .twofig{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin:16px 0 0}
 .twofig figure{margin:0}
+
+/* The gallery images carry width and height attributes so the browser can
+   reserve each card's box before a lazy image arrives. Without height:auto the
+   attribute is the used height and every thumbnail stretches to 562px tall at
+   full width -- the attributes must only inform the ratio. */
+.tc img{height:auto}
 </style>
 </head><body><div class="wrap">
 
