@@ -242,7 +242,13 @@ if __name__ == "__main__":
     os.makedirs(OUT_DIR, exist_ok=True)
     bars = load_bars(); ds = sorted(bars)
     trades = find_trades(bars, ds)
-    print("%d trades in %d" % (len(trades), YEAR))
+    # The same rules on the day that was filtered out. A page that states a
+    # filter should show what it removed.
+    _all = DAYS
+    globals()["DAYS"] = (0,)
+    excluded = find_trades(bars, ds)
+    globals()["DAYS"] = _all
+    print("%d trades in %d  (%d Monday trades excluded)" % (len(trades), YEAR, len(excluded)))
     for i, t in enumerate(trades, 1):
         t["n"] = i
         t["file"] = draw(t, bars, i)
@@ -257,6 +263,7 @@ if __name__ == "__main__":
         days=[d.isoformat() for d in ds if d.year == YEAR and d.weekday() in DAYS],
         # Measured here rather than typed into the page, so changing RR cannot
         # leave a stale hold time in the prose.
-        hold=hold_stats(bars, trades)),
+        hold=hold_stats(bars, trades),
+        excluded=[dict(date=t["date"].isoformat(), R=t["R"]) for t in excluded]),
         open(os.path.join(RESEARCH, "data", "pdfade_trades.json"), "w"), indent=1)
     print("drew %d charts into %s" % (len(trades), OUT_WEB))

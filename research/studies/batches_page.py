@@ -25,7 +25,7 @@ RESEARCH = os.path.dirname(HERE); REPO = os.path.dirname(RESEARCH)
 TARGET, MAXLOSS, DAILY = 12.0, 12.0, 3.0
 PATHS, DEADLINE = 20000, 60        # paths per cell; deadline in weekday steps
 RISK  = 2.5
-RISKS = (1.5, 2.0, 2.25, 2.5, 2.6, 2.75, 2.9)
+RISKS = (1.0, 1.5, 2.0, 2.25, 2.5)   # 2.5% is the cap, not a point on a curve
 BE    = 0.10
 WD    = ["Mon", "Tue", "Wed", "Thu", "Fri"]
 random.seed(20260910)
@@ -312,19 +312,37 @@ account of each pair a week later would give four different outcomes at the same
 </section>
 
 <section id="risk">
-<h2><span class="num">02</span>Risk and the ceiling</h2>
-<p class="sub">One trade that costs more than the daily limit ends an account by itself, so the
-ceiling is 3%% divided by the worst single loss. It is not the same for both books.</p>
+<h2><span class="num">02</span>How much room 2.5%% leaves</h2>
+<p class="sub">Risk is fixed at <b>2.5%%</b> per trade. The question is not what the maximum could
+be, it is whether 2.5%% keeps a single bad trade clear of the 3%% daily limit &mdash; because one
+trade past it ends the account on its own, whatever the running total says.</p>
+<div class="scroll"><table>
+<caption>At 2.5%% per trade, a loss of 1.20 R is the whole daily limit. Headroom is what is left
+between the worst loss actually observed and that.</caption>
+<thead><tr><th>Batch</th><th>Worst single loss</th><th>Costs at 2.5%%</th><th>Daily limit</th>
+<th>Headroom</th><th>Breaches at</th><th>Trades past &minus;1R</th></tr></thead>
+<tbody>
+<tr><td><b>A &mdash; opening range</b></td><td class="neg">%(ow1).3f R</td>
+<td class="neg"><b>%(ocost).2f%%</b></td><td>3.00%%</td>
+<td class="%(ocls)s"><b>%(oroom).2f%%</b></td><td>%(obr).2f R</td><td>%(oover)d of %(on)d</td></tr>
+<tr><td><b>B &mdash; previous-day fade</b></td><td>%(bw1).3f R</td>
+<td><b>%(bcost).2f%%</b></td><td>3.00%%</td>
+<td class="pos"><b>%(broom).2f%%</b></td><td>%(obr).2f R</td><td>%(bover)d of %(bn)d</td></tr>
+</tbody></table></div>
+<div class="note"><div class="t">The A batch has little room, and it is measured room</div>
+<p>The opening range fills <b>past</b> its stop on %(oover)d of %(on)d trades &mdash; real-tick
+execution, spread and slippage included &mdash; with a worst case of <b>%(ow1).3f R</b>. At 2.5%%
+that costs <b>%(ocost).2f%%</b> of the <b>3.00%%</b> daily limit, leaving <b>%(oroom).2f%%</b>.
+A fill only %(pcworse).0f%% worse than the worst one on record would breach the day on a single
+trade.</p></div>
+<div class="note"><div class="t">The B batch's larger headroom is not real</div>
+<p>Every fade stop fills at exactly <b>&minus;1.000 R</b>, because that study replays M1 bars and
+takes the stop at its level &mdash; it models <b>no slippage past the stop at all</b>. Its
+<b>%(broom).2f%%</b> of apparent headroom is therefore optimistic. Give it the same overshoot the A
+batch actually shows and it lands where the A batch does.</p></div>
 <figure><div class="fig">%(chfail)s</div>
-<figcaption>Breach rate against risk per trade. The A batch turns up sharply once a single
-worst-case loss can reach the 3%% daily limit; the B batch does not, for the reason below.</figcaption></figure>
-<div class="note"><div class="t">The fade's cleaner ceiling is a modelling artefact</div>
-<p>The A batch fills <b>past</b> its stop on %(oover)d of %(on)d trades, worst case
-<b>%(ow1).3f R</b> &mdash; real-tick execution with spread and slippage. Its ceiling is
-<b>%(oceil).2f%%</b>. Every B batch stop fills at exactly <b>&minus;1.000 R</b> because that study
-replays M1 bars and takes the stop at its level, modelling <b>no slippage at all</b>, so its
-%(bceil).2f%% is optimistic. <b>Treat %(oceil).2f%% as the ceiling for both and 2.5%% as the working
-figure.</b></p></div>
+<figcaption>Breach rate against risk per trade, up to the 2.5%% cap. Both batches stay in single
+figures across the whole range, which is the point of the cap.</figcaption></figure>
 </section>
 
 <section id="mc">
@@ -407,7 +425,12 @@ open(os.path.join(REPO, "batches.html"), "w").write(HTML % dict(
     oexp=4*ro[0]/100.0, bexp=4*rf[0]/100.0,
     oaf=100*(1-ro[0]/100.0)**2, baf=100*(1-rf[0]/100.0)**2,
     oover=O["over1"], on=O["s"]["n"], ow1=O["w1"],
-    oceil=DAILY/abs(O["w1"]), bceil=DAILY/abs(F["w1"]),
+    bover=F["over1"], bn=F["s"]["n"], bw1=F["w1"],
+    ocost=RISK*abs(O["w1"]), bcost=RISK*abs(F["w1"]),
+    oroom=DAILY-RISK*abs(O["w1"]), broom=DAILY-RISK*abs(F["w1"]),
+    ocls="neg" if DAILY-RISK*abs(O["w1"]) < 0.5 else "pos",
+    obr=DAILY/RISK,
+    pcworse=100.0*(DAILY/RISK/abs(O["w1"])-1.0),
     gen=dt.date.today().strftime("%d %B %Y")))
 print("wrote batches.html")
 print("  A per account in rotation %.1f%% pass, %d days | batch of 4: %.2f expected, %.1f%% all fail"

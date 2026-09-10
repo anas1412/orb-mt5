@@ -181,8 +181,8 @@ HTML = """<!doctype html>
 <div class="eyebrow"><span class="dot"></span>research · not the live strategy</div>
 <h1>Fading yesterday's <em>high and low</em></h1>
 <p class="lede">Price sweeps yesterday\u2019s extreme, fails to hold, and an M5 candle closes back inside. You
-take that close and trade against the sweep. Gold, entries in the Asia session, %(rr)g R target,
-held to the end of the day. %(year)d only — %(n)d trades.</p>
+take that close and trade against the sweep. Gold, Tuesday to Friday, entries in the Asia session,
+%(rr)g R target, held to the end of the day. %(year)d only — %(n)d trades.</p>
 
 <div class="riskbar">
 <label for="risk">Risk per trade</label>
@@ -227,7 +227,7 @@ losing trade breaches a 3%% daily limit past <b>3.00%%</b>.</p>
 yesterday's range — you need it for the stop.</span></li>
 <li><b>Tuesday to Friday only</b><span>Monday is skipped: its levels come from Friday with a
 weekend in between, so the high and low being faded are three days stale. Monday returned
-<b>&minus;0.050 R</b> a trade against <b>+0.527</b> for the other four days.</span></li>
+<strong>&minus;0.050 R</strong> a trade against <strong>+0.527</strong> for the other four days.</span></li>
 <li><b>Take entries only between 00:00 and 08:00 UTC</b><span>The Asia session. Entering during
 London or New York loses money on these same rules — section 05. The <em>exit</em> is not
 restricted to Asia; see rule 9.</span></li>
@@ -247,8 +247,8 @@ account you need a lump, and three wins of this size clear a 12%% goal where thr
 do not.</span></li>
 <li><b>Close it before the day ends \u2014 never carry it overnight</b><span>Not the end of Asia:
 the position runs on through London and New York and is flat by the broker day\u2019s close. The
-median trade lasts <b>%(hmed).0f minutes</b> and the latest exit in 2026 was %(hlast)s broker time.
-Cutting the hold at 08:00 UTC instead drops the result from %(tot_r)+.1f R to <b>%(cut_r)+.1f R</b>,
+median trade lasts <strong>%(hmed).0f minutes</strong> and the latest exit in 2026 was %(hlast)s broker time.
+Cutting the hold at 08:00 UTC instead drops the result from %(tot_r)+.1f R to <strong>%(cut_r)+.1f R</strong>,
 so most of the move arrives long after the entry.</span></li>
 </ol>
 
@@ -329,6 +329,17 @@ and the target takes a median of <b>%(htp).0f minutes</b> to arrive. <b>%(nlate)
 22:00 broker time</b>,
 so depending on where your broker sets its rollover some of them may be charged one swap. Spread is
 charged at entry; swap is not modelled.</p></div>
+<div class="note"><div class="t">The Monday filter rests on an argument, not on significance</div>
+<p>Monday is excluded because its levels come from Friday with a weekend in between &mdash; a
+mechanism, not a pattern spotted in the data. The measurement agrees but cannot carry the claim on
+its own: %(mon_n)d Monday trades at <b>%(mon_ev)+.3f R</b> against <b>%(rest_ev)+.3f R</b> for
+Tuesday to Friday, and shuffling the trades between the two groups beats that gap about a
+<b>quarter of the time</b>. Four other weekdays were looked at, so the worst of five looking bad is
+expected.</p>
+<div class="scroll"><table>
+<caption>Every weekday the rules produced a trade on, before the filter.</caption>
+<thead><tr><th>Day</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th></th></tr></thead>
+<tbody>%(rows_wd)s</tbody></table></div></div>
 <div class="note"><div class="t">The 600-point skip was chosen after the fact</div>
 <p>It survives a constant-risk control (so it is not just arithmetic) and sits at the
 <b>98.3rd percentile</b> of dropping 17 trades at random — but seven thresholds were tried, and
@@ -426,6 +437,26 @@ document.onkeydown=function(e){if(!lb.classList.contains('on'))return;
 WRUN = -min([sum(R[i:i+n]) for n in range(1, min(9, len(R)+1)) for i in range(len(R)-n+1)] + [0.0])
 
 HOLD = _raw["hold"]
+EXCL = [dict(d=dt.date.fromisoformat(t["date"]), R=t["R"]) for t in _raw.get("excluded", [])]
+
+WDN = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+_wd = defaultdict(list)
+for t in T: _wd[t["d"].weekday()].append(t["R"])
+for t in EXCL: _wd[t["d"].weekday()].append(t["R"])
+rows_wd = ""
+for i in sorted(_wd):
+    v = _wd[i]; w = [x for x in v if x > BE]; l = [x for x in v if x < -BE]
+    out = (i == 0)
+    rows_wd += ('<tr%s><td><b>%s</b></td><td>%d</td><td>%d / %d</td><td>%.1f%%</td>'
+                '<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td>'
+                '<td>%s</td></tr>'
+                % (' class="q"' if out else "", WDN[i], len(v), len(w), len(l),
+                   100.0*len(w)/max(1, len(w)+len(l)),
+                   "neg" if sum(v) <= 0 else "pos", sum(v)/len(v),
+                   "neg" if sum(v) <= 0 else "pos", sum(v),
+                   '<span class="pill no">excluded</span>' if out else ""))
+_mon = [t["R"] for t in EXCL]
+_rest = [t["R"] for t in T]
 
 best = max(MONTHS, key=lambda m: sum(x["R"] for x in mo[m]))
 rest = [x["R"] for m in MONTHS if m != best for x in mo[m]]
@@ -444,6 +475,8 @@ open(os.path.join(REPO, "pdfade.html"), "w").write(HTML % dict(
     aw=aw, al=al, payoff=aw/abs(al), t=ev/se, cards=cards, mchips=mchips,
     gen=dt.date.today().strftime("%d %B %Y"),
     wrun=WRUN, brk=12.0/max(dd, WRUN), ddr=dd, rr=RR,
+    rows_wd=rows_wd, mon_n=len(_mon), mon_ev=sum(_mon)/len(_mon),
+    rest_ev=sum(_rest)/len(_rest),
     hmed=HOLD["med"], htp=HOLD["tp"], hsl=HOLD["sl"], hlast=HOLD["last"],
     nlate=HOLD["late"], tot_r=sum(R), cut_r=HOLD["cut"]))
 print("wrote pdfade.html  (%d trades, %+.1f R, WR %.1f%%, t=%.2f)" % (len(T), sum(R), wr, ev/se))

@@ -241,8 +241,8 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
 <div class="eyebrow"><span class="dot"></span>research · not the live strategy</div>
 <h1>Fading yesterday's <em>high and low</em></h1>
 <p class="lede">Price sweeps yesterday’s extreme, fails to hold, and an M5 candle closes back inside. You
-take that close and trade against the sweep. Gold, entries in the Asia session, 2.5 R target,
-held to the end of the day. 2026 only — 54 trades.</p>
+take that close and trade against the sweep. Gold, Tuesday to Friday, entries in the Asia session,
+2.5 R target, held to the end of the day. 2026 only — 54 trades.</p>
 
 <div class="riskbar">
 <label for="risk">Risk per trade</label>
@@ -287,7 +287,7 @@ losing trade breaches a 3% daily limit past <b>3.00%</b>.</p>
 yesterday's range — you need it for the stop.</span></li>
 <li><b>Tuesday to Friday only</b><span>Monday is skipped: its levels come from Friday with a
 weekend in between, so the high and low being faded are three days stale. Monday returned
-<b>&minus;0.050 R</b> a trade against <b>+0.527</b> for the other four days.</span></li>
+<strong>&minus;0.050 R</strong> a trade against <strong>+0.527</strong> for the other four days.</span></li>
 <li><b>Take entries only between 00:00 and 08:00 UTC</b><span>The Asia session. Entering during
 London or New York loses money on these same rules — section 05. The <em>exit</em> is not
 restricted to Asia; see rule 9.</span></li>
@@ -307,8 +307,8 @@ account you need a lump, and three wins of this size clear a 12% goal where thre
 do not.</span></li>
 <li><b>Close it before the day ends — never carry it overnight</b><span>Not the end of Asia:
 the position runs on through London and New York and is flat by the broker day’s close. The
-median trade lasts <b>875 minutes</b> and the latest exit in 2026 was 23:49 broker time.
-Cutting the hold at 08:00 UTC instead drops the result from +28.5 R to <b>+16.3 R</b>,
+median trade lasts <strong>875 minutes</strong> and the latest exit in 2026 was 23:49 broker time.
+Cutting the hold at 08:00 UTC instead drops the result from +28.5 R to <strong>+16.3 R</strong>,
 so most of the move arrives long after the entry.</span></li>
 </ol>
 
@@ -389,6 +389,17 @@ and the target takes a median of <b>844 minutes</b> to arrive. <b>24 of 54 exit 
 22:00 broker time</b>,
 so depending on where your broker sets its rollover some of them may be charged one swap. Spread is
 charged at entry; swap is not modelled.</p></div>
+<div class="note"><div class="t">The Monday filter rests on an argument, not on significance</div>
+<p>Monday is excluded because its levels come from Friday with a weekend in between &mdash; a
+mechanism, not a pattern spotted in the data. The measurement agrees but cannot carry the claim on
+its own: 11 Monday trades at <b>-0.050 R</b> against <b>+0.527 R</b> for
+Tuesday to Friday, and shuffling the trades between the two groups beats that gap about a
+<b>quarter of the time</b>. Four other weekdays were looked at, so the worst of five looking bad is
+expected.</p>
+<div class="scroll"><table>
+<caption>Every weekday the rules produced a trade on, before the filter.</caption>
+<thead><tr><th>Day</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th><th>Total R</th><th></th></tr></thead>
+<tbody><tr class="q"><td><b>Mon</b></td><td>11</td><td>5 / 6</td><td>45.5%</td><td class="neg">-0.050</td><td class="neg"><b>-0.6 R</b></td><td><span class="pill no">excluded</span></td></tr><tr><td><b>Tue</b></td><td>19</td><td>10 / 9</td><td>52.6%</td><td class="pos">+0.537</td><td class="pos"><b>+10.2 R</b></td><td></td></tr><tr><td><b>Wed</b></td><td>11</td><td>7 / 4</td><td>63.6%</td><td class="pos">+0.594</td><td class="pos"><b>+6.5 R</b></td><td></td></tr><tr><td><b>Thu</b></td><td>14</td><td>9 / 5</td><td>64.3%</td><td class="pos">+0.687</td><td class="pos"><b>+9.6 R</b></td><td></td></tr><tr><td><b>Fri</b></td><td>10</td><td>5 / 4</td><td>55.6%</td><td class="pos">+0.210</td><td class="pos"><b>+2.1 R</b></td><td></td></tr></tbody></table></div></div>
 <div class="note"><div class="t">The 600-point skip was chosen after the fact</div>
 <p>It survives a constant-risk control (so it is not just arithmetic) and sits at the
 <b>98.3rd percentile</b> of dropping 17 trades at random — but seven thresholds were tried, and
