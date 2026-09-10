@@ -1,69 +1,24 @@
 # ORB — Opening Range Breakout for MetaTrader 5
 
-Trades the first breakout of the Asia session range on gold. One trade a day,
-flat within 90 minutes, Monday to Thursday.
+A configurable opening-range breakout EA for MetaTrader 5, and the tooling to
+backtest it: any session, any range length, any signal timeframe, any symbol,
+with correct daylight-saving handling.
 
-**[📊 Full report, every trade, and a risk selector →](https://anas1412.github.io/orb-mt5/)**
-
-Set risk per trade at the top of the report and every percentage on the page
-follows. Variant: [the same rules at a 2.5R target](https://anas1412.github.io/orb-mt5/1-step-full-report-2.5rr.html).
-
----
-
-## The rules
-
-| # | Rule |
-|---|---|
-| 1 | At **00:00 UTC**, mark the high and low of the next **15 one-minute candles** |
-| 2 | Split that box in half. Whichever half the **00:14 candle closed in** is the only direction you may trade |
-| 3 | Wait for an M1 candle to **close** outside the box, up to **00:29**. Nothing by then → no trade |
-| 4 | Enter **at market** on the next candle |
-| 5 | Stop at the **midpoint** of the range. That distance is your 1R |
-| 6 | Target at **2R**, measured from the actual fill |
-| 7 | At **+0.5R**, pull the stop to **−0.5R**. Once only |
-| 8 | Still open after **90 minutes**? Close at market |
-| 9 | **Monday–Thursday only** |
-| 10 | Risk the same amount every trade. No compounding |
-
-Rule 2 in one line: top half → up-breaks only, bottom half → down-breaks only,
-the other way is skipped.
-
----
-
-## Results
-
-XAUUSD, real ticks, 2026 (2 Jan – 10 Sep), 2.5% risk per trade.
+Install it, run a backtest, read the report. **The rules, the results and the
+limits of each configuration live in its own report, not here** — every figure
+there is generated from the run rather than typed:
 
 | | |
 |---|---|
-| Trades | **75** from 144 eligible sessions |
-| Win rate | **52.0%** — 39 wins, 36 losses |
-| Expectancy | **+0.582 R** per trade (±0.165 standard error) |
-| Profit factor | **2.40** — won +74.7 R against -31.1 R lost |
-| Total | **+43.6 R** = **+109%** of the account |
-| Worst drawdown | **15.4%** |
-| Longest losing run | **6** |
+| [Asia 00:00 UTC](https://anas1412.github.io/orb-mt5/) | the published configuration |
+| [same, range filter off](https://anas1412.github.io/orb-mt5/asia-nofilter.html) | |
+| [05:30 UTC, longs only](https://anas1412.github.io/orb-mt5/gold-0530-r60.html) | |
+| [15:30 UTC+2, 1.2R](https://anas1412.github.io/orb-mt5/nydhal-1530.html) | |
+| [Asia at a 2.5R target](https://anas1412.github.io/orb-mt5/1-step-full-report-2.5rr.html) | |
 
-**Challenge pass rate** — FundingPips 1 Step Flex: +12% target, 12% max loss,
-3% daily loss, no minimum days. Each row is a barrier simulation over the real
-trade outcomes, not arithmetic. ⚠ marks a risk where the worst losing run on
-record would break the maximum loss.
-
-| Risk per trade | Pass | Trades | Days | Return | Worst drawdown | Worst run costs |
-|---|---|---|---|---|---|---|
-| 1% | 100.0% | 19 | ~36 | +44% | 6.2% | 6.1% |
-| 1.5% | 99.5% | 13 | ~25 | +65% | 9.2% | 9.2% |
-| 2% | 98.4% | 9 | ~17 | +87% | 12.3% | 12.2% ⚠ |
-| 2.25% | 97.4% | 8 | ~15 | +98% | 13.8% | 13.8% ⚠ |
-| **2.5%** | **96.8%** | **7** | **~13** | **+109%** | **15.4%** | **15.3% ⚠** |
-
-How the 75 trades ended:
-
-| Exit | Trades | Total |
-|---|---|---|
-| Stopped out | 36 | -31.1 R |
-| Target hit (+2R) | 35 | +71.3 R |
-| 90-minute cap | 4 | +3.3 R |
+Each has a risk selector at the top; every percentage on the page follows it.
+Account rules the pass rates are measured against:
+[`fundingpips-1step-flex.md`](fundingpips-1step-flex.md).
 
 ---
 
@@ -330,30 +285,25 @@ flags a clamped date range and a run that found no trades.
 
 ---
 
-## Requirements
+## Requirements and limits
 
 - MetaTrader 5 build 6000 or newer
 - M1 real-tick history for the symbol you test
 - Windows, or Linux with Wine
-
----
-
-## Limits
-
-- **One symbol, one session, one year.** Gold at the Asia open in 2026. London
-  and New York were tested and do not work.
-- **No trend awareness.** Five straight losses in Sep 2026 were buys into a
-  $280 fall. Breaks *with* the previous daily candle won 59%, against it 33%.
-  The yesterday filter exists for that; it is off until it has out-of-sample
-  evidence.
-- **That run breaks the account at the default risk.** Those five losses summed
-  −5.10 R: **12.8% at 2.5% risk, past the 12% limit**. 2.25% is the most that
-  survives it. Above 2.74% a single worst-case loss breaches the 3% daily limit
-  on its own, which is why the selector stops at 2.5%.
-- - **75 trades is a small sample.** The standard error on expectancy is in the
-  table above, and so is the chance that 2026 was kind.
+- **The Strategy Tester cannot see today.** Its history server serves bars up to
+  the last completed trading day, and it silently clamps the range you asked
+  for. `SyncDump.mq5` plus `research/sim_offline.py` cover the current session.
+- **One terminal at a time.** It holds the tester lock; a second one launching
+  while the first shuts down exits without saying why. Containers get a slot
+  each; local runs need the terminal closed.
+- **A new symbol's first run is slow** — the tester imports every month of ticks
+  before it tests anything.
+- `InpFollowsUSDST` is unverified and matters for about one week each October.
+  See [`CLAUDE.md`](CLAUDE.md).
 
 Not financial advice. Test on demo first.
+
+---
 
 ## Licence
 

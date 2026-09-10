@@ -61,7 +61,8 @@ Pages, which left two of each and no way to tell which was current.
     ├── accounts/           broker logins, one .env per account (ignored; example.env tracked)
     └── research/           the pipeline, the builders and the data
         ├── *.py            the scripts you run: report_data, all_trades, build_*,
-        │                   check_charts, coverage, merge_*, replay_today, spec, sim_offline
+        │                   check_charts, coverage, merge_*, replay_*, spec,
+        │                   sim_offline, serve, run_local, farm_stats
         ├── lib/            modules they import, never run: ctx, mt5paths, curve,
         │                   rules_svg, halves_svg
         ├── data/           generated json: report_data, trade_index, halves, replayed, client_data
@@ -540,9 +541,16 @@ refuses a spec key with no line there rather than letting the tester ignore it.
 
 ### Numbers live in report_data.json
 
-Never hand-write a figure into README, the report or the client page. They are
-all generated from `report_data.json`, which is how the exits table once ended
-up summing to +44.3 R under a +47.1 R headline.
+Never hand-write a figure into a report or the client page. They are all
+generated from `report_data.json`, which is how the exits table once ended up
+summing to +44.3 R under a +47.1 R headline.
+
+The **README carries no results at all**. It is about installing and running the
+tool; the rules, the numbers and the limits of a configuration belong to its
+report, which is generated. `update_data_md.py` (was `update_readme.py`) keeps
+DATA.md's counts in step and nothing else -- its README substitutions had no
+`k != 1` check, so after the sections went they would have gone on succeeding
+at nothing. DATA.md's do check, and exit.
 
 ### The report's risk selector
 

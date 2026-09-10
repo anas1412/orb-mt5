@@ -8,7 +8,7 @@ bars themselves, which is what `BarDump.mq5` does.
 
 **The raw input. Everything else here is derived from this file.**
 
-754,424 one-minute bars, 2 Jan 2024 to 9 Sep 2026, broker hours 01 to 18
+797,728 one-minute bars, 2 Jan 2024 to 10 Sep 2026, broker hours 01 to 18
 (broker is UTC+3 in summer, UTC+2 in winter, so this covers roughly 22:00 to
 16:00 UTC). Exported from MetaTrader with `BarDump.mq5`; the most recent ~30 days come from
 `SyncDump.mq5` on a live chart and carry all 24 hours.
@@ -20,7 +20,7 @@ bars themselves, which is what `BarDump.mq5` does.
 `volume` is real volume, always 0 — the broker does not report it for CFDs, so
 tick count is the only activity measure available.
 
-42 MB, plain CSV, no compression. It is in the repo so you never need
+44 MB, plain CSV, no compression. It is in the repo so you never need
 MetaTrader or a broker feed to rebuild anything below it.
 
 ## sessions_2024_2026.csv
@@ -84,13 +84,13 @@ These rows vanish on the next tester run that can see the day.
 
 ## trades_live_config.csv
 
-273 trades, the configuration actually traded: half-of-the-range filter on at
+274 trades, the configuration actually traded: half-of-the-range filter on at
 0.50, Friday off, stop at the midpoint, 2R target, stop move +0.5R → −0.5R,
-90-minute cap. 78 of these are 2026, and they are the headline numbers.
+90-minute cap. 79 of these are 2026, and they are the headline numbers.
 
 ## trades_all_breaks.csv
 
-369 trades, same configuration with the half filter **off**, so every break that
+370 trades, same configuration with the half filter **off**, so every break that
 happened carries its outcome. Use this when you need both classes — the trades
 the filter allowed and the ones it rejected.
 

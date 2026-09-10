@@ -186,7 +186,7 @@ python3 all_trades.py
 python3 build_report.py
 python3 build_client.py
 python3 build_sessions.py
-python3 update_readme.py
+python3 update_data_md.py
 cd ..
 
 say "7/9  audit"
