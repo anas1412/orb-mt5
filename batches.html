@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Two batches — pass rates, gold 2026</title>
+<style>
+:root{
+  --bg:#faf8f4; --panel:#fff; --panel2:#f5f2ec; --ink:#17150f; --ink2:#413c33;
+  --mut:#7d766c; --line:#e6e0d4; --acc:#8a6d3b; --acc2:#b08d4f;
+  --pos:#12694a; --posbg:#e8f2ec; --neg:#a8352a; --negbg:#faeae7;
+  --warn:#8a5a00; --warnbg:#fdf4e3;
+  --r:14px; --sh:0 1px 2px rgba(23,21,15,.05),0 8px 24px -12px rgba(23,21,15,.14);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 8px 28px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme=dark]{
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.62 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 110px}
+
+/* ---------- hero ---------- */
+header{padding:66px 0 30px}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:650;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--acc);
+  background:color-mix(in srgb,var(--acc) 11%,transparent);
+  padding:7px 14px;border-radius:100px;margin-bottom:22px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--pos);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--pos) 25%,transparent)}
+h1{font-size:clamp(2.3rem,5.2vw,3.5rem);line-height:1.03;margin:0 0 16px;
+  letter-spacing:-.032em;font-weight:680}
+h1 em{font-style:normal;color:var(--acc);}
+.lede{font-size:1.14rem;color:var(--ink2);max-width:60ch;margin:0}
+
+/* ---------- kpi ---------- */
+.kpi{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px;margin:36px 0 8px}
+/* ten cards divide evenly by 5 and by 2, so neither layout leaves a stranded
+   tile on its own row; 3 across would. */
+@media (max-width:1240px){.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1000px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px) {.kpi{grid-template-columns:1fr}}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;box-shadow:var(--sh);min-width:0}
+.k .l{font-size:10.5px;font-weight:640;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:9px}
+.k .v{font-size:clamp(1.45rem,2.4vw,1.8rem);font-weight:670;letter-spacing:-.03em;line-height:1}
+.k .n{font-size:12px;color:var(--mut);margin-top:7px;line-height:1.4}
+.k.big{background:linear-gradient(150deg,color-mix(in srgb,var(--pos) 13%,var(--panel)),var(--panel))}
+
+/* ---------- sections ---------- */
+section{margin-top:72px;scroll-margin-top:20px}
+h2{font-size:1.62rem;letter-spacing:-.022em;margin:0 0 8px;font-weight:670;display:flex;align-items:baseline;gap:13px}
+h2 .num{font-size:.72em;color:var(--acc);font-variant-numeric:tabular-nums;font-weight:640}
+.sub{color:var(--mut);margin:0 0 26px;max-width:66ch;font-size:1.02rem}
+h3{font-size:1.06rem;margin:34px 0 10px;font-weight:650}
+p{margin:0 0 15px;color:var(--ink2)}
+p strong,li strong{color:var(--ink);font-weight:640}
+a{color:var(--acc)}
+
+/* ---------- toc ---------- */
+nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:8px;margin:34px 0 0;box-shadow:var(--sh);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:4px}
+nav a{display:block;padding:10px 13px;border-radius:9px;text-decoration:none;
+  color:var(--ink2);font-size:13.5px;font-weight:520;transition:.14s}
+nav a:hover{background:var(--panel2);color:var(--ink)}
+nav a span{color:var(--acc);font-weight:640;margin-right:7px;font-variant-numeric:tabular-nums}
+
+/* ---------- cards / callouts ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:24px 26px;box-shadow:var(--sh);margin:22px 0}
+.note{border-left:3px solid var(--warn);background:var(--warnbg);border-radius:0 var(--r) var(--r) 0;
+  padding:18px 22px;margin:22px 0}
+.note .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);margin-bottom:9px}
+.note p:last-child,.card p:last-child{margin-bottom:0}
+.good{border-left:3px solid var(--pos);background:var(--posbg);border-radius:0 var(--r) var(--r) 0;padding:18px 22px;margin:22px 0}
+.good .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--pos);margin-bottom:9px}
+
+/* ---------- rules list ---------- */
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:22px 0}
+ol.steps li{counter-increment:s;position:relative;padding:15px 20px 15px 62px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:10px;box-shadow:var(--sh)}
+ol.steps li::before{content:counter(s);position:absolute;left:18px;top:14px;
+  width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--acc) 15%,transparent);
+  color:var(--acc);font-weight:680;font-size:14px;display:grid;place-items:center}
+ol.steps b{display:block;color:var(--ink);margin-bottom:2px}
+ol.steps span{color:var(--mut);font-size:14.5px}
+ul{margin:0 0 15px;padding-left:22px;color:var(--ink2)}
+li{margin-bottom:8px}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh);margin:20px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+caption{caption-side:top;text-align:left;padding:17px 20px 3px;color:var(--mut);font-size:12.5px}
+th{text-align:right;padding:13px 15px;font-size:10.5px;font-weight:660;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);white-space:nowrap;
+  background:var(--panel2)}
+th:first-child,td:first-child{text-align:left}
+td{padding:11px 15px;border-bottom:1px solid var(--line);text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink2)}
+td b{color:var(--ink)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--panel2)}
+tr.hi td{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+tr.q td{color:var(--mut);opacity:.62}
+tr.neg td:first-child{box-shadow:inset 3px 0 0 var(--neg)}
+tr.warn td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+.pos{color:var(--pos);font-weight:600} .neg{color:var(--neg);font-weight:600}
+.pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:640;letter-spacing:.02em}
+.pill.ok{background:var(--posbg);color:var(--pos)} .pill.no{background:var(--negbg);color:var(--neg)}
+
+/* ---------- figures ---------- */
+figure{margin:26px 0}
+figcaption{color:var(--mut);font-size:13px;margin-top:12px;max-width:70ch}
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px;box-shadow:var(--sh);color:var(--ink)}
+
+/* ---------- gallery filters ---------- */
+.filters{display:flex;flex-direction:column;gap:11px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;
+  box-shadow:var(--sh);margin:22px 0 0}
+.fgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fgroup>b{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);min-width:62px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--ink2);
+  font:inherit;font-size:12.5px;font-weight:550;padding:6px 13px;border-radius:100px;
+  cursor:pointer;transition:.13s;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--acc);color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--bg);font-weight:640}
+.chip.win[aria-pressed=true]{background:var(--pos);border-color:var(--pos)}
+.chip.loss[aria-pressed=true]{background:var(--neg);border-color:var(--neg)}
+.fcount{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums;
+  border-top:1px solid var(--line);padding-top:11px}
+.fcount b{color:var(--ink)}
+.gal .tc[hidden]{display:none}
+.noresult{color:var(--mut);font-size:14px;padding:26px 2px}
+
+/* ---------- lightbox ---------- */
+#lb{position:fixed;inset:0;z-index:99;display:none;background:rgba(8,7,6,.93);
+  backdrop-filter:blur(6px);padding:22px;align-items:center;justify-content:center}
+#lb.on{display:flex}
+#lb figure{margin:0;max-width:min(1300px,100%);max-height:100%;display:flex;
+  flex-direction:column;gap:12px}
+#lb img{max-width:100%;max-height:calc(100vh - 130px);object-fit:contain;
+  background:#fff;border-radius:12px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+#lb figcaption{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  color:#f3efe7;font-size:14px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+#lb figcaption b{color:#fff}
+#lb .lbwin{color:#4fbe8b;font-weight:660} #lb .lbloss{color:#e0806f;font-weight:660}
+#lb .lbn{color:#948c80;font-size:12.5px;letter-spacing:.04em}
+.lbbtn{position:fixed;top:50%;transform:translateY(-50%);width:46px;height:46px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;
+  border-radius:50%;font-size:20px;line-height:1;cursor:pointer;display:grid;
+  place-items:center;transition:.14s}
+.lbbtn:hover{background:rgba(255,255,255,.2)}
+#lbprev{left:14px} #lbnext{right:14px}
+#lbclose{position:fixed;top:14px;right:14px;transform:none}
+@media (max-width:620px){.lbbtn{top:auto;bottom:14px;transform:none}
+  #lbprev{left:calc(50% - 58px)} #lbnext{left:calc(50% + 12px);right:auto}
+  #lbclose{top:14px;right:14px;bottom:auto}}
+
+/* ---------- gallery ---------- */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:22px}
+.tc{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;overflow:hidden;box-shadow:var(--sh);transition:.16s}
+.tc:hover{transform:translateY(-2px);border-color:var(--acc)}
+.tc img{width:100%;display:block;background:#fff}
+.tc .tm{display:block;padding:11px 14px;font-size:12.5px;color:var(--mut);
+  border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.tc .tm b{color:var(--ink)}
+.tc.win .tm i{color:var(--pos);font-style:normal;font-weight:660}
+.tc.loss .tm i{color:var(--neg);font-style:normal;font-weight:660}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0 0;font-size:13px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:11px;height:11px;border-radius:3px}
+
+footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+@media(max-width:640px){
+  header{padding-top:44px}
+  .k .v{font-size:1.55rem}
+  section{margin-top:56px}
+}
+.seq{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em;letter-spacing:.03em;white-space:nowrap}
+.riskbar{display:grid;grid-template-columns:auto auto 1fr;gap:10px 14px;align-items:center;
+  margin:0 0 18px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.riskbar label{font-size:13px;font-weight:640;letter-spacing:.01em}
+.riskin{display:flex;align-items:center;gap:6px}
+.riskin input{width:5.6rem;font:inherit;font-weight:700;font-size:19px;padding:6px 9px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;text-align:right}
+.riskin input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.riskin span{font-size:15px;color:var(--mut);font-weight:640}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:12.5px;padding:5px 11px;border:1px solid var(--line);
+  border-radius:999px;background:transparent;color:var(--mut);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:640}
+.risknote{grid-column:1/-1;margin:2px 0 0;font-size:12.5px;line-height:1.6;color:var(--mut)}
+.riskwarn{margin:0 0 18px;padding:12px 16px;border-radius:12px;font-size:13.5px;line-height:1.6;
+  border:1px solid var(--neg);background:color-mix(in srgb,var(--neg) 9%,transparent)}
+.riskwarn b{color:var(--neg)}
+.mclegend{display:flex;flex-wrap:wrap;gap:18px;margin:0 0 10px;font-size:12.5px;color:var(--mut)}
+.mclegend span{display:inline-flex;align-items:center;gap:7px}
+.mclegend .sw{width:15px;height:2.5px;border-radius:2px;background:currentColor}
+.mclegend .sw.pos{color:var(--pos)}
+.mclegend .sw.neg{color:var(--neg)}
+.kpi.mcstats{grid-template-columns:repeat(4,minmax(0,1fr));margin:20px 0 0}
+@media (max-width:700px){.kpi.mcstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--mut)}
+::-webkit-scrollbar-corner{background:transparent}
+tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:640}
+@media (max-width:640px){.riskbar{grid-template-columns:1fr auto}.chips{grid-column:1/-1}}
+.vtog{display:inline-flex;margin:18px 0 0;border:1px solid var(--line);border-radius:2px;
+  overflow:hidden;font:500 12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+.vtog a,.vtog span{padding:9px 15px;text-decoration:none;display:block;letter-spacing:.02em}
+.vtog span{background:var(--acc);color:#fff}
+.vtog a{color:var(--ink);background:transparent}
+.vtog a:hover{background:var(--line)}
+.vtog .lbl{background:transparent;color:var(--mut);border-right:1px solid var(--line);
+  font-weight:400;cursor:default}
+.twofig{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin:16px 0 0}
+.twofig figure{margin:0}
+</style></head><body><div class="wrap">
+
+<header>
+<div class="eyebrow"><span class="dot"></span>research &middot; batch operation</div>
+<h1>Two batches, <em>two strategies</em></h1>
+<p class="lede">One batch of accounts running the <a href="index.html">Asia opening range</a>, a
+separate batch running the <a href="pdfade.html">previous-day fade</a>. Never both in one account.
+Measured on what matters to a batch: the share of <b>attempts</b> that pass, and how long they
+take. Gold, 2026.</p>
+
+<div class="kpi">
+<div class="k big"><div class="l">Opening range</div><div class="v">85.3%</div><div class="n">pass at 2.50% &middot; 24 days</div></div>
+<div class="k big"><div class="l">Previous-day fade</div><div class="v">92.3%</div><div class="n">pass at 2.50% &middot; 40 days</div></div>
+<div class="k"><div class="l">Both batches failed</div><div class="v">0.0%</div><div class="n">from the same start day</div></div>
+<div class="k"><div class="l">Hard ceiling</div><div class="v">3.00%</div><div class="n">one stop = the daily limit</div></div>
+</div>
+
+<nav>
+<a href="#rates"><span>01</span>Pass rates</a>
+<a href="#cliff"><span>02</span>The 3% cliff</a>
+<a href="#joint"><span>03</span>Do the batches fail together?</a>
+<a href="#stagger"><span>04</span>Staggering a batch</a>
+<a href="#books"><span>05</span>The underlying books</a>
+</nav>
+</header>
+
+<section id="rates">
+<h2><span class="num">01</span>Pass rates</h2>
+<p class="sub">An account is started on every day the strategy traded in 2026 and walked forward
+until it passes, breaches, or the data runs out. &ldquo;Open&rdquo; is an attempt that never
+resolved &mdash; an account sitting there consuming time.</p>
+<div class="scroll"><table>
+<caption>Per attempt. Days is the median for the attempts that passed. Rows at or above 3% are
+past the ceiling explained in section 02.</caption>
+<thead><tr><th>Risk / trade</th>
+<th>Range: pass</th><th>fail</th><th>open</th><th>days</th>
+<th>Fade: pass</th><th>fail</th><th>open</th><th>days</th></tr></thead>
+<tbody><tr><td><b>1.00%</b></td><td class="pos"><b>78.7%</b></td><td class="">0.0%</td><td>21.3%</td><td>56</td><td class="neg"><b>66.2%</b></td><td class="">0.0%</td><td>33.8%</td><td>98</td></tr><tr><td><b>1.50%</b></td><td class="pos"><b>81.3%</b></td><td class="">0.0%</td><td>18.7%</td><td>38</td><td class="pos"><b>86.2%</b></td><td class="">0.0%</td><td>13.8%</td><td>64</td></tr><tr><td><b>2.00%</b></td><td class="pos"><b>84.0%</b></td><td class="neg">2.7%</td><td>13.3%</td><td>32</td><td class="pos"><b>90.8%</b></td><td class="">0.0%</td><td>9.2%</td><td>47</td></tr><tr><td><b>2.50%</b></td><td class="pos"><b>85.3%</b></td><td class="neg">5.3%</td><td>9.3%</td><td>24</td><td class="pos"><b>92.3%</b></td><td class="">0.0%</td><td>7.7%</td><td>40</td></tr><tr><td><b>2.75%</b></td><td class="pos"><b>77.3%</b></td><td class="neg">13.3%</td><td>9.3%</td><td>18</td><td class="pos"><b>92.3%</b></td><td class="">0.0%</td><td>7.7%</td><td>38</td></tr><tr><td><b>2.90%</b></td><td class="neg"><b>64.0%</b></td><td class="neg">28.0%</td><td>8.0%</td><td>12</td><td class="pos"><b>92.3%</b></td><td class="">0.0%</td><td>7.7%</td><td>38</td></tr><tr class="neg"><td><b>3.00%</b></td><td class="neg"><b>38.7%</b></td><td class="neg">61.3%</td><td>0.0%</td><td>5</td><td class="neg"><b>10.8%</b></td><td class="neg">86.2%</td><td>3.1%</td><td>4</td></tr><tr class="neg"><td><b>3.50%</b></td><td class="neg"><b>40.0%</b></td><td class="neg">60.0%</td><td>0.0%</td><td>5</td><td class="neg"><b>16.9%</b></td><td class="neg">81.5%</td><td>1.5%</td><td>4</td></tr></tbody></table></div>
+<div class="good"><div class="t">What the table says</div>
+<p>The fade batch passes more often &mdash; <b>92.3%</b> against <b>85.3%</b> &mdash; and
+never breached a limit at any risk under the ceiling. The range batch resolves faster:
+<b>24 days</b> against <b>40</b>. If fees dominate, run more of the fade; if cycle
+time dominates, the range turns over sooner.</p></div>
+</section>
+
+<section id="cliff">
+<h2><span class="num">02</span>The 3% cliff</h2>
+<p class="sub">This is the single most important number for the operation and it has nothing to do
+with either strategy's edge.</p>
+<div class="note"><div class="t">One full stop must stay under the daily limit</div>
+<p>A losing trade costs exactly the risk taken. At <b>3% per trade</b> a single stop is
+<b>3.0%</b> &mdash; the daily limit &mdash; so <b>one loss ends the account</b>. Pass rates fall off
+a cliff there: the range batch drops from <b>85.3%</b> at 2.5% to <b>38.7%</b> at 3.0%, and the
+fade batch from <b>92.3%</b> to <b>10.8%</b>.</p>
+<p>The 12% maximum loss is not what binds. <b>Risk must stay strictly under 3%</b>, and 2.5%
+leaves a real margin for a wider-than-modelled stop or a slipped fill.</p></div>
+</section>
+
+<section id="joint">
+<h2><span class="num">03</span>Do the batches fail together?</h2>
+<p class="sub">One account in each batch, both started the same day, at 2.50% risk.
+111 start days.</p>
+<div class="scroll"><table>
+<caption>Joint outcome. Range first, fade second.</caption>
+<thead><tr><th>Range / fade</th><th>Start days</th><th>Share</th></tr></thead>
+<tbody><tr class="hi"><td><b>pass</b> / <b>pass</b></td><td>94</td><td>84.7%</td></tr><tr><td><b>open</b> / <b>open</b></td><td>9</td><td>8.1%</td></tr><tr><td><b>open</b> / <b>pass</b></td><td>3</td><td>2.7%</td></tr><tr><td><b>fail</b> / <b>open</b></td><td>3</td><td>2.7%</td></tr><tr><td><b>fail</b> / <b>pass</b></td><td>2</td><td>1.8%</td></tr></tbody></table></div>
+<p><b>Both batches failed from the same start day 0 times out of 111.</b> On the days
+the two strategies both traded, their results are negatively correlated at <b>-0.35</b> &mdash;
+one is a breakout and the other fades a failed breakout, so they do not fail together. For a batch
+operation that is the whole point of running two: the fee losses do not arrive in the same month.</p>
+</section>
+
+<section id="stagger">
+<h2><span class="num">04</span>Staggering a batch</h2>
+<p class="sub">Accounts in one batch run the same strategy, so they take the same trades. Started
+together they are one outcome repeated, not five attempts. Five accounts, 2.50% risk.</p>
+<div class="scroll"><table>
+<caption>Chance that none of the five passes, that all five pass, and the expected number of passes.</caption>
+<thead><tr><th>Spacing</th>
+<th>Range: none pass</th><th>all five</th><th>expected</th>
+<th>Fade: none pass</th><th>all five</th><th>expected</th></tr></thead>
+<tbody><tr><td><b>all on the same day</b></td><td class="neg">15%</td><td class="pos">85%</td><td><b>4.27</b></td><td class="neg">8%</td><td class="pos">92%</td><td><b>4.62</b></td></tr><tr><td><b>one week apart</b></td><td class="">0%</td><td class="pos">80%</td><td><b>4.67</b></td><td class="">0%</td><td class="pos">89%</td><td><b>4.89</b></td></tr><tr><td><b>two weeks apart</b></td><td class="">0%</td><td class="pos">69%</td><td><b>4.66</b></td><td class="">0%</td><td class="pos">80%</td><td><b>4.80</b></td></tr><tr><td><b>three weeks apart</b></td><td class="">0%</td><td class="pos">27%</td><td><b>4.27</b></td><td class="">0%</td><td class="pos">0%</td><td><b>4.00</b></td></tr></tbody></table></div>
+<div class="note"><div class="t">Staggering is insurance, not extra yield</div>
+<p>Starting five accounts on the same day gives an expected <b>4.27</b> passes for the range batch
+&mdash; but a <b>15% chance that none of them passes</b>, because all five hold identical
+positions. One week apart raises the expectation only to <b>4.67</b>, and takes the
+none-pass case to <b>0%</b>. The gain is not throughput, it is that a batch can no longer be lost
+in one stroke.</p></div>
+</section>
+
+<section id="books">
+<h2><span class="num">05</span>The underlying books</h2>
+<p class="sub">The trade statistics behind the pass rates. Rules and caveats are on each
+strategy's own page.</p>
+<div class="scroll"><table>
+<caption>2026. R is size-independent; the pass rate is at each batch's best risk under the ceiling.</caption>
+<thead><tr><th>Strategy</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th>
+<th>Total R</th><th>Worst dip</th><th>t</th><th>Best pass rate</th><th>Median days</th></tr></thead>
+<tbody><tr><td><b>Opening range</b></td><td>75</td><td>39 / 36</td><td>52.0%</td><td class="pos">+0.582</td><td class="pos"><b>+43.6 R</b></td><td>6.2 R</td><td>+3.53</td><td class="pos"><b>85.3%</b></td><td>24</td></tr><tr><td><b>Previous-day fade</b></td><td>65</td><td>36 / 28</td><td>56.2%</td><td class="pos">+0.429</td><td class="pos"><b>+27.9 R</b></td><td>3.0 R</td><td>+2.47</td><td class="pos"><b>92.3%</b></td><td>40</td></tr></tbody></table></div>
+</section>
+
+<footer><p><b>Two batches.</b> Generated 10 September 2026. Attempts simulated on the real 2026 trade
+sequences from the <a href="index.html">opening range</a> and the
+<a href="pdfade.html">previous-day fade</a>; barriers +12% / 12% / 3% daily, both loss barriers
+checked trade by trade. Each strategy's own limitations are on its page and are not repeated
+here.</p></footer>
+</div></body></html>
