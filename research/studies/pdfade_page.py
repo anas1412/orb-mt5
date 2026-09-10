@@ -308,10 +308,9 @@ back inside, under the 600 limit, so it is valid.</p>
 
 <section id="calc">
 <h2><span class="num">02</span>Stop calculator</h2>
-<p class="sub">The stop is anchored to the <b>level</b>, not to your fill, so it can be worked out
-before the session opens and it never moves. Put in yesterday's high and low once and the whole
-table below is fixed for the day &mdash; at the moment you get filled there is nothing left to
-calculate, only a row to read.</p>
+<p class="sub">The stop is anchored to the <b>level</b>, not to your fill, so it can be worked
+out before the session opens and it does not move whatever price you get. Yesterday's high and low
+are the only inputs.</p>
 
 <div class="calc">
 <div><label for="cy_hi">Yesterday's high</label><input id="cy_hi" type="number" step="0.01" value="4650.00"></div>
@@ -330,16 +329,10 @@ calculate, only a row to read.</p>
 <tr class="big"><td><b>Stop &mdash; place it here whatever your fill</b></td><td id="o_stop"></td></tr>
 </tbody></table></div>
 
-<h3>Then read the row that matches your fill</h3>
-<p>Every row is valid for the day. The further inside the level you get filled, the more you are
-risking. Past <b>%(maxd).0f points</b> the setup is skipped.</p>
-<div class="scroll"><table id="o_grid">
-<caption>Fill depth is how far back inside the level the price you got was.</caption>
-<thead><tr><th>Fill depth</th><th>You filled at</th><th>Risk</th><th>Target</th></tr></thead>
-<tbody></tbody></table></div>
-<p style="font-size:13px;color:var(--mut);margin-top:12px">The rules above round the stop fraction
-to &ldquo;a third&rdquo;; the tested constant is <b>%(slfrac).2f</b> and that is what this uses,
-along with the <b>%(rr)g R</b> target and the <b>%(maxd).0f</b>-point limit.</p>
+<p style="font-size:13px;color:var(--mut);margin-top:14px">Your risk is that stop distance
+<b>plus</b> however far inside the level you got filled, so it is a little more than
+%(slfrac).2f&nbsp;&times; the range. The rules above round the fraction to &ldquo;a third&rdquo;;
+the tested constant is <b>%(slfrac).2f</b> and that is what this uses.</p>
 </section>
 
 <section id="curve">
@@ -488,40 +481,27 @@ document.getElementById('lbnext').onclick=function(){show(i+1)};
 document.getElementById('lbclose').onclick=function(){lb.classList.remove('on')};
 lb.onclick=function(e){if(e.target===lb)lb.classList.remove('on')};
 (function(){
-  var SLF=%(slfrac).4f, RRV=%(rr).4f, MAXD=%(maxd).0f;
+  var SLF=%(slfrac).4f;
   var hi=document.getElementById('cy_hi'), lo=document.getElementById('cy_lo'),
       bHi=document.getElementById('c_hi'), bLo=document.getElementById('c_lo'),
-      msg=document.getElementById('c_msg'),
-      body=document.querySelector('#o_grid tbody'), sellSide=true;
+      msg=document.getElementById('c_msg'), sellSide=true;
   function px(v){return (v*100).toFixed(0)+' pts'}
   function set(id,t){document.getElementById(id).innerHTML=t}
   function calc(){
     var H=parseFloat(hi.value), L=parseFloat(lo.value);
-    msg.innerHTML=''; body.innerHTML='';
+    msg.innerHTML='';
     if(!(H>L)){
       msg.innerHTML='<div class="calcwarn"><b>The high must be above the low.</b></div>';
       ['o_range','o_dist','o_level','o_stop'].forEach(function(i){set(i,'&mdash;')});
       return}
-    var rng=H-L, dist=SLF*rng, lvl=sellSide?H:L, sgn=sellSide?1:-1, stop=lvl+sgn*dist;
+    var rng=H-L, dist=SLF*rng, lvl=sellSide?H:L, stop=lvl+(sellSide?1:-1)*dist;
     set('o_range', rng.toFixed(2)+' &nbsp; <b>'+px(rng)+'</b>');
     set('o_dist', dist.toFixed(2)+' &nbsp; <b>'+px(dist)+'</b>');
     set('o_level', '<b>'+lvl.toFixed(2)+'</b> &nbsp; the '+(sellSide?'high':'low')+' of yesterday');
     set('o_stop', '<b>'+stop.toFixed(2)+'</b>');
-    var rows='';
-    for(var d=0; d<=MAXD; d+=100){
-      var entry=lvl-sgn*d/100.0, risk=Math.abs(entry-stop), tp=entry-sgn*RRV*risk;
-      rows+='<tr'+(d===0?' class="hi"':'')+'><td><b>'+d+' pts</b></td>'
-        +'<td>'+entry.toFixed(2)+'</td>'
-        +'<td><b>'+px(risk)+'</b></td>'
-        +'<td>'+tp.toFixed(2)+'</td></tr>';
-    }
-    var e2=lvl-sgn*(MAXD+100)/100.0, r2=Math.abs(e2-stop);
-    rows+='<tr class="q"><td>'+(MAXD+100)+' pts and beyond</td><td>'+e2.toFixed(2)
-      +'</td><td colspan="2"><b class="neg">past the limit &mdash; skip the setup</b></td></tr>';
-    body.innerHTML=rows;
     msg.innerHTML='<div class="calcok">Sell'.replace('Sell',sellSide?'Sell':'Buy')
-      +' the retest of <b>'+lvl.toFixed(2)+'</b>, stop <b>'+stop.toFixed(2)
-      +'</b>. That stop holds for every fill; only the size changes.</div>';
+      +' the sweep of <b>'+lvl.toFixed(2)+'</b>, stop <b>'+stop.toFixed(2)
+      +'</b>. That stop holds whatever price you get filled at.</div>';
   }
   function side(sell){sellSide=sell;
     bHi.setAttribute('aria-pressed',sell?'true':'false');
