@@ -10,6 +10,9 @@ from collections import defaultdict
 import statistics as st
 HERE = os.path.dirname(os.path.abspath(__file__))
 RESEARCH = os.path.dirname(HERE); REPO = os.path.dirname(RESEARCH)
+sys.path.insert(0, HERE)
+import pdfade_report as CFG
+RR = CFG.RR        # the target, so no string on this page can disagree with it
 BE = 0.10          # a trade inside +-0.10 R is a scratch, not a win or a loss
 RISK_PCT = 2.5     # the default the page renders at; the selector rescales it
 
@@ -146,7 +149,7 @@ rows_w = "".join(row(wlab(k), ws.get(k, []), wd[k], bold_n=True) for k in sorted
 best_w = max(ws.values(), key=lambda v: sum(x["R"] for x in v))
 worst_w = min(ws.values(), key=lambda v: sum(x["R"] for x in v))
 
-KIND = {"tp":("hit the 2R target","pos"),"sl":("stopped out","neg"),
+KIND = {"tp":("hit the %gR target" % RR,"pos"),"sl":("stopped out","neg"),
         "eod":("closed at the session end","")}
 rows_k = "".join('<tr><td><b>%s</b></td><td>%d</td><td>%.0f%%</td><td>%s</td><td>%s</td></tr>'
                  % (KIND[k][0], len(v), 100.0*len(v)/len(R), sgn(sum(v)/len(v), 2), sgn(sum(v)))
@@ -178,8 +181,8 @@ HTML = """<!doctype html>
 <div class="eyebrow"><span class="dot"></span>research · not the live strategy</div>
 <h1>Fading yesterday's <em>high and low</em></h1>
 <p class="lede">Price sweeps yesterday\u2019s extreme, fails to hold, and an M5 candle closes back inside. You
-take that close and trade against the sweep. Gold, entries in the Asia session, held to the end of
-the day. %(year)d only — %(n)d trades.</p>
+take that close and trade against the sweep. Gold, entries in the Asia session, %(rr)g R target,
+held to the end of the day. %(year)d only — %(n)d trades.</p>
 
 <div class="riskbar">
 <label for="risk">Risk per trade</label>
@@ -235,13 +238,15 @@ has already happened and you are late. It also caps how large your stop can get.
 No limit order, no waiting for a retest.</span></li>
 <li><b>Stop: yesterday's range ÷ 3, beyond the level</b><span>Measured from the level, not from
 your entry — so the sweep itself cannot take you out.</span></li>
-<li><b>Target: 2 × your risk</b><span>Risk is entry to stop, which is a little more than
-range ÷ 3 because you entered inside the level.</span></li>
+<li><b>Target: %(rr)g × your risk</b><span>Risk is entry to stop, which is a little more than
+range ÷ 3 because you entered inside the level. A bigger target is deliberate: on a challenge
+account you need a lump, and three wins of this size clear a 12%% goal where three smaller ones
+do not.</span></li>
 <li><b>Close it before the day ends \u2014 never carry it overnight</b><span>Not the end of Asia:
 the position runs on through London and New York and is flat by the broker day\u2019s close. The
-median trade lasts <b>799 minutes</b> and the latest exit in 2026 was 23:49 broker time. Cutting the
-hold at 08:00 UTC instead drops the result from +28.4 R to <b>+16.4 R</b>, so most of the move
-arrives long after the entry.</span></li>
+median trade lasts <b>%(hmed).0f minutes</b> and the latest exit in 2026 was %(hlast)s broker time.
+Cutting the hold at 08:00 UTC instead drops the result from %(tot_r)+.1f R to <b>%(cut_r)+.1f R</b>,
+so most of the move arrives long after the entry.</span></li>
 </ol>
 
 <div class="card">
@@ -251,7 +256,7 @@ arrives long after the entry.</span></li>
 <p>Price pokes above 4650, then an M5 candle closes back below it at <b>4646.00</b> — 400 points
 back inside, under the 600 limit, so it is valid.</p>
 <p><b>Sell 4646.00</b> · <b>stop 4650 + 3400 = 4684.00</b> · risk <b>3800 points</b> ·
-<b>target 4646 − 7600 = 4570.00</b></p>
+<b>target 4646 − 9500 = 4551.00</b> &nbsp;(%(rr)g × 3800)</p>
 </div>
 </section>
 
@@ -292,7 +297,7 @@ losses.</p>
 
 <section id="exits">
 <h2><span class="num">04</span>How trades end</h2>
-<p class="sub">Median hold 799 minutes. Targets take a median of 733 minutes; stops land in 252.</p>
+<p class="sub">Median hold %(hmed).0f minutes. Targets take a median of %(htp).0f minutes; stops land in %(hsl).0f.</p>
 <div class="scroll"><table>
 <thead><tr><th>Exit</th><th>Count</th><th>Share</th><th>Average</th><th>Total</th></tr></thead>
 <tbody>%(rows_k)s</tbody></table></div>
@@ -316,8 +321,9 @@ ago</b>, and the search scored just as well. What is being paid for is waiting a
 overshoot, not yesterday's orders specifically.</p></div>
 <div class="note"><div class="t">A day trade, but a slow one</div>
 <p>Nothing is carried overnight: every one of the 65 trades closes inside the same broker day, the
-latest at <b>23:49</b> broker time. But the hold is long \u2014 median <b>799 minutes</b>, and the
-target takes a median of <b>733 minutes</b> to arrive. <b>22 of 65 exit after 22:00 broker time</b>,
+latest at <b>%(hlast)s</b> broker time. But the hold is long \u2014 median <b>%(hmed).0f minutes</b>,
+and the target takes a median of <b>%(htp).0f minutes</b> to arrive. <b>%(nlate)d of %(n)d exit after
+22:00 broker time</b>,
 so depending on where your broker sets its rollover some of them may be charged one swap. Spread is
 charged at entry; swap is not modelled.</p></div>
 <div class="note"><div class="t">The 600-point skip was chosen after the fact</div>
@@ -416,6 +422,8 @@ document.onkeydown=function(e){if(!lb.classList.contains('on'))return;
 # loss -- averaging understates it and calls a limit safe that is not.
 WRUN = -min([sum(R[i:i+n]) for n in range(1, min(9, len(R)+1)) for i in range(len(R)-n+1)] + [0.0])
 
+HOLD = _raw["hold"]
+
 best = max(MONTHS, key=lambda m: sum(x["R"] for x in mo[m]))
 rest = [x["R"] for m in MONTHS if m != best for x in mo[m]]
 open(os.path.join(REPO, "pdfade.html"), "w").write(HTML % dict(
@@ -432,5 +440,7 @@ open(os.path.join(REPO, "pdfade.html"), "w").write(HTML % dict(
     pw=len([v for v in ws.values() if sum(x["R"] for x in v) > 0]), nw=len(ws),
     aw=aw, al=al, payoff=aw/abs(al), t=ev/se, cards=cards, mchips=mchips,
     gen=dt.date.today().strftime("%d %B %Y"),
-    wrun=WRUN, brk=12.0/max(dd, WRUN), ddr=dd))
+    wrun=WRUN, brk=12.0/max(dd, WRUN), ddr=dd, rr=RR,
+    hmed=HOLD["med"], htp=HOLD["tp"], hsl=HOLD["sl"], hlast=HOLD["last"],
+    nlate=HOLD["late"], tot_r=sum(R), cut_r=HOLD["cut"]))
 print("wrote pdfade.html  (%d trades, %+.1f R, WR %.1f%%, t=%.2f)" % (len(T), sum(R), wr, ev/se))

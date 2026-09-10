@@ -7,7 +7,7 @@ data, its own page and its own trade folder.
              inside, and you take that close at market
     skip     if that close landed more than 600 points past the level
     stop     yesterday's range / 3, beyond the level
-    target   2 x risk
+    target   RR x risk (2.5)
     exit     the day's close if neither is hit
     hours    00:00-08:00 UTC
 
@@ -29,7 +29,7 @@ YEAR      = 2026
 TF        = 5          # confirmation candle
 WINDOW    = (0, 480)   # UTC minutes: Asia 00:00-08:00
 SL_FRAC   = 0.33       # of yesterday's range, beyond the level
-RR        = 2.0
+RR        = 2.5
 MAX_DEPTH = 6.00       # 600 points; skip a close that ran further back inside
 SPREAD    = 0.50
 OUT_DIR   = os.path.join(REPO, "trades-pdfade")
@@ -158,7 +158,7 @@ def draw(t, bars, n):
     ax.axvspan(b[t["sweep_i"]][0]-x0, b[t["ei"]][0]-x0+5, color=ACC, alpha=.07, zorder=0)
     lv = [(t["entry"], ACC, "entry  %.2f" % t["entry"], True),
           (t["sl"], NEG, "stop  %.2f   \u22121R" % t["sl"], True),
-          (t["tp"], POS, "target  %.2f   +2R" % t["tp"], True),
+          (t["tp"], POS, "target  %.2f   +%gR" % (t["tp"], RR), True),
           (mid, MUT, "mid of yesterday  %.2f" % mid, False),
           (t["lvl"], INK, "yesterday's %s  %.2f" % ("low" if t["buy"] else "high", t["lvl"]), False)]
     far = t["ph"] if t["buy"] else t["pl"]
@@ -204,6 +204,35 @@ def draw(t, bars, n):
     return fn
 
 
+def hold_stats(bars, trades):
+    """Hold times, the latest exit, and what an 08:00 UTC cut-off would cost."""
+    import statistics as _st
+    H = []; late = 0; latest = 0; cut_total = 0.0
+    for t in trades:
+        b = bars[t["date"]]
+        h = b[t["xi"]][0] - b[t["ei"]][0]
+        H.append((t["kind"], h))
+        latest = max(latest, b[t["xi"]][0])
+        if b[t["xi"]][0] >= 22*60:
+            late += 1
+        off = broker_offset(t["date"]) * 60; cut = WINDOW[1] + off
+        d_ = 1 if t["buy"] else -1; R = None
+        for j in range(t["ei"]+1, len(b)):
+            mi, o, hi, lo, cl = b[j]
+            if mi >= cut:
+                R = (b[j-1][4]-t["entry"])*d_/t["risk"]; break
+            adv = lo if d_ > 0 else hi + SPREAD
+            fav = hi if d_ > 0 else lo
+            if (adv-t["sl"])*d_ <= 0: R = -1.0; break
+            if (fav-t["tp"])*d_ >= 0: R = RR; break
+        cut_total += R if R is not None else (b[-1][4]-t["entry"])*d_/t["risk"]
+    return dict(med=_st.median([h for _, h in H]),
+                tp=_st.median([h for k, h in H if k == "tp"]),
+                sl=_st.median([h for k, h in H if k == "sl"]),
+                last="%02d:%02d" % (latest//60, latest%60),
+                late=late, cut=round(cut_total, 1))
+
+
 if __name__ == "__main__":
     os.makedirs(OUT_DIR, exist_ok=True)
     bars = load_bars(); ds = sorted(bars)
@@ -220,6 +249,9 @@ if __name__ == "__main__":
         trades=[{k: (v.isoformat() if isinstance(v, dt.date) else v)
                  for k, v in t.items() if k in ("date","buy","R","file","n","rg","risk","depth","kind")}
                 for t in trades],
-        days=[d.isoformat() for d in ds if d.year == YEAR and d.weekday() < 5]),
+        days=[d.isoformat() for d in ds if d.year == YEAR and d.weekday() < 5],
+        # Measured here rather than typed into the page, so changing RR cannot
+        # leave a stale hold time in the prose.
+        hold=hold_stats(bars, trades)),
         open(os.path.join(RESEARCH, "data", "pdfade_trades.json"), "w"), indent=1)
     print("drew %d charts into %s" % (len(trades), OUT_WEB))
