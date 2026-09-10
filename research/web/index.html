@@ -106,6 +106,8 @@ form.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
 .actions{grid-column:1/-1;display:flex;gap:8px;align-items:center}
 .note{grid-column:1/-1;display:flex;gap:8px;align-items:flex-start;
   background:var(--warn-bg);border-left:3px solid var(--warn);padding:12px;font-size:12px;color:var(--text)}
+/* display:flex beats the user agent's [hidden] rule, so say it again */
+.note[hidden]{display:none}
 .msg{font-size:12px;padding:8px 12px;border-left:3px solid var(--err);
   background:var(--err-bg);color:var(--text);margin:0 0 16px;display:none}
 .msg.show{display:block}
@@ -419,7 +421,9 @@ function openRun(s) {
     ["Target / stop", `${s.rr}R, stop at ${s.sl_pct}% of range`],
     ["Direction", s.direction === "both" ? "either way" : s.direction + " only"],
     ["Risk", `${s.risk}% per trade`],
-    ["Runner", STATE.containers ? "container, isolated volumes" : "this machine's terminal"]
+    ["Runner", STATE.containers
+        ? `container on slot 1 of ${STATE.slots}, own Bases / Tester / Config`
+        : "this machine's terminal"]
   ];
   if (s.min_range_pct > 0) rows.splice(5, 0, ["Range filter", `skip under ${s.min_range_pct}% of price`]);
   for (const [k, v] of rows) { dl.append(el("dt", {}, k)); dl.append(el("dd", {}, String(v))); }
@@ -428,11 +432,14 @@ function openRun(s) {
   if (!STATE.accounts.length) sel.append(el("option", { value: "" }, "No accounts — add one first"));
   $("#mfrom").value = s.frm.replace(/-/g, ".");
   $("#mto").value = s.to === "today" ? "" : s.to.replace(/-/g, ".");
-  $("#mnotetext").textContent = STATE.containers
-    ? (STATE.accounts.length
-        ? "Starts a MetaTrader terminal in a container and logs into the account above. Your own terminal is not touched."
-        : "A container has no saved session, so a run needs an account. Add one on the Accounts tab.")
-    : "Runs on this machine's terminal, which holds the tester lock and your saved session.";
+  // The note is for something being WRONG. A container of its own is what a run
+  // normally does, and dressing that up as a caution is noise.
+  const problem = STATE.containers
+    ? (STATE.accounts.length ? null
+        : "No accounts saved. A container has no MetaTrader session of its own, so add one on the Accounts tab first.")
+    : "Local runner: this uses the terminal on this machine, which holds the tester lock and your live EA's session.";
+  $("#mnote").hidden = !problem;
+  if (problem) $("#mnotetext").textContent = problem;
   $("#mgo").disabled = STATE.containers && !STATE.accounts.length;
   $("#scrim").hidden = false;
   $("#mcancel").focus();
