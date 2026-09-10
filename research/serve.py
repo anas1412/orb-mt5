@@ -235,8 +235,8 @@ def seed_slot(slot):
 
 def command(job, slot):
     spec_in_repo = job["spec"]
-    args = ["bash", "research/report.sh", "--id", job["id"]]
     if CONTAINERS:
+        args = ["bash", "research/report.sh", "--id", job["id"]]
         if job.get("account"):
             pass                       # credentials go in through --env-file, not a path
         seed_slot(slot)
@@ -253,9 +253,12 @@ def command(job, slot):
         if job.get("account"):
             d += ["--env-file", os.path.join(ACCOUNTS, job["account"] + ".env")]
         return d + [IMAGE] + args + [spec_in_repo, job["from"], job["to"]]
+    # Local runs go through run_local.py, not the bash script: it launches the
+    # installed terminal directly, so this path works on Windows as well as on
+    # Linux with Wine.
+    args = [sys.executable, "research/run_local.py", "--id", job["id"]]
     if job.get("account"):
-        args = ["bash", "research/report.sh", "--account",
-                os.path.join("accounts", job["account"] + ".env"), "--id", job["id"]]
+        args += ["--account", os.path.join("accounts", job["account"] + ".env")]
     return args + [spec_in_repo, job["from"], job["to"]]
 
 

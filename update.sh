@@ -125,7 +125,7 @@ else
   BAR_FROM=${BAR_FROM:-$EPOCH}
 fi
 echo "  dumping $BAR_FROM .. $TO"
-sed -i -e "s|^FromDate=.*|FromDate=$BAR_FROM|" -e "s|^ToDate=.*|ToDate=$TO|" dump.ini
+sed -i -e "s|^FromDate=.*|FromDate=$BAR_FROM|" -e "s|^ToDate=.*|ToDate=$TO|" mql5/config/dump.ini
 rm -f "$D/bars_$SYMBOL.csv"
 run_mt5 dump.ini 900
 ( cd research && python3 merge_bars.py bars_main.csv "sync_$SYMBOL.csv" "bars_$SYMBOL.csv" )
@@ -207,7 +207,7 @@ say "9/9  commit"
 # Only what this run generates. `git add -A` swept unrelated edits into the data
 # commit twice -- once an EA feature, once a CLI flag -- under a message about
 # the study. Anything else that is dirty is left for a commit of its own.
-git add README.md index.html full-report.html tester.ini dump.ini trades \
+git add README.md index.html full-report.html mql5/config/tester.ini mql5/config/dump.ini trades \
         research/data research/DATA.md \
         research/sessions_2024_2026.csv research/trades_live_config.csv \
         research/trades_all_breaks.csv "research/bars_${SYMBOL}_2024_2026.csv" 2>/dev/null || true

@@ -7,7 +7,7 @@ set -uo pipefail
 
 MT5_DIR="${MT5_DIR:-$HOME/.wine_mt5/drive_c/Program Files/MetaTrader 5}"
 WINEPREFIX="${WINEPREFIX:-$HOME/.wine_mt5}"
-CFG="${1:-tester.ini}"
+CFG="${1:-mql5/config/tester.ini}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 [ -d "$MT5_DIR" ] || { echo "No terminal at $MT5_DIR -- set MT5_DIR"; exit 1; }

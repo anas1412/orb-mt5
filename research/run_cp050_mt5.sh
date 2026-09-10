@@ -6,7 +6,10 @@
 set -u
 MT5="$HOME/.wine_mt5/drive_c/Program Files/MetaTrader 5"
 D="$HOME/.wine_mt5/drive_c/users/$USER/AppData/Roaming/MetaQuotes/Terminal/Common/Files"
-INI="$HOME/orb/strategy/tester.ini"
+# Derived, not assumed: the repo is at /root/orb/strategy in the container and
+# wherever it was cloned on a workstation.
+REPO=$(cd "$(dirname "$0")/.." && pwd)
+INI="$REPO/mql5/config/tester.ini"
 EXE="terminal6""4.exe"
 si () { sed -i "s|^$1=.*|$1=$2|" "$INI"; }
 sed -i 's|^Symbol=.*|Symbol=XAUUSD|' "$INI"

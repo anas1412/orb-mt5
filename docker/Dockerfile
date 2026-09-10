@@ -38,16 +38,17 @@ RUN touch "${MT5}/portable" && mkdir -p "${MT5}/Bases" "${MT5}/Tester" "${MT5}/l
 # The repo, laid out as on the host: sources symlinked into the MQL5 tree, the
 # .ini files symlinked into the terminal folder.
 WORKDIR /root/orb/strategy
-COPY ORB.mq5 Panel.mqh TimeZones.mqh BarDump.mq5 SyncDump.mq5 DumpD1.mq5 CheckBrokerOffset.mq5 TestTimeZones.mq5 \
-     tester.ini dump.ini sync.ini d1.ini update.sh README.md ./
+COPY mql5/ mql5/
+COPY update.sh README.md ./
 COPY research/ research/
 COPY strategies/ strategies/
-RUN ln -sf /root/orb/strategy/ORB.mq5 "${MT5}/MQL5/Experts/ORB.mq5" \
-    && ln -sf /root/orb/strategy/BarDump.mq5 "${MT5}/MQL5/Experts/BarDump.mq5" \
-    && ln -sf /root/orb/strategy/CheckBrokerOffset.mq5 "${MT5}/MQL5/Experts/CheckBrokerOffset.mq5" \
-    && ln -sf /root/orb/strategy/Panel.mqh "${MT5}/MQL5/Include/Panel.mqh" \
-    && ln -sf /root/orb/strategy/TimeZones.mqh "${MT5}/MQL5/Include/TimeZones.mqh" \
-    && for s in SyncDump DumpD1 TestTimeZones; do ln -sf /root/orb/strategy/$s.mq5 "${MT5}/MQL5/Scripts/$s.mq5"; done \
+RUN ln -sf /root/orb/strategy/mql5/ORB.mq5 "${MT5}/MQL5/Experts/ORB.mq5" \
+    && ln -sf /root/orb/strategy/mql5/BarDump.mq5 "${MT5}/MQL5/Experts/BarDump.mq5" \
+    && ln -sf /root/orb/strategy/mql5/CheckBrokerOffset.mq5 "${MT5}/MQL5/Experts/CheckBrokerOffset.mq5" \
+    && ln -sf /root/orb/strategy/mql5/Panel.mqh "${MT5}/MQL5/Include/Panel.mqh" \
+    && ln -sf /root/orb/strategy/mql5/TimeZones.mqh "${MT5}/MQL5/Include/TimeZones.mqh" \
+    && for s in SyncDump DumpD1 TestTimeZones; do ln -sf /root/orb/strategy/mql5/$s.mq5 "${MT5}/MQL5/Scripts/$s.mq5"; done \
+    && for i in /root/orb/strategy/mql5/config/*.ini; do ln -sf "$i" "${MT5}/$(basename "$i")"; done \
     && for i in tester dump sync d1; do ln -sf /root/orb/strategy/$i.ini "${MT5}/$i.ini"; done
 
 # bash from here: the loop below uses ${var//x/y}, which dash rejects. Placed

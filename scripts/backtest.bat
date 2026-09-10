@@ -6,7 +6,7 @@ REM terminal first. tester.ini sets ShutdownTerminal=1, so this exits on its own
 
 setlocal
 if "%MT5_DIR%"=="" set MT5_DIR=C:\Program Files\MetaTrader 5
-if "%~1"=="" (set CFG=tester.ini) else (set CFG=%~1)
+if "%~1"=="" (set CFG=mql5\config\tester.ini) else (set CFG=%~1)
 
 copy /y "%~dp0..\%CFG%" "%MT5_DIR%\%CFG%" >nul || (echo Could not copy %CFG% & exit /b 1)
 

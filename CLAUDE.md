@@ -41,15 +41,17 @@ Pages, which left two of each and no way to tell which was current.
 ├── creds.txt               accounts, offsets, paths (gitignored, chmod 600)
 └── strategy/               <- this repo, and the only place output lands
     ├── CLAUDE.md
-    ├── TimeZones.mqh       broker time <-> UTC <-> session time
-    ├── Panel.mqh           on-chart control panel (toggle + editable settings)
-    ├── TestTimeZones.mq5   asserts the time model
-    ├── CheckBrokerOffset.mq5  measures the two broker inputs
-    ├── BarDump.mq5         exports M1 bars from the tester
-    ├── SyncDump.mq5        exports M1 bars from a LIVE chart, today included
-    ├── DumpD1.mq5          exports the daily candles the EA reads (yesterday filter)
-    ├── ORB.mq5             the EA
-    ├── update.sh           the one command; tester.ini / dump.ini / sync.ini / d1.ini beside it
+    ├── mql5/               everything MetaTrader compiles or reads
+    │   ├── ORB.mq5         the EA
+    │   ├── TimeZones.mqh   broker time <-> UTC <-> session time
+    │   ├── Panel.mqh       on-chart control panel (toggle + editable settings)
+    │   ├── TestTimeZones.mq5      asserts the time model
+    │   ├── CheckBrokerOffset.mq5  measures the two broker inputs
+    │   ├── BarDump.mq5     exports M1 bars from the tester
+    │   ├── SyncDump.mq5    exports M1 bars from a LIVE chart, today included
+    │   ├── DumpD1.mq5      exports the daily candles the EA reads (yesterday filter)
+    │   └── config/         tester.ini, dump.ini, sync.ini, d1.ini, evening.ini, eurusd.ini
+    ├── update.sh           the one command
     ├── index.html          THE report and the Pages landing page (generated)
     ├── full-report.html    a redirect to index.html, kept because the old URL is linked
     ├── client-example.html the $1,000-account explainer (generated)
@@ -78,17 +80,33 @@ that wrong writes the report somewhere nobody looks.
 Symlinked to:
 
 ```
-<MT5>/MQL5/Include/TimeZones.mqh
-<MT5>/MQL5/Include/Panel.mqh
-<MT5>/MQL5/Scripts/TestTimeZones.mq5
-<MT5>/MQL5/Experts/ORB.mq5
+<MT5>/MQL5/Include/TimeZones.mqh      <MT5>/tester.ini
+<MT5>/MQL5/Include/Panel.mqh          <MT5>/dump.ini
+<MT5>/MQL5/Scripts/TestTimeZones.mq5  <MT5>/sync.ini
+<MT5>/MQL5/Experts/ORB.mq5            ... and the rest of mql5/config/
 ```
 
-Re-create a link after adding a file:
+The `.ini` links keep their bare names, because the terminal is launched with
+`/config:tester.ini` relative to its own folder. Only the target moved.
+
+Re-create every link after moving or adding a file:
 
 ```bash
-MT5=~/.wine_mt5/drive_c/"Program Files"/"MetaTrader 5"
-ln -sf ~/orb/strategy/ORB.mq5 "$MT5/MQL5/Experts/ORB.mq5"
+MT5=~/.wine_mt5/drive_c/"Program Files"/"MetaTrader 5"; R=~/orb/strategy
+ln -sf "$R/mql5/ORB.mq5" "$MT5/MQL5/Experts/ORB.mq5"
+ln -sf "$R/mql5/BarDump.mq5" "$MT5/MQL5/Experts/BarDump.mq5"
+ln -sf "$R/mql5/Panel.mqh" "$MT5/MQL5/Include/Panel.mqh"
+ln -sf "$R/mql5/TimeZones.mqh" "$MT5/MQL5/Include/TimeZones.mqh"
+for s in SyncDump DumpD1 TestTimeZones CheckBrokerOffset; do
+  ln -sf "$R/mql5/$s.mq5" "$MT5/MQL5/Scripts/$s.mq5"; done
+for i in "$R"/mql5/config/*.ini; do ln -sf "$i" "$MT5/$(basename "$i")"; done
+```
+
+Check for a dead one after any move -- a symlink to a file that no longer
+exists compiles as "not found", which reads like a toolchain problem:
+
+```bash
+find "$MT5" -maxdepth 3 -type l -exec test ! -e {} \; -print
 ```
 
 ---
@@ -319,6 +337,20 @@ Every one of these looked like something else first.
 | A Bash command kills its own shell | `pkill -f PATTERN` in the same command as a heredoc whose *text* contains the matched name -- the command line includes the heredoc. Keep the literal out of the command, or split into two commands |
 | A fake login appears in the Navigator | **Never test with made-up credentials.** MetaTrader saves every attempted account to `accounts.dat`; a bogus `Login=1` shows up in the user's GUI and can become the terminal's last-used account, disconnecting the live EA |
 | The tester ignores the dates asked for | It **clamps `ToDate`** to its history and reports the clamped value. That clamped date is the coverage record, and it is an *exclusive* end -- the day it names is the day it did not test |
+
+### Running without Docker
+
+`research/run_local.py` runs a spec on the installed terminal, on Windows or on
+Linux with Wine. `report.sh` does the same but needs bash and Wine, so it is the
+Linux path only; `serve.py --local` uses `run_local.py`.
+
+It replaces what `run_window.sh` does in bash: rewrite the ini from
+`spec.tester()` and `spec.inputs()`, run the two close-position passes, read the
+range the tester actually covered out of its own UTF-16LE log, then the four
+build steps. Same run record either way, so `farm_stats.py` reads both.
+
+It refuses a key that `mql5/config/tester.ini` does not carry, rather than
+letting the tester ignore it -- the sweep trap above.
 
 ### The control panel
 

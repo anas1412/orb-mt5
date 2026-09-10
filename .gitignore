@@ -7,3 +7,5 @@ accounts/*.env
 !accounts/example.env
 run.ini
 docker/mt5/
+research/__pycache__/
+research/runs/

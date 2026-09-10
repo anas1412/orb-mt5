@@ -10,7 +10,10 @@
 set -eu
 MT5="$HOME/.wine_mt5/drive_c/Program Files/MetaTrader 5"
 D="$HOME/.wine_mt5/drive_c/users/$USER/AppData/Roaming/MetaQuotes/Terminal/Common/Files"
-INI="$HOME/orb/strategy/tester.ini"
+# Derived, not assumed: the repo is at /root/orb/strategy in the container and
+# wherever it was cloned on a workstation.
+REPO=$(cd "$(dirname "$0")/.." && pwd)
+INI="$REPO/mql5/config/tester.ini"
 EXE="terminal6""4.exe"
 . "$(dirname "$0")/mt5.sh"
 FROM="${1:?usage: run_window.sh FROM TO}"

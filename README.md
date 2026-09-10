@@ -74,12 +74,12 @@ folder over your terminal's (**File → Open Data Folder**).
 
 | From the zip | Goes to |
 |---|---|
-| `MQL5/Experts/ORB.mq5` | `MQL5/Experts/` |
-| `MQL5/Experts/CheckBrokerOffset.mq5` | `MQL5/Experts/` |
-| `MQL5/Include/TimeZones.mqh` | `MQL5/Include/` |
-| `MQL5/Include/Panel.mqh` | `MQL5/Include/` |
+| `mql5/ORB.mq5` | `MQL5/Experts/` |
+| `mql5/CheckBrokerOffset.mq5` | `MQL5/Scripts/` |
+| `mql5/TimeZones.mqh` | `MQL5/Include/` |
+| `mql5/Panel.mqh` | `MQL5/Include/` |
 
-1. Open `ORB.mq5` in MetaEditor, press **F7**
+1. Open `mql5/ORB.mq5` in MetaEditor, press **F7**
 2. Open an **XAUUSD M1** chart, drag **ORB** onto it, tick **Allow Algo Trading**
 3. Turn on **AutoTrading** in the toolbar
 4. The panel starts **OFF** — press **TRADING ON** when ready
@@ -206,6 +206,41 @@ ORB_TOKEN=your-token python3 research/serve.py
   the window and the runner.
 - New and edited strategies land in `strategies/generated/`. Tracked specs
   cannot be deleted from the panel; editing one saves a copy.
+
+---
+
+## Without Docker
+
+Uses the MetaTrader already installed. Works on Windows and on Linux with Wine.
+
+```bash
+python3 research/run_local.py strategies/asia-gold.toml 2026.01.01 2026.09.11
+python3 research/run_local.py --account accounts/ftmo.env SPEC FROM TO
+python3 research/serve.py --local        # the panel, same runner
+```
+
+It looks for the terminal in the usual places:
+
+| | |
+|---|---|
+| Windows | `C:\Program Files\MetaTrader 5\terminal64.exe` |
+| Linux / Wine | `~/.wine_mt5/drive_c/Program Files/MetaTrader 5/terminal64.exe` |
+
+Override when it guesses wrong:
+
+```bash
+MT5_TERMINAL="C:\Program Files\MetaTrader 5\terminal64.exe" python3 research/run_local.py ...
+```
+
+- Uses the terminal's saved session unless `--account` is given.
+- A password reaches only a temporary `run.ini` inside the terminal folder,
+  deleted whether the run succeeds or fails.
+- Writes the same `research/runs/<id>.json` record as a container run.
+- **Close the terminal first.** It holds the tester lock, and a second one
+  launching while the first shuts down exits silently.
+
+`research/report.sh` does the same thing but needs bash and Wine, so it is the
+Linux path only. `run_local.py` is the one that works on both.
 
 ---
 
