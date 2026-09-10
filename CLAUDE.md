@@ -355,8 +355,20 @@ letting the tester ignore it -- the sweep trap above.
 
 ### The control panel
 
-`python3 research/serve.py` on 127.0.0.1:8765, token printed at startup and
-required on every `/api` call. It is the only place broker credentials are
+`python3 orb.py start | stop | status | restart | open | logs` is the entry
+point, on Windows and Linux both. `stop` reads `research/runs/panel.pid`,
+because a `pkill -f` pattern that matches the heredoc mentioning the script
+kills the shell writing it -- which happened twice while building this.
+
+`orb.py` also carries `run SPEC FROM TO`, `runs` and `compile`, so nothing needs
+a remembered path.
+
+Underneath it is `research/serve.py` on 127.0.0.1:8765, with a random token per
+start required on every `/api` call. **The page fetches the token from `/token`
+itself**, so it never appears in a URL or a copy-paste. It is not decoration: a
+site the user visits can POST to localhost, and without it that page could add a
+broker account or delete a strategy. Cross-origin reads of `/token` are blocked
+by the browser, so it cannot be lifted. It is the only place broker credentials are
 entered: `POST /api/accounts` writes `accounts/<label>.env` at mode 600, and the
 password is never returned by any endpoint, never logged, and never in a run
 record -- which carries the label alone. Loopback only; reach it from a phone

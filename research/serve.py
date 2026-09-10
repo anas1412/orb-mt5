@@ -439,7 +439,10 @@ def main():
     for i in range(1, SLOTS + 1):
         threading.Thread(target=worker, args=(i,), daemon=True).start()
     srv = ThreadingHTTPServer(("127.0.0.1", port), H)
-    print("control panel  http://127.0.0.1:%d/?token=%s" % (port, TOKEN))
+    # No token in the URL: the page fetches it from /token itself. A browser will
+    # not let another origin READ that response, and every /api call needs it, so
+    # a site you happen to visit cannot drive this server. Nothing to copy.
+    print("control panel  http://127.0.0.1:%d" % port)
     print("  slots: %d    runner: %s" % (SLOTS, "containers" if CONTAINERS else "this machine"))
     print("  loopback only. reach it from a phone over Tailscale, never a port forward.")
     try:

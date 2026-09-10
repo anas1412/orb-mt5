@@ -97,9 +97,9 @@ journal.
 ## Reproduce the backtest
 
 ```bash
+python3 orb.py run strategies/asia-gold.toml 2026.01.01 2026.09.11   # any spec → its own report
 bash update.sh                                     # new days only: test, rebuild, audit, commit
 bash update.sh --account accounts/ftmo.env         # with a specific broker login
-bash research/report.sh strategies/<name>.toml 2026.01.01 2026.09.09   # any spec → its own report
 ```
 
 - A **spec** is one TOML file: symbol, session, rules, risk, dates, benchmark.
@@ -120,31 +120,31 @@ The study is in [`research/`](research/); the one-off scripts behind
 
 ## Control panel
 
-Start:
+```bash
+python3 orb.py start           # then open http://127.0.0.1:8765
+python3 orb.py stop
+python3 orb.py status
+python3 orb.py open            # start it first, then open a browser
+python3 orb.py logs
+```
+
+Options on `start`:
 
 ```bash
-python3 research/serve.py                       # containers, 3 slots, port 8765
-python3 research/serve.py --slots 4 --port 8080
-python3 research/serve.py --local               # this machine's terminal instead
+python3 orb.py start --local           # use the MetaTrader on this machine
+python3 orb.py start --slots 4 --port 8080
 ```
 
-It prints the URL with a token:
-
-```
-control panel  http://127.0.0.1:8765/?token=<token>
-```
-
-Stop: `Ctrl-C`. If it was backgrounded:
+Same script for everything else:
 
 ```bash
-pkill -f 'research/serv[e].py'
+python3 orb.py run strategies/asia-gold.toml 2026.01.01 2026.09.11   # one backtest
+python3 orb.py runs                                                  # what MetaTrader did
+python3 orb.py compile                                               # compile the EA
 ```
 
-Set the token yourself instead of a random one per start:
-
-```bash
-ORB_TOKEN=your-token python3 research/serve.py
-```
+Windows is the same with `python` instead of `python3`. `stop` reads a pid file,
+so there is no process pattern to get wrong.
 
 | Tab | |
 |---|---|
@@ -152,15 +152,27 @@ ORB_TOKEN=your-token python3 research/serve.py
 | Accounts | add or remove a broker login |
 | Runs | the queue, and what MetaTrader did on each run |
 
-- Binds to `127.0.0.1` only. Reach it from another device over a private network
-  such as Tailscale, never a port forward.
-- Every `/api` call needs the token in an `X-Orb-Token` header.
-- `POST /api/accounts` writes `accounts/<label>.env` at mode `600`. No endpoint
-  returns the password, no log line holds it, and a run record stores the label.
-- Running a backtest goes through a confirmation naming the spec, the account,
-  the window and the runner.
-- New and edited strategies land in `strategies/generated/`. Tracked specs
-  cannot be deleted from the panel; editing one saves a copy.
+### Why it asks for nothing
+
+The panel is on `127.0.0.1` and nowhere else. It holds a random token per start,
+and every `/api` call needs it — **the page fetches that itself, so there is
+nothing to copy or type.** It exists because a website you happen to visit can
+POST to `localhost`, and without it that page could add a broker account or
+delete a strategy. A browser will not let another origin read the token, so it
+cannot.
+
+Reach it from a phone over a private network such as Tailscale. Never a port
+forward.
+
+### Accounts
+
+`POST /api/accounts` writes `accounts/<label>.env` at mode `600`, ignored by
+git. No endpoint returns the password, no log line holds it, and a run record
+stores the label. Running a backtest goes through a confirmation naming the
+spec, the account, the window and the runner.
+
+New and edited strategies land in `strategies/generated/`. Tracked specs cannot
+be deleted from the panel; editing one saves a copy.
 
 ---
 
