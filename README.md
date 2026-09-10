@@ -150,8 +150,6 @@ bash research/report.sh strategies/<name>.toml 2026.01.01 2026.09.09   # any spe
 - A **spec** is one TOML file: symbol, session, rules, risk, dates, benchmark.
   `strategies/asia-gold.toml` is the published configuration; a new one lists
   only what differs. See [`strategies/`](strategies/).
-- The engine also runs in **Docker** — Wine, headless, EA compiled at build.
-  Commands in [`CLAUDE.md`](CLAUDE.md).
 - Broker login comes from `accounts/*.env` (ignored by git; see
   `accounts/example.env`). Without one, the terminal's saved session is used.
 - Results: `Common\Files\ORB_XAUUSD_*.csv`, one row per trade. Needs M1
@@ -162,6 +160,138 @@ The account rules every figure is measured against are in
 
 The study is in [`research/`](research/); the one-off scripts behind
 [`FINDINGS.md`](research/FINDINGS.md) are in [`research/studies/`](research/studies/).
+
+---
+
+## Control panel
+
+Start:
+
+```bash
+python3 research/serve.py                       # containers, 3 slots, port 8765
+python3 research/serve.py --slots 4 --port 8080
+python3 research/serve.py --local               # this machine's terminal instead
+```
+
+It prints the URL with a token:
+
+```
+control panel  http://127.0.0.1:8765/?token=<token>
+```
+
+Stop: `Ctrl-C`. If it was backgrounded:
+
+```bash
+pkill -f 'research/serv[e].py'
+```
+
+Set the token yourself instead of a random one per start:
+
+```bash
+ORB_TOKEN=your-token python3 research/serve.py
+```
+
+| Tab | |
+|---|---|
+| Backtests | every spec with its last result, run / edit / duplicate / delete, and a link to its report |
+| Accounts | add or remove a broker login |
+| Runs | the queue, and what MetaTrader did on each run |
+
+- Binds to `127.0.0.1` only. Reach it from another device over a private network
+  such as Tailscale, never a port forward.
+- Every `/api` call needs the token in an `X-Orb-Token` header.
+- `POST /api/accounts` writes `accounts/<label>.env` at mode `600`. No endpoint
+  returns the password, no log line holds it, and a run record stores the label.
+- Running a backtest goes through a confirmation naming the spec, the account,
+  the window and the runner.
+- New and edited strategies land in `strategies/generated/`. Tracked specs
+  cannot be deleted from the panel; editing one saves a copy.
+
+---
+
+## Containers
+
+The engine runs headless in Docker: Ubuntu 24.04, WineHQ, Xvfb, Python, the
+MetaTrader binaries staged into `docker/mt5/` (ignored by git), the EA compiled
+at build time — the image is refused if it does not compile.
+
+Build:
+
+```bash
+docker build -f docker/Dockerfile -t orb-mt5 .    # ~15 min cold, seconds cached
+```
+
+Rebuild only when the Dockerfile or the staged binaries change. The repo is
+bind-mounted at run time, so a spec or script change needs no rebuild.
+
+One backtest:
+
+```bash
+docker run --rm --env-file accounts/ftmo.env \
+  -v orb-bases-1:"/root/.wine_mt5/drive_c/Program Files/MetaTrader 5/Bases" \
+  -v orb-tester-1:"/root/.wine_mt5/drive_c/Program Files/MetaTrader 5/Tester" \
+  -v orb-config-1:"/root/.wine_mt5/drive_c/Program Files/MetaTrader 5/Config" \
+  -v orb-common-1:"/root/.wine_mt5/drive_c/users/root/AppData/Roaming/MetaQuotes/Terminal/Common/Files" \
+  -v "$HOME/.wine_mt5/drive_c/users/$USER/AppData/Roaming/MetaQuotes/Terminal/Common/Files:/bars:ro" \
+  -v "$PWD:/root/orb/strategy" \
+  orb-mt5 bash research/report.sh --id my-run strategies/asia-gold.toml 2026.01.01 2026.09.11
+```
+
+Several at once:
+
+```bash
+bash research/farm.sh --slots 3 --env accounts/ftmo.env strategies/*.toml
+bash research/farm.sh --dry-run --slots 3 strategies/*.toml     # print, run nothing
+python3 research/farm_stats.py --last 10                        # read the records back
+```
+
+### Volumes
+
+| Volume | Per slot? | |
+|---|---|---|
+| `orb-bases-N` | yes | price history, 2.1 GB, seeded once from this machine |
+| `orb-tester-N` | yes | the tester lock and the agent's private history copy |
+| `orb-config-N` | yes | account and `tester.ini` |
+| `orb-common-N` | yes | `run_window.sh` writes `new_cp*.csv` here |
+
+Two terminals sharing `Tester/` fight and one exits without saying why, so
+nothing is shared between slots. The host's `Common/Files` comes in read-only at
+`/bars` and the entrypoint copies `bars_*.csv` and `d1_*.csv` across with
+`cp -u`.
+
+Seed a slot before its first run, or the tester re-imports every month of ticks:
+
+```bash
+docker volume create orb-bases-1
+docker run --rm -v orb-bases-1:/b \
+  -v "$HOME/.wine_mt5/drive_c/Program Files/MetaTrader 5/Bases:/src:ro" \
+  orb-mt5 sh -c 'cp -a /src/. /b/'
+```
+
+Remove a slot's state:
+
+```bash
+docker volume rm orb-bases-1 orb-tester-1 orb-config-1 orb-common-1
+```
+
+### Slot count
+
+Bound by RAM, not cores: each tester agent wants a core and about a gigabyte.
+Three slots on an 8-core machine with 5 GB free. Containers are capped at
+`--cpus 1.5 --memory 2g`.
+
+### Without an account
+
+`tester not started because the account is not specified` in the journal means
+the image works and only the login is missing. A container has no saved
+MetaTrader session, so `--env-file` is required.
+
+### Run records
+
+Every run writes `research/runs/<id>.json` beside its log: spec, symbol, account
+label, the window asked for against the one the tester covered, trade counts,
+per-step seconds, status, and the journal lines worth reading. `farm_stats.py`
+flags a clamped date range and a run that found no trades.
 
 ---
 
