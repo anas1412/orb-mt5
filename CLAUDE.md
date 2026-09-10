@@ -320,6 +320,32 @@ Every one of these looked like something else first.
 | A fake login appears in the Navigator | **Never test with made-up credentials.** MetaTrader saves every attempted account to `accounts.dat`; a bogus `Login=1` shows up in the user's GUI and can become the terminal's last-used account, disconnecting the live EA |
 | The tester ignores the dates asked for | It **clamps `ToDate`** to its history and reports the clamped value. That clamped date is the coverage record, and it is an *exclusive* end -- the day it names is the day it did not test |
 
+### Parallel backtests, and what the container did
+
+`report.sh` takes `--account FILE` and `--id ID`, and every run leaves
+`research/runs/<id>.json` beside its log: the spec, symbol, account **label**
+(never the password), the window asked for against the one the tester actually
+covered, trade counts, per-step seconds, status, and the journal lines worth
+reading. `farm_stats.py` reads them back and flags the two failures that look
+like success -- a silently clamped date range, and a run that found no trades.
+
+A failed run records `trades: null`. It used to read the CSVs that were already
+on disk and report 144 trades from somebody else's run.
+
+`farm.sh --slots N SPEC...` runs N at once, one container per slot. The tester
+lock and the agent's private history copy both live in `Tester/`, so slots get
+their **own** `Bases/`, `Tester/` and `Config/` volumes -- two terminals sharing
+`Tester/` fight and one exits without saying why. `Bases/` is seeded once per
+slot from this machine, or the tester re-imports every month of ticks.
+
+The repo is **bind-mounted**, so a spec or script change takes effect without
+rebuilding the 7 GB image; rebuild only for the Dockerfile or the staged
+MetaTrader binaries. Container-written files come back root-owned, so `farm.sh`
+chowns them.
+
+Bound by RAM, not by design: 8 cores but ~5 GB free, and each tester agent wants
+a core and about a gigabyte, so **3 slots** is the honest number here.
+
 ### A pair of reports that differ by one rule
 
 `InpMinRangePercent` skips a session whose range is under a percent of price.
