@@ -14,6 +14,8 @@ sys.path.insert(0, HERE)
 import pdfade_report as CFG
 OUT_WEB = "trades-pdfade"
 RR = CFG.RR        # the target, so no string on this page can disagree with it
+SL_FRAC = CFG.SL_FRAC
+MAX_DEPTH_PTS = CFG.MAX_DEPTH / 0.01
 BE = 0.10          # a trade inside +-0.10 R is a scratch, not a win or a loss
 RISK_PCT = 2.5     # the default the page renders at; the selector rescales it
 
@@ -193,6 +195,27 @@ HTML = """<!doctype html>
    attribute is the used height and every thumbnail stretches to 562px tall at
    full width -- the attributes must only inform the ratio. */
 .tc img{height:auto}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px 18px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px 22px;box-shadow:var(--sh);margin:22px 0 0}
+.calc label{display:block;font-size:11px;font-weight:660;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.calc input{width:100%%;font:inherit;font-weight:660;font-size:17px;padding:8px 10px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;
+  text-align:right;font-variant-numeric:tabular-nums}
+.calc input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.side{display:flex;gap:8px}
+.side button{flex:1;font:inherit;font-size:13.5px;font-weight:600;padding:9px 6px;
+  border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--mut);cursor:pointer}
+.side button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--bg)}
+.out{margin:18px 0 0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.out table{margin:0}
+.out .big td{font-size:1.15rem;font-weight:680}
+.calcwarn{margin:16px 0 0;padding:12px 16px;border-radius:12px;font-size:13.5px;line-height:1.6;
+  border:1px solid var(--neg);background:color-mix(in srgb,var(--neg) 9%%,transparent)}
+.calcwarn b{color:var(--neg)}
+.calcok{margin:16px 0 0;padding:12px 16px;border-radius:12px;font-size:13.5px;
+  border-left:3px solid var(--pos);background:var(--posbg)}
 </style>
 </head><body><div class="wrap">
 
@@ -230,11 +253,12 @@ losing trade breaches a 3%% daily limit past <b>3.00%%</b>.</p>
 
 <nav>
 <a href="#rules"><span>01</span>The rules</a>
-<a href="#curve"><span>02</span>The curve</a>
-<a href="#months"><span>03</span>Month by month</a>
-<a href="#exits"><span>04</span>How trades end</a>
-<a href="#honest"><span>05</span>What is weak</a>
-<a href="#gal"><span>06</span>Every trade</a>
+<a href="#calc"><span>02</span>Stop calculator</a>
+<a href="#curve"><span>03</span>The curve</a>
+<a href="#months"><span>04</span>Month by month</a>
+<a href="#exits"><span>05</span>How trades end</a>
+<a href="#honest"><span>06</span>What is weak</a>
+<a href="#gal"><span>07</span>Every trade</a>
 </nav>
 </header>
 
@@ -282,8 +306,43 @@ back inside, under the 600 limit, so it is valid.</p>
 </div>
 </section>
 
+<section id="calc">
+<h2><span class="num">02</span>Stop calculator</h2>
+<p class="sub">Yesterday's high and low, which side got swept, and the price you filled at. It
+returns the level, the stop, the risk in points and the target, using the same
+<b>&times;&nbsp;%(slfrac).2f</b> stop and <b>%(rr)g R</b> target the 54 trades above were scored with.</p>
+
+<div class="calc">
+<div><label for="cy_hi">Yesterday's high</label><input id="cy_hi" type="number" step="0.01" value="4650.00"></div>
+<div><label for="cy_lo">Yesterday's low</label><input id="cy_lo" type="number" step="0.01" value="4548.00"></div>
+<div><label>Which side was swept</label><div class="side">
+<button id="c_hi" aria-pressed="true">High &rarr; sell</button>
+<button id="c_lo" aria-pressed="false">Low &rarr; buy</button></div></div>
+<div><label for="c_entry">Your fill (the M5 close)</label><input id="c_entry" type="number" step="0.01" value="4646.00"></div>
+<div><label for="c_bal">Account balance</label><input id="c_bal" type="number" step="100" value="10000"></div>
+<div><label for="c_risk">Risk per trade %%</label><input id="c_risk" type="number" step="0.25" value="2.5"></div>
+</div>
+<div id="c_msg"></div>
+<div class="out"><table>
+<tbody>
+<tr><td>Yesterday's range</td><td id="o_range"></td></tr>
+<tr><td>Stop distance from the level &mdash; range &times; %(slfrac).2f</td><td id="o_dist"></td></tr>
+<tr><td>The level you are fading</td><td id="o_level"></td></tr>
+<tr><td>How far your fill ran back inside</td><td id="o_depth"></td></tr>
+<tr class="big"><td><b>Stop</b></td><td id="o_stop"></td></tr>
+<tr class="big"><td><b>Risk</b></td><td id="o_risk"></td></tr>
+<tr class="big"><td><b>Target</b></td><td id="o_tp"></td></tr>
+<tr><td>Position size at that risk</td><td id="o_lots"></td></tr>
+</tbody></table></div>
+<p style="font-size:13px;color:var(--mut);margin-top:12px">Size assumes gold at $1 per point per
+lot (100 oz, 1 point = 0.01). Check it against your own contract before trusting it. The stop is
+measured from the <b>level</b>, not from your fill, so your risk is that distance <b>plus</b>
+however far price ran back inside before you got in. The rules above round the fraction to
+&ldquo;a third&rdquo;; the tested constant is <b>0.33</b> and that is what this uses.</p>
+</section>
+
 <section id="curve">
-<h2><span class="num">02</span>The curve</h2>
+<h2><span class="num">03</span>The curve</h2>
 <p class="sub">Cumulative return in R, trade by trade, in the order they happened.</p>
 <figure><div class="fig">%(curve)s</div>
 <figcaption>%(n)d trades, %(year)d. R is multiples of what you risked, so the curve does not
@@ -291,7 +350,7 @@ depend on account size.</figcaption></figure>
 </section>
 
 <section id="months">
-<h2><span class="num">03</span>Quarter, month, week</h2>
+<h2><span class="num">04</span>Quarter, month, week</h2>
 <p class="sub">The test that matters for a small sample: is this one lucky stretch, or all of
 them? Trading days are the days <em>available</em> in the period, not the days that produced a
 trade. A scratch (BE) finished within 0.10 R of flat and counts in neither the wins nor the
@@ -318,7 +377,7 @@ losses.</p>
 </section>
 
 <section id="exits">
-<h2><span class="num">04</span>How trades end</h2>
+<h2><span class="num">05</span>How trades end</h2>
 <p class="sub">Median hold %(hmed).0f minutes. Targets take a median of %(htp).0f minutes; stops land in %(hsl).0f.</p>
 <div class="scroll"><table>
 <thead><tr><th>Exit</th><th>Count</th><th>Share</th><th>Average</th><th>Total</th></tr></thead>
@@ -328,7 +387,7 @@ losses.</p>
 </section>
 
 <section id="honest">
-<h2><span class="num">05</span>What is weak about this</h2>
+<h2><span class="num">06</span>What is weak about this</h2>
 <p class="sub">Everything below is a reason not to size this like a proven edge.</p>
 <div class="note"><div class="t">Small sample, and it was searched</div>
 <p><b>%(n)d trades over nine months.</b> The configuration was picked from a grid of roughly a
@@ -373,7 +432,7 @@ is worth roughly <b>+0.27 R per trade</b>, and that part is stable across every 
 </section>
 
 <section id="gal">
-<h2><span class="num">06</span>Every trade</h2>
+<h2><span class="num">07</span>Every trade</h2>
 <p class="sub">All %(n)d of them. Shaded band = from the sweep to the entry candle.</p>
 <div class="filters">
 <div class="fgroup"><b>Result</b>
@@ -427,6 +486,62 @@ document.getElementById('lbprev').onclick=function(){show(i-1)};
 document.getElementById('lbnext').onclick=function(){show(i+1)};
 document.getElementById('lbclose').onclick=function(){lb.classList.remove('on')};
 lb.onclick=function(e){if(e.target===lb)lb.classList.remove('on')};
+(function(){
+  var SLF=%(slfrac).4f, RRV=%(rr).4f, MAXD=%(maxd).0f;
+  var hi=document.getElementById('cy_hi'), lo=document.getElementById('cy_lo'),
+      en=document.getElementById('c_entry'), bal=document.getElementById('c_bal'),
+      rk=document.getElementById('c_risk'),
+      bHi=document.getElementById('c_hi'), bLo=document.getElementById('c_lo'),
+      msg=document.getElementById('c_msg'), sellSide=true;
+  function px(v){return (v*100).toFixed(0)+' pts'}
+  function set(id,txt){document.getElementById(id).innerHTML=txt}
+  function calc(){
+    var H=parseFloat(hi.value), L=parseFloat(lo.value), E=parseFloat(en.value),
+        B=parseFloat(bal.value), P=parseFloat(rk.value);
+    msg.innerHTML='';
+    if(!(H>L)){msg.innerHTML='<div class="calcwarn"><b>The high must be above the low.</b></div>';
+      ['o_range','o_dist','o_level','o_depth','o_stop','o_risk','o_tp','o_lots'].forEach(function(i){set(i,'&mdash;')});return}
+    var rng=H-L, dist=SLF*rng, lvl=sellSide?H:L, sgn=sellSide?1:-1;
+    set('o_range', rng.toFixed(2)+' &nbsp; <b>'+px(rng)+'</b>');
+    set('o_dist', dist.toFixed(2)+' &nbsp; <b>'+px(dist)+'</b>');
+    set('o_level', '<b>'+lvl.toFixed(2)+'</b> &nbsp; the '+(sellSide?'high':'low')+' of yesterday');
+    var stop=lvl+sgn*dist;
+    set('o_stop','<b>'+stop.toFixed(2)+'</b>');
+    if(!isFinite(E)){
+      set('o_depth','enter your fill'); set('o_risk','&mdash;'); set('o_tp','&mdash;'); set('o_lots','&mdash;');
+      return}
+    var depth=(lvl-E)*sgn;
+    if(depth<0){
+      msg.innerHTML='<div class="calcwarn">A '+(sellSide?'sell':'buy')+' fades the '+
+        (sellSide?'high':'low')+', so your fill must be <b>'+(sellSide?'below':'above')+
+        '</b> '+lvl.toFixed(2)+'. That is not this setup.</div>';
+      set('o_depth','<b class="neg">wrong side of the level</b>');
+      set('o_risk','&mdash;'); set('o_tp','&mdash;'); set('o_lots','&mdash;'); return}
+    var over=depth*100>MAXD;
+    set('o_depth', px(depth)+(over
+      ? ' &nbsp; <b class="neg">past the '+MAXD.toFixed(0)+'-point limit &mdash; skip it</b>'
+      : ' &nbsp; <span class="pos">within '+MAXD.toFixed(0)+' &mdash; valid</span>'));
+    var risk=Math.abs(E-stop), tp=E-sgn*RRV*risk;
+    set('o_risk','<b>'+px(risk)+'</b> &nbsp; '+risk.toFixed(2)+' from '+E.toFixed(2)+' to '+stop.toFixed(2));
+    set('o_tp','<b>'+tp.toFixed(2)+'</b> &nbsp; '+px(RRV*risk)+' away');
+    if(B>0&&P>0){
+      var money=B*P/100.0, lots=money/(risk*100.0);
+      set('o_lots','<b>'+lots.toFixed(2)+' lots</b> &nbsp; risking $'+money.toFixed(2));
+    } else set('o_lots','&mdash;');
+    msg.innerHTML = over
+      ? '<div class="calcwarn">The fill ran <b>'+px(depth)+'</b> back inside the level, past the '+
+        MAXD.toFixed(0)+'-point limit. <b>This setup is skipped.</b></div>'
+      : '<div class="calcok">Valid setup. Sell'.replace('Sell',sellSide?'Sell':'Buy')+
+        ' '+E.toFixed(2)+', stop '+stop.toFixed(2)+', target '+tp.toFixed(2)+'.</div>';
+  }
+  function side(sell){sellSide=sell;
+    bHi.setAttribute('aria-pressed',sell?'true':'false');
+    bLo.setAttribute('aria-pressed',sell?'false':'true');calc()}
+  bHi.onclick=function(){side(true)}; bLo.onclick=function(){side(false)};
+  [hi,lo,en,bal,rk].forEach(function(el){el.oninput=calc});
+  calc();
+})();
+
 var ri=document.getElementById('risk'),rw=document.getElementById('riskwarn'),
     MAXDD=%(ddr).4f,WRUN=%(wrun).4f;
 function risk(){var v=parseFloat(ri.value);if(!(v>0))return;
@@ -494,6 +609,7 @@ open(os.path.join(REPO, "pdfade.html"), "w").write(HTML % dict(
     aw=aw, al=al, payoff=aw/abs(al), t=ev/se, cards=cards, mchips=mchips,
     gen=dt.date.today().strftime("%d %B %Y"),
     wrun=WRUN, brk=12.0/max(dd, WRUN), ddr=dd, rr=RR,
+    sldiv=1.0/SL_FRAC, slfrac=SL_FRAC, maxd=MAX_DEPTH_PTS,
     rows_wd=rows_wd, mon_n=len(_mon), mon_ev=sum(_mon)/len(_mon),
     rest_ev=sum(_rest)/len(_rest),
     hmed=HOLD["med"], htp=HOLD["tp"], hsl=HOLD["sl"], hlast=HOLD["last"],
