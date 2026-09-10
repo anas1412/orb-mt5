@@ -43,11 +43,11 @@ css = re.search(r"<style>(.*?)</style>", open(os.path.join(RESEARCH,"template.ht
 def sgn(v, dp=1, suf=" R"):
     return '<span class="%s">%+.*f%s</span>' % ("pos" if v > 0 else "neg", dp, v, suf)
 
-def pct(r, dp=1):
-    """A percentage that follows the risk selector. Store R on the element and
-    multiply once in the browser -- never rescale an already-rounded percent."""
-    return ('<span class="%s" data-pct="%.4f" data-dp="%d">%+.*f%%</span>'
-            % ("pos" if r > 0 else "neg", r, dp, dp, RISK_PCT * r))
+def pct(r):
+    """A percentage that follows the risk selector, in build_report.py's exact
+    shape: R on the element, the number inside the span and the % sign outside,
+    so the same one-line JS fills it. Never rescale an already-rounded percent."""
+    return '<span data-pct="%.4f">%+.1f</span>%%' % (r, RISK_PCT * r)
 
 # ---- equity curve, drawn as plain SVG so the page needs no library ----
 w_, h_ = 1080, 300; pad = 46
@@ -95,7 +95,7 @@ def seq_cell(ts):
                                   ("neg", "L") if t["R"] < -BE else ("", "."))
         for t in sorted(ts, key=lambda z: (z["d"], z["n"])))
 
-def row(label, ts, days, seq=True, cls_row=""):
+def row(label, ts, days, seq=True, cls_row="", bold_n=False):
     """One period row, in build_report.py's column order:
        label | trading days | trades | W / L / BE | [sequence] | win rate |
        profit factor | EV per trade | total R | total %"""
@@ -106,10 +106,12 @@ def row(label, ts, days, seq=True, cls_row=""):
                 '<td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td>'
                 '<td>&ndash;</td></tr>' % (label, days, "<td>&ndash;</td>" if seq else ""))
     c = "pos" if sum(v) > 0 else ("neg" if sum(v) < 0 else "")
-    return ('<tr%s><td><b>%s</b></td><td>%d</td><td><b>%d</b></td><td>%d / %d / %d</td>%s'
+    return ('<tr%s><td><b>%s</b></td><td>%d</td>%s<td>%d / %d / %d</td>%s'
             '<td>%.1f%%</td>%s<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td>'
             '<td class="%s"><b>%s</b></td></tr>'
-            % (cls_row, label, days, len(v), len(w), len(l), len(v)-len(w)-len(l),
+            % (cls_row, label, days,
+               ('<td><b>%d</b></td>' % len(v)) if bold_n else ('<td>%d</td>' % len(v)),
+               len(w), len(l), len(v)-len(w)-len(l),
                ('<td>%s</td>' % seq_cell(ts)) if seq else "",
                100.0*len(w)/max(1, len(w)+len(l)), pfc(pf(v)), c, sum(v)/len(v),
                c, sum(v), c, pct(sum(v))))
@@ -140,7 +142,7 @@ def wlab(k):
     mon = dt.date.fromisocalendar(k[0], k[1], 1)
     return "%s&nbsp;&ndash;&nbsp;%s" % (mon.strftime("%d %b"),
                                         (mon+dt.timedelta(days=4)).strftime("%d %b"))
-rows_w = "".join(row(wlab(k), ws.get(k, []), wd[k]) for k in sorted(wd))
+rows_w = "".join(row(wlab(k), ws.get(k, []), wd[k], bold_n=True) for k in sorted(wd))
 best_w = max(ws.values(), key=lambda v: sum(x["R"] for x in v))
 worst_w = min(ws.values(), key=lambda v: sum(x["R"] for x in v))
 
@@ -283,10 +285,8 @@ losses.</p>
 <div class="k"><div class="l">Best week</div><div class="v">%(bw)s</div><div class="n">%(bwn)d trades</div></div>
 <div class="k"><div class="l">Worst week</div><div class="v">%(ww)s</div><div class="n">%(wwn)d trades</div></div>
 <div class="k"><div class="l">Winning weeks</div><div class="v">%(pw)d / %(nw)d</div><div class="n">of the weeks that traded</div></div>
-<div class="k"><div class="l">Best month deleted</div><div class="v">%(evrest)+.3f R</div><div class="n">per trade, without %(bestm)s</div></div>
+<div class="k"><div class="l">Profit factor</div><div class="v">%(pfall).2f</div><div class="n">%(gain)+.1f R won, %(loss)+.1f R lost</div></div>
 </div>
-<p>Deleting the single best month still leaves <b>%(evrest)+.3f R</b> per trade against
-<b>%(ev_plain)+.3f R</b> with it, so no one month is carrying the result.</p>
 </section>
 
 <section id="exits">
@@ -322,6 +322,10 @@ does not subtract.</p></div>
 <p>It survives a constant-risk control (so it is not just arithmetic) and sits at the
 <b>98.3rd percentile</b> of dropping 17 trades at random — but seven thresholds were tried, and
 correcting for that leaves it merely suggestive. Treat it as risk control with a possible bonus.</p></div>
+<div class="note"><div class="t">One month carries more than its share</div>
+<p>Delete the single best month (%(bestm)s) and the rest returns <b>%(evrest)+.3f R</b> a trade
+against <b>%(ev_plain)+.3f R</b> with it \u2014 the result survives, but it thins. On 65 trades that
+is the most useful robustness check available, and it is a check, not a result.</p></div>
 <div class="good"><div class="t">What does hold up</div>
 <p>Entering the moment price touches the level loses badly. Waiting for the M5 close back inside
 is worth roughly <b>+0.27 R per trade</b>, and that part is stable across every cut tested.</p></div>
@@ -386,8 +390,8 @@ var ri=document.getElementById('risk'),rw=document.getElementById('riskwarn'),
     MAXDD=%(ddr).4f,WRUN=%(wrun).4f;
 function risk(){var v=parseFloat(ri.value);if(!(v>0))return;
   document.querySelectorAll('[data-pct]').forEach(function(el){
-    var r=parseFloat(el.dataset.pct),d=parseInt(el.dataset.dp||1,10);
-    el.textContent=(r>0?'+':'')+(r*v).toFixed(d)+'%%'});
+    var r=parseFloat(el.dataset.pct);
+    el.textContent=(r>0?'+':'')+(r*v).toFixed(1)});
   document.querySelectorAll('.chips button').forEach(function(b){
     b.setAttribute('aria-pressed',parseFloat(b.dataset.r)===v?'true':'false')});
   var m=[];
@@ -418,6 +422,7 @@ open(os.path.join(REPO, "pdfade.html"), "w").write(HTML % dict(
     dd=dd, ddpct=pct(-dd), ws=streak(True), ls=streak(False),
     curve=curve_svg, rows_k=rows_k, evrest=sum(rest)/len(rest),
     rows_q=rows_q, rows_mm=rows_mm, ev_plain=ev, bestm=best,
+    pfall=pf(R) or 0, gain=sum(x for x in R if x > 0), loss=sum(x for x in R if x <= 0),
     QHEAD=QHEAD % "Quarter", MHEAD=MHEAD % "Month", WHEAD=MHEAD % "Week",
     rows_w=rows_w,
     bw=sgn(sum(x["R"] for x in best_w)), bwn=len(best_w),
