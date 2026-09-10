@@ -5,13 +5,14 @@ its prose -- different strategy, different claims.
 
     python3 studies/pdfade_page.py
 """
-import os, sys, re, json, datetime as dt
+import os, sys, re, json, struct, datetime as dt
 from collections import defaultdict
 import statistics as st
 HERE = os.path.dirname(os.path.abspath(__file__))
 RESEARCH = os.path.dirname(HERE); REPO = os.path.dirname(RESEARCH)
 sys.path.insert(0, HERE)
 import pdfade_report as CFG
+OUT_WEB = "trades-pdfade"
 RR = CFG.RR        # the target, so no string on this page can disagree with it
 BE = 0.10          # a trade inside +-0.10 R is a scratch, not a win or a loss
 RISK_PCT = 2.5     # the default the page renders at; the selector rescales it
@@ -155,16 +156,28 @@ rows_k = "".join('<tr><td><b>%s</b></td><td>%d</td><td>%.0f%%</td><td>%s</td><td
                  % (KIND[k][0], len(v), 100.0*len(v)/len(R), sgn(sum(v)/len(v), 2), sgn(sum(v)))
                  for k, v in sorted(kinds.items(), key=lambda z: -len(z[1])))
 
-cards = "".join(
-    '<a class="tc %s" data-outcome="%s" data-dir="%s" data-month="%s" href="%s" '
-    'data-r="%+.3f"><img loading="lazy" src="%s" alt="%s %s, %+.2f R"><span class="tm">'
-    '<b>%s</b> · %s · <i>%+.2f R</i> · risk %.0f pts</span></a>'
-    % ("win" if t["R"] > BE else "loss", "win" if t["R"] > BE else "loss",
-       "long" if t["buy"] else "short", t["d"].strftime("%b"),
-       "trades-pdfade/"+t["file"], t["R"], "trades-pdfade/"+t["file"],
-       t["date"], "long" if t["buy"] else "short", t["R"],
-       t["d"].strftime("%d %b"), "long" if t["buy"] else "short", t["R"], t["risk"]/0.01)
-    for t in T)
+def png_size(fn):
+    """Width and height straight out of the PNG header. Without these on the
+    tag the browser cannot reserve the box, and a lazy-loaded card off-screen
+    collapses to its caption strip -- 45px instead of 409px -- so the gallery
+    looks half empty until you scroll each row into view."""
+    with open(os.path.join(REPO, OUT_WEB, fn), "rb") as fh:
+        d = fh.read(26)
+    return struct.unpack(">II", d[16:24])
+
+cards = ""
+for t in T:
+    w, h = png_size(t["file"])
+    src = OUT_WEB + "/" + t["file"]
+    side = "long" if t["buy"] else "short"
+    cards += ('<a class="tc %s" data-outcome="%s" data-dir="%s" data-month="%s" href="%s" '
+              'data-r="%+.3f"><img loading="lazy" width="%d" height="%d" src="%s" '
+              'alt="%s %s, %+.2f R"><span class="tm"><b>%s</b> \u00b7 %s \u00b7 '
+              '<i>%+.2f R</i> \u00b7 risk %.0f pts</span></a>'
+              % ("win" if t["R"] > BE else "loss", "win" if t["R"] > BE else "loss",
+                 side, t["d"].strftime("%b"), src, t["R"], w, h, src,
+                 t["date"], side, t["R"], t["d"].strftime("%d %b"), side,
+                 t["R"], t["risk"]/0.01))
 
 mchips = "".join('<button class="chip" data-f="month" data-v="%s" aria-pressed="false">%s</button>' % (m, m)
                  for m in MONTHS)
