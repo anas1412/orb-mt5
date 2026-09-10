@@ -13,7 +13,9 @@ RESEARCH = os.path.dirname(HERE); REPO = os.path.dirname(RESEARCH)
 BE = 0.10          # a trade inside +-0.10 R is a scratch, not a win or a loss
 RISK_PCT = 2.5     # the default the page renders at; the selector rescales it
 
-T = json.load(open(os.path.join(RESEARCH, "data", "pdfade_trades.json")))
+_raw = json.load(open(os.path.join(RESEARCH, "data", "pdfade_trades.json")))
+T = _raw["trades"]
+DAYS = [dt.date.fromisoformat(x) for x in _raw["days"]]
 for t in T:
     t["d"] = dt.date.fromisoformat(t["date"])
 R = [t["R"] for t in T]
@@ -79,48 +81,68 @@ def pf(v):
     g = sum(x for x in v if x > 0); l = -sum(x for x in v if x <= 0)
     return round(g / l, 2) if l > 0 else None
 
-def seq(ts):
-    """W/L/. per trade in the order they happened. A scratch is a dot."""
-    return "-".join("W" if t["R"] > BE else "L" if t["R"] < -BE else "."
-                    for t in sorted(ts, key=lambda z: (z["d"], z["n"])))
+def pfc(v):
+    """Profit-factor cell, coloured against 1.0, the same as build_report."""
+    if v is None: return '<td>&ndash;</td>'
+    return '<td class="%s">%.2f</td>' % ("pos" if v >= 1 else "neg", v)
 
-def block(label, ts):
+def seq_cell(ts):
+    """L-L-W-W-L, wins green and losses red, so a streak is visible at a
+    glance. A dot is a scratch -- inside 0.10 R, counted in neither."""
+    if not ts: return "&ndash;"
+    return '<span class="seq">%s</span>' % "-".join(
+        '<b class="%s">%s</b>' % (("pos", "W") if t["R"] > BE else
+                                  ("neg", "L") if t["R"] < -BE else ("", "."))
+        for t in sorted(ts, key=lambda z: (z["d"], z["n"])))
+
+def row(label, ts, days, seq=True, cls_row=""):
+    """One period row, in build_report.py's column order:
+       label | trading days | trades | W / L / BE | [sequence] | win rate |
+       profit factor | EV per trade | total R | total %"""
     v = [t["R"] for t in ts]
     w = [x for x in v if x > BE]; l = [x for x in v if x < -BE]
-    p = pf(v)
-    return ('<tr class="%s"><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d</td><td>%d</td>'
-            '<td>%d</td><td>%.0f%%</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>'
-            '<td class="seq">%s</td></tr>'
-            % ("neg" if sum(v) < 0 else "", label, len({t["d"] for t in ts}), len(v),
-               len(w), len(l), len(v)-len(w)-len(l),
-               100.0*len(w)/max(1, len(w)+len(l)),
-               sgn(sum(v)/len(v), 3), sgn(sum(v)), pct(sum(v)),
-               ("%.2f" % p) if p else "&mdash;", seq(ts)))
+    if not v:
+        return ('<tr class="q"><td>%s</td><td>%d</td><td>0</td><td>&ndash;</td>%s'
+                '<td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td>'
+                '<td>&ndash;</td></tr>' % (label, days, "<td>&ndash;</td>" if seq else ""))
+    c = "pos" if sum(v) > 0 else ("neg" if sum(v) < 0 else "")
+    return ('<tr%s><td><b>%s</b></td><td>%d</td><td><b>%d</b></td><td>%d / %d / %d</td>%s'
+            '<td>%.1f%%</td>%s<td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td>'
+            '<td class="%s"><b>%s</b></td></tr>'
+            % (cls_row, label, days, len(v), len(w), len(l), len(v)-len(w)-len(l),
+               ('<td>%s</td>' % seq_cell(ts)) if seq else "",
+               100.0*len(w)/max(1, len(w)+len(l)), pfc(pf(v)), c, sum(v)/len(v),
+               c, sum(v), c, pct(sum(v))))
 
-QH = ('<thead><tr><th>%s</th><th>Days</th><th>Trades</th><th>Won</th><th>Lost</th>'
-      '<th>Scratch</th><th>Win rate</th><th>Per trade</th><th>Total</th><th>Account</th>'
-      '<th>Profit factor</th><th>Order</th></tr></thead>')
+QHEAD = ('<thead><tr><th>%s</th><th>Trading days</th><th>Trades</th><th>W / L / BE</th>'
+         '<th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th>'
+         '<th>Total %%</th></tr></thead>')
+MHEAD = ('<thead><tr><th>%s</th><th>Trading days</th><th>Trades</th><th>W / L / BE</th>'
+         '<th>Sequence</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th>'
+         '<th>Total R</th><th>Total %%</th></tr></thead>')
 
-qs = defaultdict(list)
-for t in T: qs["Q%d" % ((t["d"].month - 1)//3 + 1)].append(t)
-rows_q = "".join(block(q, qs[q]) for q in sorted(qs))
-rows_mm = "".join(block(m, mo[m]) for m in MONTHS)
-rows_all = block("2026", T)
+qs = defaultdict(list); qd = defaultdict(int)
+for t in T: qs["Q%d" % ((t["d"].month-1)//3+1)].append(t)
+for d in DAYS: qd["Q%d" % ((d.month-1)//3+1)] += 1
+rows_q = "".join(row(q, qs[q], qd[q], seq=False) for q in sorted(qs))
+rows_q += row("2026", T, len(DAYS), seq=False, cls_row=' class="hi"')
 
-ws = defaultdict(list)
-for t in T: ws[t["d"].isocalendar()[1]].append(t)
+md = defaultdict(int)
+for d in DAYS: md[d.strftime("%b")] += 1
+rows_mm = "".join(row(m, mo[m], md[m]) for m in MONTHS)
+
+# Every week of the year, including the ones that produced nothing -- a table
+# that silently drops the quiet weeks flatters the strategy.
+ws = defaultdict(list); wd = defaultdict(int)
+for t in T: ws[t["d"].isocalendar()[:2]].append(t)
+for d in DAYS: wd[d.isocalendar()[:2]] += 1
+def wlab(k):
+    mon = dt.date.fromisocalendar(k[0], k[1], 1)
+    return "%s&nbsp;&ndash;&nbsp;%s" % (mon.strftime("%d %b"),
+                                        (mon+dt.timedelta(days=4)).strftime("%d %b"))
+rows_w = "".join(row(wlab(k), ws.get(k, []), wd[k]) for k in sorted(wd))
 best_w = max(ws.values(), key=lambda v: sum(x["R"] for x in v))
 worst_w = min(ws.values(), key=lambda v: sum(x["R"] for x in v))
-
-rows_m = "".join(
-    '<tr class="%s"><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d</td><td>%d</td>'
-    '<td>%.0f%%</td><td>%s</td><td>%s</td></tr>'
-    % ("neg" if sum(x["R"] for x in v) < 0 else "",
-       m, len(v), len([x for x in v if x["R"] > BE]), len([x for x in v if x["R"] < -BE]),
-       len([x for x in v if abs(x["R"]) <= BE]),
-       100.0*len([x for x in v if x["R"] > BE])/max(1, len([x for x in v if abs(x["R"]) > BE])),
-       sgn(sum(x["R"] for x in v)), pct(sum(x["R"] for x in v)))
-    for m, v in ((m, mo[m]) for m in MONTHS))
 
 KIND = {"tp":("hit the 2R target","pos"),"sl":("stopped out","neg"),
         "eod":("closed at the session end","")}
@@ -240,21 +262,27 @@ depend on account size.</figcaption></figure>
 
 <section id="months">
 <h2><span class="num">03</span>Quarter, month, week</h2>
-<p class="sub">The test that matters for a small sample: is this one lucky stretch, or all of them?
-The last column is every trade in order &mdash; W won, L lost, a dot is a scratch.</p>
+<p class="sub">The test that matters for a small sample: is this one lucky stretch, or all of
+them? Trading days are the days <em>available</em> in the period, not the days that produced a
+trade. A scratch (BE) finished within 0.10 R of flat and counts in neither the wins nor the
+losses.</p>
 
 <div class="scroll"><table>
-<caption>By quarter. Scratch = finished within 0.10 R of flat; not counted in the win rate.</caption>
-%(QH_q)s<tbody>%(rows_q)s<tr class="hi">%(rows_all_inner)s</tbody></table></div>
+<caption>By quarter &mdash; trading days available, trades taken, and totals</caption>
+%(QHEAD)s<tbody>%(rows_q)s</tbody></table></div>
 
 <div class="scroll"><table>
-<caption>By month.</caption>
-%(QH_m)s<tbody>%(rows_mm)s</tbody></table></div>
+<caption>By month. The sequence is every trade in order: W won, L lost, a dot is a scratch.</caption>
+%(MHEAD)s<tbody>%(rows_mm)s</tbody></table></div>
+
+<div class="scroll"><table>
+<caption>Every week of 2026. Trades taken out of the days available.</caption>
+%(WHEAD)s<tbody>%(rows_w)s</tbody></table></div>
 
 <div class="kpi" style="grid-template-columns:repeat(4,minmax(0,1fr))">
 <div class="k"><div class="l">Best week</div><div class="v">%(bw)s</div><div class="n">%(bwn)d trades</div></div>
 <div class="k"><div class="l">Worst week</div><div class="v">%(ww)s</div><div class="n">%(wwn)d trades</div></div>
-<div class="k"><div class="l">Winning weeks</div><div class="v">%(pw)d / %(nw)d</div><div class="n">weeks with a trade</div></div>
+<div class="k"><div class="l">Winning weeks</div><div class="v">%(pw)d / %(nw)d</div><div class="n">of the weeks that traded</div></div>
 <div class="k"><div class="l">Best month deleted</div><div class="v">%(evrest)+.3f R</div><div class="n">per trade, without %(bestm)s</div></div>
 </div>
 <p>Deleting the single best month still leaves <b>%(evrest)+.3f R</b> per trade against
@@ -388,10 +416,10 @@ open(os.path.join(REPO, "pdfade.html"), "w").write(HTML % dict(
     css=css, year=2026, n=len(T), tot=sgn(sum(R)), retpct=pct(sum(R)),
     ev=sgn(ev, 3), se=se, wr=wr, W=len(W), L=len(L), BE=BEn, need=need, cush=wr-need,
     dd=dd, ddpct=pct(-dd), ws=streak(True), ls=streak(False),
-    curve=curve_svg, rows_m=rows_m, rows_k=rows_k, evrest=sum(rest)/len(rest),
+    curve=curve_svg, rows_k=rows_k, evrest=sum(rest)/len(rest),
     rows_q=rows_q, rows_mm=rows_mm, ev_plain=ev, bestm=best,
-    QH_q=QH % "Quarter", QH_m=QH % "Month",
-    rows_all_inner=rows_all[rows_all.index(">")+1:rows_all.rindex("</tr>")],
+    QHEAD=QHEAD % "Quarter", MHEAD=MHEAD % "Month", WHEAD=MHEAD % "Week",
+    rows_w=rows_w,
     bw=sgn(sum(x["R"] for x in best_w)), bwn=len(best_w),
     ww=sgn(sum(x["R"] for x in worst_w)), wwn=len(worst_w),
     pw=len([v for v in ws.values() if sum(x["R"] for x in v) > 0]), nw=len(ws),

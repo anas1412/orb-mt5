@@ -200,7 +200,13 @@ if __name__ == "__main__":
         t["n"] = i
         t["file"] = draw(t, bars, i)
     trades = [t for t in trades if t["file"]]
-    json.dump([{k: (v.isoformat() if isinstance(v, dt.date) else v)
-                for k, v in t.items() if k in ("date","buy","R","file","n","rg","risk","depth","kind")}
-               for t in trades], open(os.path.join(RESEARCH, "data", "pdfade_trades.json"), "w"), indent=1)
+    # The page needs the trading calendar too, not just the trades: a week with
+    # no trade still has to appear as a row, and "trading days" is days
+    # AVAILABLE in the period, not days that produced a trade.
+    json.dump(dict(
+        trades=[{k: (v.isoformat() if isinstance(v, dt.date) else v)
+                 for k, v in t.items() if k in ("date","buy","R","file","n","rg","risk","depth","kind")}
+                for t in trades],
+        days=[d.isoformat() for d in ds if d.year == YEAR and d.weekday() < 5]),
+        open(os.path.join(RESEARCH, "data", "pdfade_trades.json"), "w"), indent=1)
     print("drew %d charts into %s" % (len(trades), OUT_WEB))
