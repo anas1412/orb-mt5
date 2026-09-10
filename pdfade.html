@@ -364,8 +364,6 @@ calculate, only a row to read.</p>
 <div><label>Which side gets swept</label><div class="side">
 <button id="c_hi" aria-pressed="true">High &rarr; sell</button>
 <button id="c_lo" aria-pressed="false">Low &rarr; buy</button></div></div>
-<div><label for="c_bal">Account balance</label><input id="c_bal" type="number" step="100" value="10000"></div>
-<div><label for="c_risk">Risk per trade %</label><input id="c_risk" type="number" step="0.25" value="2.5"></div>
 </div>
 <div id="c_msg"></div>
 
@@ -379,11 +377,10 @@ calculate, only a row to read.</p>
 
 <h3>Then read the row that matches your fill</h3>
 <p>Every row is valid for the day. The further inside the level you get filled, the more you are
-risking, so the size shrinks. Past <b>600 points</b> the setup is skipped.</p>
+risking. Past <b>600 points</b> the setup is skipped.</p>
 <div class="scroll"><table id="o_grid">
-<caption>Fill depth is how far back inside the level the price you got was. Size assumes gold at
-$1 per point per lot; check it against your own contract.</caption>
-<thead><tr><th>Fill depth</th><th>You filled at</th><th>Risk</th><th>Target</th><th>Size</th></tr></thead>
+<caption>Fill depth is how far back inside the level the price you got was.</caption>
+<thead><tr><th>Fill depth</th><th>You filled at</th><th>Risk</th><th>Target</th></tr></thead>
 <tbody></tbody></table></div>
 <p style="font-size:13px;color:var(--mut);margin-top:12px">The rules above round the stop fraction
 to &ldquo;a third&rdquo;; the tested constant is <b>0.33</b> and that is what this uses,
@@ -538,15 +535,13 @@ lb.onclick=function(e){if(e.target===lb)lb.classList.remove('on')};
 (function(){
   var SLF=0.3300, RRV=2.5000, MAXD=600;
   var hi=document.getElementById('cy_hi'), lo=document.getElementById('cy_lo'),
-      bal=document.getElementById('c_bal'), rk=document.getElementById('c_risk'),
       bHi=document.getElementById('c_hi'), bLo=document.getElementById('c_lo'),
       msg=document.getElementById('c_msg'),
       body=document.querySelector('#o_grid tbody'), sellSide=true;
   function px(v){return (v*100).toFixed(0)+' pts'}
   function set(id,t){document.getElementById(id).innerHTML=t}
   function calc(){
-    var H=parseFloat(hi.value), L=parseFloat(lo.value),
-        B=parseFloat(bal.value), P=parseFloat(rk.value);
+    var H=parseFloat(hi.value), L=parseFloat(lo.value);
     msg.innerHTML=''; body.innerHTML='';
     if(!(H>L)){
       msg.innerHTML='<div class="calcwarn"><b>The high must be above the low.</b></div>';
@@ -557,20 +552,17 @@ lb.onclick=function(e){if(e.target===lb)lb.classList.remove('on')};
     set('o_dist', dist.toFixed(2)+' &nbsp; <b>'+px(dist)+'</b>');
     set('o_level', '<b>'+lvl.toFixed(2)+'</b> &nbsp; the '+(sellSide?'high':'low')+' of yesterday');
     set('o_stop', '<b>'+stop.toFixed(2)+'</b>');
-    var money=(B>0&&P>0)?B*P/100.0:0;
     var rows='';
     for(var d=0; d<=MAXD; d+=100){
       var entry=lvl-sgn*d/100.0, risk=Math.abs(entry-stop), tp=entry-sgn*RRV*risk;
-      var lots=money?money/(risk*100.0):0;
       rows+='<tr'+(d===0?' class="hi"':'')+'><td><b>'+d+' pts</b></td>'
         +'<td>'+entry.toFixed(2)+'</td>'
         +'<td><b>'+px(risk)+'</b></td>'
-        +'<td>'+tp.toFixed(2)+'</td>'
-        +'<td>'+(money?'<b>'+lots.toFixed(2)+'</b> lots':'&mdash;')+'</td></tr>';
+        +'<td>'+tp.toFixed(2)+'</td></tr>';
     }
     var e2=lvl-sgn*(MAXD+100)/100.0, r2=Math.abs(e2-stop);
     rows+='<tr class="q"><td>'+(MAXD+100)+' pts and beyond</td><td>'+e2.toFixed(2)
-      +'</td><td colspan="3"><b class="neg">past the limit &mdash; skip the setup</b></td></tr>';
+      +'</td><td colspan="2"><b class="neg">past the limit &mdash; skip the setup</b></td></tr>';
     body.innerHTML=rows;
     msg.innerHTML='<div class="calcok">Sell'.replace('Sell',sellSide?'Sell':'Buy')
       +' the retest of <b>'+lvl.toFixed(2)+'</b>, stop <b>'+stop.toFixed(2)
@@ -580,7 +572,7 @@ lb.onclick=function(e){if(e.target===lb)lb.classList.remove('on')};
     bHi.setAttribute('aria-pressed',sell?'true':'false');
     bLo.setAttribute('aria-pressed',sell?'false':'true');calc()}
   bHi.onclick=function(){side(true)}; bLo.onclick=function(){side(false)};
-  [hi,lo,bal,rk].forEach(function(el){el.oninput=calc});
+  [hi,lo].forEach(function(el){el.oninput=calc});
   calc();
 })();
 
