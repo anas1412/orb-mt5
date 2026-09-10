@@ -9,7 +9,7 @@ data, its own page and its own trade folder.
     stop     yesterday's range / 3, beyond the level
     target   RR x risk (2.5)
     exit     the day's close if neither is hit
-    hours    00:00-08:00 UTC
+    hours    00:00-08:00 UTC, Tuesday to Friday
 
     python3 studies/pdfade_report.py [--all]
 """
@@ -31,6 +31,11 @@ WINDOW    = (0, 480)   # UTC minutes: Asia 00:00-08:00
 SL_FRAC   = 0.33       # of yesterday's range, beyond the level
 RR        = 2.5
 MAX_DEPTH = 6.00       # 600 points; skip a close that ran further back inside
+# Monday is out. Its levels come from FRIDAY, with a whole weekend in between,
+# so the high and low it fades are three days stale. Measured: Monday returned
+# -0.050 R a trade against +0.527 for the rest, and dropping it lifts the
+# simulated pass rate from 82.0% to 84.2% while halving the failure rate.
+DAYS      = (1, 2, 3, 4)   # Tue-Fri, as Python weekdays
 SPREAD    = 0.50
 OUT_DIR   = os.path.join(REPO, "trades-pdfade")
 OUT_WEB   = "trades-pdfade"
@@ -57,7 +62,7 @@ def find_trades(days, ds):
     out = []
     for i in range(1, len(ds)):
         c, p = ds[i], ds[i-1]
-        if c.year != YEAR:
+        if c.year != YEAR or c.weekday() not in DAYS:
             continue
         ph = max(x[2] for x in days[p]); pl = min(x[3] for x in days[p])
         rg = ph - pl
@@ -249,7 +254,7 @@ if __name__ == "__main__":
         trades=[{k: (v.isoformat() if isinstance(v, dt.date) else v)
                  for k, v in t.items() if k in ("date","buy","R","file","n","rg","risk","depth","kind")}
                 for t in trades],
-        days=[d.isoformat() for d in ds if d.year == YEAR and d.weekday() < 5],
+        days=[d.isoformat() for d in ds if d.year == YEAR and d.weekday() in DAYS],
         # Measured here rather than typed into the page, so changing RR cannot
         # leave a stale hold time in the prose.
         hold=hold_stats(bars, trades)),

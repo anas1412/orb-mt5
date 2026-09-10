@@ -1,84 +1,94 @@
-"""Two batches of challenge accounts: one running the opening range, one running
-the previous-day fade. Data only.
+"""Two batches of four challenge accounts, in weekday rotation. Data only.
 
-A batch is not one account. What matters is the fraction of ATTEMPTS that pass,
-because a failed attempt costs a fee rather than the capital, and how long an
-attempt takes, because that sets how fast a batch turns over. Accounts inside a
-batch run the same strategy, so they are distinct attempts only if they start on
-different days -- which is what the staggering table measures.
+  A batch  opening range, Mon-Thu   A1+A2 Mon+Wed   A3+A4 Tue+Thu
+  B batch  previous-day fade, Tue-Fri  B1+B2 Tue+Thu   B3+B4 Wed+Fri
 
-Every attempt is simulated on the real 2026 trade sequence. Barriers are
-FundingPips 1 Step Flex: +12% target, 12% maximum loss, 3% daily. Both loss
-barriers are tested trade by trade, never on the day's net -- an account that
-goes through a limit intraday is gone whatever the day closes at.
+An account trades only its two weekdays, so it sees about half the signals. The
+pair sharing a day takes the identical trade, so a batch of four is two distinct
+attempts each held twice.
+
+Everything is a barrier simulation on resampled trading days. Days are resampled
+BY WEEKDAY, so a Wednesday is always drawn from Wednesdays -- the rotation is a
+weekday rule and a pool that ignored weekdays could not model it. The 3% daily
+limit needs the trades that shared a day to keep sharing one, so days are the
+resampling unit rather than trades.
+
+Barriers: +12% target, 12% maximum loss, 3% daily, checked trade by trade.
 
     python3 studies/batches_page.py
 """
-import os, re, json, datetime as dt, statistics as st
-from collections import Counter, defaultdict
+import os, re, json, random, datetime as dt, statistics as st
+from collections import defaultdict, Counter
 HERE = os.path.dirname(os.path.abspath(__file__))
 RESEARCH = os.path.dirname(HERE); REPO = os.path.dirname(RESEARCH)
 
 TARGET, MAXLOSS, DAILY = 12.0, 12.0, 3.0
+PATHS, DEADLINE = 20000, 60        # paths per cell; deadline in weekday steps
 RISK  = 2.5
-RISKS = (1.0, 1.5, 2.0, 2.5, 2.75, 2.9, 3.0, 3.5)
+RISKS = (1.5, 2.0, 2.25, 2.5, 2.6, 2.75, 2.9)
 BE    = 0.10
+WD    = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+random.seed(20260910)
 
 def load(fn, key=None):
     d = json.load(open(os.path.join(RESEARCH, "data", fn)))
-    return [dict(d=dt.date.fromisoformat(t["date"]), R=t["R"])
-            for t in (d[key] if key else d)]
+    return [dict(d=dt.date.fromisoformat(t["date"]), R=t["R"]) for t in (d[key] if key else d)]
 
-BOOKS = [("Opening range", "orb", load("trade_index.json"), "index.html"),
-         ("Previous-day fade", "fade", load("pdfade_trades.json", "trades"), "pdfade.html")]
-SEQ = {k: [(t["d"], t["R"]) for t in sorted(v, key=lambda z: z["d"])] for _, k, v, _ in BOOKS}
+BOOKS = [dict(lab="Opening range", k="orb", href="index.html", short="A",
+              trades=load("trade_index.json"), days=(0, 1, 2, 3),
+              pairs=(("A1 + A2", (0, 2)), ("A3 + A4", (1, 3)))),
+         dict(lab="Previous-day fade", k="fade", href="pdfade.html", short="B",
+              trades=load("pdfade_trades.json", "trades"), days=(1, 2, 3, 4),
+              pairs=(("B1 + B2", (1, 3)), ("B3 + B4", (2, 4))))]
 
-def attempt(seq, i, risk):
-    """One challenge attempt started at trade i. -> (outcome, days, trades)"""
-    eq = 0.0; day = None; dl = 0.0; d0 = None; n = 0
-    for d, R in seq[i:]:
-        if d != day: day, dl = d, 0.0
-        if d0 is None: d0 = d
-        p = R*risk; eq += p; n += 1
-        if p < 0: dl += p
-        if eq <= -MAXLOSS or dl <= -DAILY: return "fail", (d-d0).days+1, n
-        if eq >= TARGET: return "pass", (d-d0).days+1, n
-    return "open", 0, n
+def weekpool(b):
+    """pool[weekday] = one entry per calendar day of that weekday, each the list
+    of R values that landed on it (empty when the strategy sat the day out)."""
+    by = defaultdict(list)
+    for t in b["trades"]: by[t["d"]].append(t["R"])
+    lo, hi = min(by), max(by)
+    pool = defaultdict(list); d = lo
+    while d <= hi:
+        if d.weekday() in b["days"]: pool[d.weekday()].append(by.get(d, []))
+        d += dt.timedelta(days=1)
+    return pool
 
-def rate(seq, risk):
-    r = [attempt(seq, i, risk) for i in range(len(seq))]
-    c = Counter(x[0] for x in r); p = [x for x in r if x[0] == "pass"]
-    return dict(n=len(r), p=100.0*c["pass"]/len(r), f=100.0*c["fail"]/len(r),
-                o=100.0*c["open"]/len(r),
-                days=st.median([x[1] for x in p]) if p else None,
-                tr=st.median([x[2] for x in p]) if p else None)
+for b in BOOKS: b["pool"] = weekpool(b)
 
-# --- the cliff: where one full stop equals the daily limit ---
-CLIFF = DAILY / 1.0     # a -1R trade costs `risk`, so it breaches at risk >= 3%
+def sim(b, risk, take=None):
+    """One account. take = the weekdays it trades; None means every day the
+    strategy trades. Walks Mon..Fri repeatedly, drawing each weekday from its
+    own pool. -> pass%, fail%, abandon%, [steps to pass]"""
+    pool = b["pool"]; days = b["days"]
+    take = days if take is None else take
+    c = Counter(); dp = []
+    for _ in range(PATHS):
+        eq = 0.0; out = None
+        for step in range(DEADLINE):
+            wd = step % 5
+            if wd not in days: continue
+            bucket = pool[wd][random.randrange(len(pool[wd]))]
+            if wd not in take: continue
+            dl = 0.0
+            for R in bucket:
+                p = R*risk; eq += p
+                if p < 0: dl += p
+                if eq <= -MAXLOSS or dl <= -DAILY: out = "fail"; break
+                if eq >= TARGET: out = "pass"; break
+            if out: break
+        if out == "pass": dp.append(step+1)
+        c[out or "abandon"] += 1
+    return (100.0*c["pass"]/PATHS, 100.0*c["fail"]/PATHS, 100.0*c["abandon"]/PATHS, dp)
 
-# --- joint outcome, one account in each batch started the same day ---
-days = sorted({d for s in SEQ.values() for d, _ in s})
-def first_at(seq, d):
-    for i, (dd, _) in enumerate(seq):
-        if dd >= d: return i
-    return None
-joint = Counter()
-for d in days:
-    i, j = first_at(SEQ["orb"], d), first_at(SEQ["fade"], d)
-    if i is None or j is None: continue
-    joint[(attempt(SEQ["orb"], i, RISK)[0], attempt(SEQ["fade"], j, RISK)[0])] += 1
-JT = sum(joint.values())
-
-# --- what staggering buys inside one batch ---
-def stagger(seq, gap, k=5):
-    dist = Counter()
-    span = (k-1)*gap
-    if len(seq) - span < 5:            # not enough sequence for this spacing
-        return None
-    for i in range(len(seq) - span):
-        dist[sum(1 for j in range(k) if attempt(seq, i+j*gap, RISK)[0] == "pass")] += 1
-    m = sum(dist.values())
-    return dist, m, sum(x*c for x, c in dist.items())/m
+# ---- every number the page shows ----
+FULL, ROT = {}, {}
+for b in BOOKS:
+    for risk in RISKS:
+        FULL[(b["k"], risk)] = sim(b, risk)
+        ROT[(b["k"], risk)]  = sim(b, risk, take=b["pairs"][0][1])
+def thr(cell):
+    p, _, _, dp = cell
+    return (p/100.0)*21.0/(st.mean(dp) if dp else DEADLINE)
 
 def blk(v):
     w = [x for x in v if x > BE]; l = [x for x in v if x < -BE]
@@ -86,188 +96,321 @@ def blk(v):
     for x in v:
         r += x; pk = max(pk, r); dd = max(dd, pk-r)
     return dict(n=len(v), w=len(w), l=len(l), wr=100.0*len(w)/max(1, len(w)+len(l)),
-                ev=sum(v)/len(v), tot=sum(v), dd=dd,
-                se=st.pstdev(v)/len(v)**0.5)
+                ev=sum(v)/len(v), tot=sum(v), dd=dd, se=st.pstdev(v)/len(v)**0.5)
+for b in BOOKS:
+    b["s"] = blk([t["R"] for t in b["trades"]])
+    b["w1"] = min(t["R"] for t in b["trades"])
+    b["over1"] = len([t for t in b["trades"] if t["R"] < -1.0])
+    by = defaultdict(list)
+    for t in b["trades"]: by[t["d"].weekday()].append(t["R"])
+    b["byday"] = by
 
 css = re.search(r"<style>(.*?)</style>",
                 open(os.path.join(RESEARCH, "template.html")).read(), re.S).group(1)
+def pc(r): return '<span data-pct="%.4f">%+.1f</span>%%' % (r, RISK*r)
 
-def pct(r):
-    return '<span data-pct="%.4f">%+.1f</span>%%' % (r, RISK*r)
+# ================= charts, inline SVG so the page needs no library =========
+def linechart(series, ylab, fmt="%.0f%%", h=250, ymin=None, ymax=None):
+    """series = [(label, colour, [(x, y)...])]. x is risk in percent."""
+    w, pad, rpad = 1080, 54, 150
+    xs = [x for _, _, pts in series for x, _ in pts]
+    ys = [y for _, _, pts in series for _, y in pts]
+    x0, x1 = min(xs), max(xs)
+    y0 = ymin if ymin is not None else min(0, min(ys))
+    y1 = ymax if ymax is not None else max(ys)*1.08
+    SX = lambda v: pad + (v-x0)*(w-pad-rpad)/max(1e-9, x1-x0)
+    SY = lambda v: h-32 - (v-y0)*(h-32-14)/max(1e-9, y1-y0)
+    g = ""
+    for i in range(5):
+        v = y0 + (y1-y0)*i/4.0
+        g += ('<line x1="%d" y1="%.1f" x2="%d" y2="%.1f" stroke="var(--line)"/>'
+              '<text x="%d" y="%.1f" fill="var(--mut)" font-size="11" text-anchor="end">%s</text>'
+              % (pad, SY(v), w-rpad, SY(v), pad-8, SY(v)+4, fmt % v))
+    for x in xs:
+        pass
+    for v in sorted(set(xs)):
+        g += ('<text x="%.1f" y="%d" fill="var(--mut)" font-size="11" text-anchor="middle">%.2f%%</text>'
+              % (SX(v), h-12, v))
+    for lab, col, pts in series:
+        g += ('<polyline points="%s" fill="none" stroke="%s" stroke-width="2.4" stroke-linejoin="round"/>'
+              % (" ".join("%.1f,%.1f" % (SX(x), SY(y)) for x, y in pts), col))
+        for x, y in pts:
+            g += '<circle cx="%.1f" cy="%.1f" r="3.4" fill="%s"/>' % (SX(x), SY(y), col)
+        lx, ly = pts[-1]
+        g += ('<text x="%.1f" y="%.1f" fill="%s" font-size="12" font-weight="600">%s</text>'
+              % (SX(lx)+10, SY(ly)+4, col, lab))
+    g += ('<text x="%d" y="%d" fill="var(--mut)" font-size="11">%s</text>'
+          % (pad, 12, ylab))
+    return ('<svg viewBox="0 0 %d %d" style="width:100%%;height:auto" role="img" '
+            'aria-label="%s against risk per trade">%s</svg>' % (w, h, ylab, g))
 
-# ---- pass-rate table, both batches, every risk ----
-best = {}
-rows_r = ""
-for risk in RISKS:
-    a, b = rate(SEQ["orb"], risk), rate(SEQ["fade"], risk)
-    for k, v in (("orb", a), ("fade", b)):
-        if best.get(k) is None or v["p"] > best[k][1]["p"]: best[k] = (risk, v)
-    cliff = risk >= 3.0
-    rows_r += ('<tr%s><td><b>%.2f%%</b></td>'
-               '<td class="%s"><b>%.1f%%</b></td><td class="%s">%.1f%%</td><td>%.1f%%</td><td>%s</td>'
-               '<td class="%s"><b>%.1f%%</b></td><td class="%s">%.1f%%</td><td>%.1f%%</td><td>%s</td></tr>'
-               % (' class="neg"' if cliff else "", risk,
-                  "pos" if a["p"] > 70 else "neg", a["p"], "neg" if a["f"] else "", a["f"], a["o"],
-                  "%d" % a["days"] if a["days"] else "&ndash;",
-                  "pos" if b["p"] > 70 else "neg", b["p"], "neg" if b["f"] else "", b["f"], b["o"],
-                  "%d" % b["days"] if b["days"] else "&ndash;"))
+C_A, C_B = "var(--acc)", "var(--acc2)"
+CH_PASS = linechart([("A batch", C_A, [(r, FULL[("orb", r)][0]) for r in RISKS]),
+                     ("B batch", C_B, [(r, FULL[("fade", r)][0]) for r in RISKS])],
+                    "pass rate, one account taking every signal", ymin=0, ymax=100)
+CH_FAIL = linechart([("A batch", C_A, [(r, FULL[("orb", r)][1]) for r in RISKS]),
+                     ("B batch", C_B, [(r, FULL[("fade", r)][1]) for r in RISKS])],
+                    "breach rate", ymin=0)
+CH_THR  = linechart([("A batch", C_A, [(r, thr(FULL[("orb", r)])) for r in RISKS]),
+                     ("B batch", C_B, [(r, thr(FULL[("fade", r)])) for r in RISKS])],
+                    "passes per account-month", fmt="%.2f", ymin=0)
+CH_ROT  = linechart([("A, every day", C_A, [(r, FULL[("orb", r)][0]) for r in RISKS]),
+                     ("A, rotation", "var(--mut)", [(r, ROT[("orb", r)][0]) for r in RISKS]),
+                     ("B, every day", C_B, [(r, FULL[("fade", r)][0]) for r in RISKS]),
+                     ("B, rotation", "var(--neg)", [(r, ROT[("fade", r)][0]) for r in RISKS])],
+                    "pass rate: every signal against the two-weekday rotation", ymin=0, ymax=100)
 
-rows_j = "".join('<tr%s><td><b>%s</b> / <b>%s</b></td><td>%d</td><td>%.1f%%</td></tr>'
-                 % (' class="hi"' if k == ("pass","pass") else
-                    ' class="neg"' if k == ("fail","fail") else "",
-                    k[0], k[1], joint[k], 100.0*joint[k]/JT)
-                 for k in sorted(joint, key=lambda z: -joint[z]))
+def histo(cells, h=230):
+    """days-to-pass distribution, two series of bars"""
+    w, pad, rpad = 1080, 54, 130
+    bins = list(range(0, 61, 5))
+    out = []
+    for lab, col, dp in cells:
+        c = Counter(min(60, (x//5)*5) for x in dp)
+        n = max(1, len(dp))
+        out.append((lab, col, [100.0*c[b]/n for b in bins]))
+    top = max(v for _, _, vs in out for v in vs)*1.12
+    bw = (w-pad-rpad)/len(bins)
+    g = ""
+    for i in range(4):
+        v = top*i/3.0
+        g += ('<line x1="%d" y1="%.1f" x2="%d" y2="%.1f" stroke="var(--line)"/>'
+              '<text x="%d" y="%.1f" fill="var(--mut)" font-size="11" text-anchor="end">%.0f%%</text>'
+              % (pad, h-30-(h-44)*i/3.0, w-rpad, h-30-(h-44)*i/3.0, pad-8, h-26-(h-44)*i/3.0, v))
+    for j, b in enumerate(bins):
+        g += ('<text x="%.1f" y="%d" fill="var(--mut)" font-size="10.5" text-anchor="middle">%d</text>'
+              % (pad+j*bw+bw/2, h-12, b))
+    for si, (lab, col, vs) in enumerate(out):
+        for j, v in enumerate(vs):
+            hh = (h-44)*v/top
+            g += ('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s" rx="2"/>'
+                  % (pad+j*bw+2+si*(bw-4)/len(out), h-30-hh, (bw-4)/len(out)-1, hh, col))
+        g += ('<rect x="%d" y="%d" width="10" height="10" fill="%s" rx="2"/>'
+              '<text x="%d" y="%d" fill="var(--ink2)" font-size="12">%s</text>'
+              % (w-rpad+14, 16+si*20, col, w-rpad+30, 25+si*20, lab))
+    g += '<text x="%d" y="%d" fill="var(--mut)" font-size="11">trading days to pass</text>' % (pad, 12)
+    return ('<svg viewBox="0 0 %d %d" style="width:100%%;height:auto" role="img" '
+            'aria-label="Distribution of trading days to pass">%s</svg>' % (w, h, g))
+CH_DAYS = histo([("A batch", C_A, FULL[("orb", RISK)][3]),
+                 ("B batch", C_B, FULL[("fade", RISK)][3])])
 
-rows_s = ""
-for gap, lab in ((0, "all on the same day"), (5, "one week apart"),
-                 (10, "two weeks apart"), (15, "three weeks apart")):
-    cells = ""
-    for _, k, _, _ in BOOKS:
-        r = stagger(SEQ[k], gap)
-        if r is None:
-            cells += '<td colspan="3">&ndash;</td>'; continue
-        dist, m, exp = r
-        cells += ('<td class="%s">%.0f%%</td><td class="pos">%.0f%%</td><td><b>%.2f</b></td>'
-                  % ("neg" if dist[0]/m > 0.02 else "", 100.0*dist[0]/m,
-                     100.0*dist[5]/m, exp))
-    rows_s += '<tr><td><b>%s</b></td>%s</tr>' % (lab, cells)
+def schedule():
+    w, h, pad = 1080, 210, 120
+    cw = (w-pad-20)/5.0
+    rows = [("A1 + A2", C_A, (0, 2)), ("A3 + A4", C_A, (1, 3)),
+            ("B1 + B2", C_B, (1, 3)), ("B3 + B4", C_B, (2, 4))]
+    g = "".join('<text x="%.1f" y="26" fill="var(--mut)" font-size="12" text-anchor="middle" '
+                'font-weight="600">%s</text>' % (pad+i*cw+cw/2, WD[i]) for i in range(5))
+    for r, (lab, col, days) in enumerate(rows):
+        y = 40+r*40
+        g += ('<text x="%d" y="%.1f" fill="var(--ink)" font-size="12.5" text-anchor="end" '
+              'font-weight="600">%s</text>' % (pad-14, y+22, lab))
+        for i in range(5):
+            on = i in days
+            g += ('<rect x="%.1f" y="%.1f" width="%.1f" height="30" rx="6" fill="%s" '
+                  'stroke="var(--line)"/>' % (pad+i*cw+3, y+2, cw-6, col if on else "transparent"))
+            if on:
+                g += ('<text x="%.1f" y="%.1f" fill="var(--bg)" font-size="11.5" '
+                      'text-anchor="middle" font-weight="600">trade</text>'
+                      % (pad+i*cw+cw/2, y+22))
+            else:
+                g += ('<text x="%.1f" y="%.1f" fill="var(--mut)" font-size="11.5" '
+                      'text-anchor="middle">flat</text>' % (pad+i*cw+cw/2, y+22))
+    return ('<svg viewBox="0 0 %d %d" style="width:100%%;height:auto" role="img" aria-label='
+            '"Weekly rotation: A1 and A2 trade Monday and Wednesday, A3 and A4 Tuesday and '
+            'Thursday, B1 and B2 Tuesday and Thursday, B3 and B4 Wednesday and Friday">%s</svg>'
+            % (w, h, g))
+CH_WEEK = schedule()
 
-rows_b = "".join(
-    '<tr><td><b>%s</b></td><td>%d</td><td>%d / %d</td><td>%.1f%%</td><td class="pos">%+.3f</td>'
-    '<td class="pos"><b>%+.1f R</b></td><td>%.1f R</td><td>%+.2f</td>'
-    '<td class="pos"><b>%.1f%%</b></td><td>%d</td></tr>'
-    % (lab, b["n"], b["w"], b["l"], b["wr"], b["ev"], b["tot"], b["dd"], b["ev"]/b["se"],
-       best[k][1]["p"], best[k][1]["days"])
-    for lab, k, v, _ in BOOKS for b in [blk([t["R"] for t in v])])
+# ================= tables =================
+rows_mc = "".join(
+    '<tr%s><td><b>%.2f%%</b></td>%s</tr>'
+    % (' class="hi"' if r == RISK else "", r,
+       "".join('<td class="%s"><b>%.1f%%</b></td><td class="%s">%.1f%%</td><td>%.1f%%</td>'
+               '<td>%s</td><td class="pos"><b>%.3f</b></td>'
+               % ("pos" if FULL[(b["k"], r)][0] > 70 else "neg", FULL[(b["k"], r)][0],
+                  "neg" if FULL[(b["k"], r)][1] > 8 else "", FULL[(b["k"], r)][1],
+                  FULL[(b["k"], r)][2],
+                  "%d" % st.median(FULL[(b["k"], r)][3]) if FULL[(b["k"], r)][3] else "&ndash;",
+                  thr(FULL[(b["k"], r)]))
+               for b in BOOKS))
+    for r in RISKS)
+
+rows_rot = ""
+for b in BOOKS:
+    f, o = FULL[(b["k"], RISK)], ROT[(b["k"], RISK)]
+    p = o[0]/100.0
+    rows_rot += ('<tr><td><b>%s batch</b></td><td>%.1f%%</td><td>%s</td>'
+                 '<td class="%s"><b>%.1f%%</b></td><td>%s</td><td><b>%.2f</b></td>'
+                 '<td class="pos"><b>%.1f%%</b></td></tr>'
+                 % (b["short"], f[0], "%d" % st.median(f[3]) if f[3] else "&ndash;",
+                    "pos" if p > 0.6 else "neg", o[0],
+                    "%d" % st.median(o[3]) if o[3] else "&ndash;", 4*p, 100*(1-p)**2))
+
+rows_day = ""
+for b in BOOKS:
+    for i in sorted(b["byday"]):
+        v = b["byday"][i]; w_ = [x for x in v if x > BE]; l_ = [x for x in v if x < -BE]
+        rows_day += ('<tr><td><b>%s</b></td><td>%s</td><td>%d</td><td>%d / %d</td>'
+                     '<td>%.1f%%</td><td class="%s">%+.3f</td><td class="%s"><b>%+.1f R</b></td></tr>'
+                     % (b["short"], WD[i], len(v), len(w_), len(l_),
+                        100.0*len(w_)/max(1, len(w_)+len(l_)),
+                        "pos" if sum(v) > 0 else "neg", sum(v)/len(v),
+                        "pos" if sum(v) > 0 else "neg", sum(v)))
+
+rows_book = "".join(
+    '<tr><td><b>%s</b></td><td>%s</td><td>%d</td><td>%d / %d</td><td>%.1f%%</td>'
+    '<td class="pos">%+.3f</td><td class="pos"><b>%+.1f R</b></td><td>%.1f R</td>'
+    '<td>%+.2f</td><td class="neg">%.3f R</td><td class="neg"><b>%.2f%%</b></td></tr>'
+    % (b["lab"], "&ndash;".join((WD[b["days"][0]], WD[b["days"][-1]])), b["s"]["n"],
+       b["s"]["w"], b["s"]["l"], b["s"]["wr"], b["s"]["ev"], b["s"]["tot"], b["s"]["dd"],
+       b["s"]["ev"]/b["s"]["se"], b["w1"], DAILY/abs(b["w1"]))
+    for b in BOOKS)
 
 HTML = """<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Two batches — pass rates, gold 2026</title>
+<title>Two batches in rotation — gold 2026</title>
 <style>%(css)s</style></head><body><div class="wrap">
 
 <header>
-<div class="eyebrow"><span class="dot"></span>research &middot; batch operation</div>
-<h1>Two batches, <em>two strategies</em></h1>
-<p class="lede">One batch of accounts running the <a href="index.html">Asia opening range</a>, a
-separate batch running the <a href="pdfade.html">previous-day fade</a>. Never both in one account.
-Measured on what matters to a batch: the share of <b>attempts</b> that pass, and how long they
-take. Gold, 2026.</p>
+<div class="eyebrow"><span class="dot"></span>research &middot; eight accounts, two batches</div>
+<h1>Two batches, <em>four accounts each</em></h1>
+<p class="lede">Batch A runs the <a href="index.html">Asia opening range</a>, batch B runs the
+<a href="pdfade.html">previous-day fade</a>. Inside each batch the four accounts rotate on
+weekdays, so every account trades two days a week and sits flat the rest. Data only &mdash; each
+strategy's rules and limitations are on its own page.</p>
 
 <div class="kpi">
-<div class="k big"><div class="l">Opening range</div><div class="v">%(op).1f%%</div><div class="n">pass at %(orisk).2f%% &middot; %(odays)d days</div></div>
-<div class="k big"><div class="l">Previous-day fade</div><div class="v">%(fp).1f%%</div><div class="n">pass at %(frisk).2f%% &middot; %(fdays)d days</div></div>
-<div class="k"><div class="l">Both batches failed</div><div class="v">%(bothfail).1f%%</div><div class="n">from the same start day</div></div>
-<div class="k"><div class="l">Hard ceiling</div><div class="v">3.00%%</div><div class="n">one stop = the daily limit</div></div>
+<div class="k big"><div class="l">A batch, per account</div><div class="v">%(oa).1f%%</div><div class="n">pass in rotation &middot; %(oad)d days</div></div>
+<div class="k big"><div class="l">B batch, per account</div><div class="v">%(ba).1f%%</div><div class="n">pass in rotation &middot; %(bad)d days</div></div>
+<div class="k"><div class="l">A batch of 4</div><div class="v">%(oexp).2f</div><div class="n">expected passes &middot; %(oaf).1f%% all fail</div></div>
+<div class="k"><div class="l">B batch of 4</div><div class="v">%(bexp).2f</div><div class="n">expected passes &middot; %(baf).1f%% all fail</div></div>
 </div>
 
 <nav>
-<a href="#rates"><span>01</span>Pass rates</a>
-<a href="#cliff"><span>02</span>The 3%% cliff</a>
-<a href="#joint"><span>03</span>Do the batches fail together?</a>
-<a href="#stagger"><span>04</span>Staggering a batch</a>
-<a href="#books"><span>05</span>The underlying books</a>
+<a href="#week"><span>01</span>The week</a>
+<a href="#risk"><span>02</span>Risk and the ceiling</a>
+<a href="#mc"><span>03</span>Pass rates</a>
+<a href="#rot"><span>04</span>What rotation costs</a>
+<a href="#days"><span>05</span>Weekdays</a>
+<a href="#books"><span>06</span>The books</a>
 </nav>
 </header>
 
-<section id="rates">
-<h2><span class="num">01</span>Pass rates</h2>
-<p class="sub">An account is started on every day the strategy traded in 2026 and walked forward
-until it passes, breaches, or the data runs out. &ldquo;Open&rdquo; is an attempt that never
-resolved &mdash; an account sitting there consuming time.</p>
-<div class="scroll"><table>
-<caption>Per attempt. Days is the median for the attempts that passed. Rows at or above 3%% are
-past the ceiling explained in section 02.</caption>
-<thead><tr><th>Risk / trade</th>
-<th>Range: pass</th><th>fail</th><th>open</th><th>days</th>
-<th>Fade: pass</th><th>fail</th><th>open</th><th>days</th></tr></thead>
-<tbody>%(rows_r)s</tbody></table></div>
-<div class="good"><div class="t">What the table says</div>
-<p>The fade batch passes more often &mdash; <b>%(fp).1f%%</b> against <b>%(op).1f%%</b> &mdash; and
-never breached a limit at any risk under the ceiling. The range batch resolves faster:
-<b>%(odays)d days</b> against <b>%(fdays)d</b>. If fees dominate, run more of the fade; if cycle
-time dominates, the range turns over sooner.</p></div>
+<section id="week">
+<h2><span class="num">01</span>The week</h2>
+<p class="sub">Eight accounts. On any given day four hold a position and four are flat. The pair
+sharing a day takes the <b>identical</b> trade.</p>
+<figure><div class="fig">%(week)s</div>
+<figcaption>The opening range trades Monday to Thursday; the fade trades Tuesday to Friday, Monday
+having been dropped because its levels come from Friday with a weekend in between.</figcaption></figure>
+<div class="note"><div class="t">Four accounts, two outcomes</div>
+<p>A1 and A2 take the same signal at the same moment, so they pass or fail together. A batch of
+four is <b>two distinct attempts held twice</b> &mdash; two fees per attempt. Starting the second
+account of each pair a week later would give four different outcomes at the same speed.</p></div>
 </section>
 
-<section id="cliff">
-<h2><span class="num">02</span>The 3%% cliff</h2>
-<p class="sub">This is the single most important number for the operation and it has nothing to do
-with either strategy's edge.</p>
-<div class="note"><div class="t">One full stop must stay under the daily limit</div>
-<p>A losing trade costs exactly the risk taken. At <b>3%% per trade</b> a single stop is
-<b>3.0%%</b> &mdash; the daily limit &mdash; so <b>one loss ends the account</b>. Pass rates fall off
-a cliff there: the range batch drops from <b>85.3%%</b> at 2.5%% to <b>38.7%%</b> at 3.0%%, and the
-fade batch from <b>92.3%%</b> to <b>10.8%%</b>.</p>
-<p>The 12%% maximum loss is not what binds. <b>Risk must stay strictly under 3%%</b>, and 2.5%%
-leaves a real margin for a wider-than-modelled stop or a slipped fill.</p></div>
+<section id="risk">
+<h2><span class="num">02</span>Risk and the ceiling</h2>
+<p class="sub">One trade that costs more than the daily limit ends an account by itself, so the
+ceiling is 3%% divided by the worst single loss. It is not the same for both books.</p>
+<figure><div class="fig">%(chfail)s</div>
+<figcaption>Breach rate against risk per trade. The A batch turns up sharply once a single
+worst-case loss can reach the 3%% daily limit; the B batch does not, for the reason below.</figcaption></figure>
+<div class="note"><div class="t">The fade's cleaner ceiling is a modelling artefact</div>
+<p>The A batch fills <b>past</b> its stop on %(oover)d of %(on)d trades, worst case
+<b>%(ow1).3f R</b> &mdash; real-tick execution with spread and slippage. Its ceiling is
+<b>%(oceil).2f%%</b>. Every B batch stop fills at exactly <b>&minus;1.000 R</b> because that study
+replays M1 bars and takes the stop at its level, modelling <b>no slippage at all</b>, so its
+%(bceil).2f%% is optimistic. <b>Treat %(oceil).2f%% as the ceiling for both and 2.5%% as the working
+figure.</b></p></div>
 </section>
 
-<section id="joint">
-<h2><span class="num">03</span>Do the batches fail together?</h2>
-<p class="sub">One account in each batch, both started the same day, at %(risk).2f%% risk.
-%(jt)d start days.</p>
+<section id="mc">
+<h2><span class="num">03</span>Pass rates</h2>
+<p class="sub">%(paths)s resampled paths per cell, %(deadline)d weekday steps of deadline. Days are
+resampled <b>by weekday</b> &mdash; a Wednesday is always drawn from Wednesdays &mdash; because the
+rotation is a weekday rule. Figures here are for an account taking <b>every</b> signal; section 04
+applies the rotation.</p>
+<figure><div class="fig">%(chpass)s</div></figure>
+<figure><div class="fig">%(chthr)s</div>
+<figcaption>Throughput is expected passes per 21 trading days for one account slot cycling: start,
+resolve, restart. A fast breach costs a fee but frees the slot, which is why throughput keeps
+rising after the pass rate has turned down.</figcaption></figure>
 <div class="scroll"><table>
-<caption>Joint outcome. Range first, fade second.</caption>
-<thead><tr><th>Range / fade</th><th>Start days</th><th>Share</th></tr></thead>
-<tbody>%(rows_j)s</tbody></table></div>
-<p><b>Both batches failed from the same start day %(bothfailn)d times out of %(jt)d.</b> On the days
-the two strategies both traded, their results are negatively correlated at <b>%(corr)+.2f</b> &mdash;
-one is a breakout and the other fades a failed breakout, so they do not fail together. For a batch
-operation that is the whole point of running two: the fee losses do not arrive in the same month.</p>
+<caption>Per account taking every signal. The highlighted row is the working risk.</caption>
+<thead><tr><th>Risk</th>
+<th>A: pass</th><th>breach</th><th>open</th><th>days</th><th>per month</th>
+<th>B: pass</th><th>breach</th><th>open</th><th>days</th><th>per month</th></tr></thead>
+<tbody>%(rows_mc)s</tbody></table></div>
+<figure><div class="fig">%(chdays)s</div>
+<figcaption>How long a passing account takes, at %(risk).2f%% risk and taking every signal.</figcaption></figure>
 </section>
 
-<section id="stagger">
-<h2><span class="num">04</span>Staggering a batch</h2>
-<p class="sub">Accounts in one batch run the same strategy, so they take the same trades. Started
-together they are one outcome repeated, not five attempts. Five accounts, %(risk).2f%% risk.</p>
+<section id="rot">
+<h2><span class="num">04</span>What rotation costs</h2>
+<p class="sub">An account on two weekdays sees about half the signals, so it reaches +12%% later
+and more attempts run out of deadline.</p>
+<figure><div class="fig">%(chrot)s</div></figure>
 <div class="scroll"><table>
-<caption>Chance that none of the five passes, that all five pass, and the expected number of passes.</caption>
-<thead><tr><th>Spacing</th>
-<th>Range: none pass</th><th>all five</th><th>expected</th>
-<th>Fade: none pass</th><th>all five</th><th>expected</th></tr></thead>
-<tbody>%(rows_s)s</tbody></table></div>
-<div class="note"><div class="t">Staggering is insurance, not extra yield</div>
-<p>Starting five accounts on the same day gives an expected <b>4.27</b> passes for the range batch
-&mdash; but a <b>15%% chance that none of them passes</b>, because all five hold identical
-positions. One week apart raises the expectation only to <b>4.67</b>, and takes the
-none-pass case to <b>0%%</b>. The gain is not throughput, it is that a batch can no longer be lost
-in one stroke.</p></div>
+<caption>At %(risk).2f%% risk. A batch of four is two distinct attempts, so all four fail together
+only when both of those attempts fail.</caption>
+<thead><tr><th>Batch</th><th>Every signal: pass</th><th>days</th>
+<th>In rotation: pass</th><th>days</th><th>Expected passes of 4</th><th>All four fail</th></tr></thead>
+<tbody>%(rows_rot)s</tbody></table></div>
+<div class="good"><div class="t">What the rotation is actually buying</div>
+<p>It is not throughput &mdash; each account is slower. It is that the two pairs hold
+<b>different days</b>, so no single bad session can take the whole batch. All four fail together
+only %(oaf).1f%% of the time in batch A and %(baf).1f%% in batch B.</p></div>
+</section>
+
+<section id="days">
+<h2><span class="num">05</span>Weekdays</h2>
+<p class="sub">What each pair is actually holding. On this sample the pairs are not equal, but the
+gap is not significant &mdash; shuffling the trades beats it about a quarter of the time &mdash; so
+it should be read as noise rather than as one pair being better.</p>
+<div class="scroll"><table>
+<caption>By weekday, 2026. A1+A2 hold the Mon and Wed rows, A3+A4 the Tue and Thu rows; B1+B2 the
+Tue and Thu rows, B3+B4 the Wed and Fri rows.</caption>
+<thead><tr><th>Batch</th><th>Day</th><th>Trades</th><th>W / L</th><th>Win rate</th>
+<th>EV per trade</th><th>Total R</th></tr></thead>
+<tbody>%(rows_day)s</tbody></table></div>
+<div class="note"><div class="t">Rotate the assignment, not just the accounts</div>
+<p>Because the weekdays are fixed, any real day-of-week effect would land on the same pair for
+ever. Swapping which pair takes which days each week costs nothing and removes that exposure.</p></div>
 </section>
 
 <section id="books">
-<h2><span class="num">05</span>The underlying books</h2>
-<p class="sub">The trade statistics behind the pass rates. Rules and caveats are on each
-strategy's own page.</p>
+<h2><span class="num">06</span>The books</h2>
 <div class="scroll"><table>
-<caption>2026. R is size-independent; the pass rate is at each batch's best risk under the ceiling.</caption>
-<thead><tr><th>Strategy</th><th>Trades</th><th>W / L</th><th>Win rate</th><th>EV per trade</th>
-<th>Total R</th><th>Worst dip</th><th>t</th><th>Best pass rate</th><th>Median days</th></tr></thead>
-<tbody>%(rows_b)s</tbody></table></div>
+<caption>2026. R is size-independent. The ceiling is 3%% divided by the worst single loss.</caption>
+<thead><tr><th>Strategy</th><th>Days</th><th>Trades</th><th>W / L</th><th>Win rate</th>
+<th>EV per trade</th><th>Total R</th><th>Worst dip</th><th>t</th><th>Worst single</th><th>Ceiling</th></tr></thead>
+<tbody>%(rows_book)s</tbody></table></div>
 </section>
 
-<footer><p><b>Two batches.</b> Generated %(gen)s. Attempts simulated on the real 2026 trade
-sequences from the <a href="index.html">opening range</a> and the
-<a href="pdfade.html">previous-day fade</a>; barriers +12%% / 12%% / 3%% daily, both loss barriers
-checked trade by trade. Each strategy's own limitations are on its page and are not repeated
-here.</p></footer>
+<footer><p><b>Two batches in rotation.</b> Generated %(gen)s. Barrier simulations on resampled
+weekdays from the <a href="index.html">opening range</a> and the <a href="pdfade.html">previous-day
+fade</a>; +12%% target, 12%% maximum loss, 3%% daily, both loss barriers checked trade by trade.
+Each strategy's own limitations are on its page and are not repeated here.</p></footer>
 </div></body></html>"""
 
-# same-day correlation, for the sentence in section 03
-byday = defaultdict(dict)
-for _, k, v, _ in BOOKS:
-    for t in v: byday[t["d"]][k] = byday[t["d"]].get(k, 0.0) + t["R"]
-ov = [d for d, v in byday.items() if len(v) == 2]
-xs = [byday[d]["orb"] for d in ov]; ys = [byday[d]["fade"] for d in ov]
-mx, my = st.mean(xs), st.mean(ys)
-CORR = (sum((a-mx)*(b-my) for a, b in zip(xs, ys)) /
-        ((sum((a-mx)**2 for a in xs)*sum((b-my)**2 for b in ys))**0.5))
-
+O, F = BOOKS[0], BOOKS[1]
+ro, rf = ROT[("orb", RISK)], ROT[("fade", RISK)]
 open(os.path.join(REPO, "batches.html"), "w").write(HTML % dict(
-    css=css, risk=RISK, rows_r=rows_r, rows_j=rows_j, rows_s=rows_s, rows_b=rows_b,
-    op=best["orb"][1]["p"], orisk=best["orb"][0], odays=best["orb"][1]["days"],
-    fp=best["fade"][1]["p"], frisk=best["fade"][0], fdays=best["fade"][1]["days"],
-    bothfail=100.0*joint[("fail","fail")]/JT, bothfailn=joint[("fail","fail")],
-    jt=JT, corr=CORR, gen=dt.date.today().strftime("%d %B %Y")))
-print("wrote batches.html  (range %.1f%% @ %.2f%%, fade %.1f%% @ %.2f%%, both-fail %.1f%%)"
-      % (best["orb"][1]["p"], best["orb"][0], best["fade"][1]["p"], best["fade"][0],
-         100.0*joint[("fail","fail")]/JT))
+    css=css, risk=RISK, paths="{:,}".format(PATHS), deadline=DEADLINE,
+    week=CH_WEEK, chpass=CH_PASS, chfail=CH_FAIL, chthr=CH_THR, chdays=CH_DAYS, chrot=CH_ROT,
+    rows_mc=rows_mc, rows_rot=rows_rot, rows_day=rows_day, rows_book=rows_book,
+    oa=ro[0], oad=st.median(ro[3]) if ro[3] else 0,
+    ba=rf[0], bad=st.median(rf[3]) if rf[3] else 0,
+    oexp=4*ro[0]/100.0, bexp=4*rf[0]/100.0,
+    oaf=100*(1-ro[0]/100.0)**2, baf=100*(1-rf[0]/100.0)**2,
+    oover=O["over1"], on=O["s"]["n"], ow1=O["w1"],
+    oceil=DAILY/abs(O["w1"]), bceil=DAILY/abs(F["w1"]),
+    gen=dt.date.today().strftime("%d %B %Y")))
+print("wrote batches.html")
+print("  A per account in rotation %.1f%% pass, %d days | batch of 4: %.2f expected, %.1f%% all fail"
+      % (ro[0], st.median(ro[3]) if ro[3] else 0, 4*ro[0]/100.0, 100*(1-ro[0]/100.0)**2))
+print("  B per account in rotation %.1f%% pass, %d days | batch of 4: %.2f expected, %.1f%% all fail"
+      % (rf[0], st.median(rf[3]) if rf[3] else 0, 4*rf[0]/100.0, 100*(1-rf[0]/100.0)**2))

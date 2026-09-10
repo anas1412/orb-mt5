@@ -225,6 +225,9 @@ losing trade breaches a 3%% daily limit past <b>3.00%%</b>.</p>
 <ol class="steps">
 <li><b>Mark yesterday's high and low</b><span>Those are the two levels. Subtract them for
 yesterday's range — you need it for the stop.</span></li>
+<li><b>Tuesday to Friday only</b><span>Monday is skipped: its levels come from Friday with a
+weekend in between, so the high and low being faded are three days stale. Monday returned
+<b>&minus;0.050 R</b> a trade against <b>+0.527</b> for the other four days.</span></li>
 <li><b>Take entries only between 00:00 and 08:00 UTC</b><span>The Asia session. Entering during
 London or New York loses money on these same rules — section 05. The <em>exit</em> is not
 restricted to Asia; see rule 9.</span></li>
