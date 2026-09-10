@@ -119,57 +119,70 @@ def place(levels, span):
     return [(items[i][0], ys[i]) + items[i][1:] for i in range(len(items))]
 
 
+def to_m5(bars):
+    """M1 into M5, aligned to the clock, because the rule is an M5 CLOSE --
+    drawing M1 shows a candle the strategy never looks at."""
+    out = {}
+    for mi, o, h, l, c in bars:
+        k = mi // 5
+        if k in out:
+            p = out[k]
+            out[k] = (p[0], p[1], max(p[2], h), min(p[3], l), c)
+        else:
+            out[k] = (k*5, o, h, l, c)
+    return [out[k] for k in sorted(out)]
+
+
 def draw(t, bars, n):
     b = bars[t["date"]]
     a = max(0, t["sweep_i"] - 12); z = min(len(b) - 1, t["xi"] + 8)
-    xs = b[a:z+1]
-    if len(xs) < 12:
+    m5 = to_m5(b[a:z+1])
+    if len(m5) < 4:
         return None
-    x0 = xs[0][0]
+    x0 = m5[0][0]
+    mid = (t["ph"] + t["pl"]) / 2.0
     fig, ax = plt.subplots(figsize=(11.8, 5.7), dpi=105)
-    lo_ = min([x[3] for x in xs] + [t["sl"], t["tp"], t["entry"]])
-    hi_ = max([x[2] for x in xs] + [t["sl"], t["tp"], t["entry"]])
+    # The middle of yesterday's range is what the trade is fading towards, so
+    # it is always drawn even when the target overshoots it.
+    keep = [t["sl"], t["tp"], t["entry"], mid, t["lvl"]]
+    lo_ = min([x[3] for x in m5] + keep)
+    hi_ = max([x[2] for x in m5] + keep)
     span = hi_ - lo_
-    xr = xs[-1][0] - x0
-    # A trade that runs to the session close spans hundreds of minutes, so a
-    # fixed 15-minute tick prints seventy overlapping labels.
+    xr = m5[-1][0] - x0
     step = next(s for s in (15, 30, 60, 120, 180, 240) if xr / s <= 14) if xr > 210 else 15
-    for mi, o, h, l, cl in xs:
-        x = mi - x0; up = cl >= o; col = POS if up else NEG
-        ax.plot([x, x], [l, h], color=col, lw=.9 if xr < 200 else .6,
-                solid_capstyle="butt", zorder=2)
-        if xr < 200:
-            ax.add_patch(Rectangle((x-.33, min(o, cl)), .66, max(abs(cl-o), span*.0022),
-                         facecolor=col if up else "white", edgecolor=col, lw=.9, zorder=3))
-    # the sweep, in MINUTES -- bar indices and minutes diverge across a gap
-    ax.axvspan(b[t["sweep_i"]][0]-x0, b[t["ei"]][0]-x0, color=ACC, alpha=.07, zorder=0)
-    # Only label a level the chart can actually show; yesterday's far side is
-    # often hundreds of points outside the frame.
+    for mi, o, h, l, cl in m5:
+        x = mi - x0 + 2.5; up = cl >= o; col = POS if up else NEG
+        ax.plot([x, x], [l, h], color=col, lw=1.0, solid_capstyle="butt", zorder=2)
+        ax.add_patch(Rectangle((x-1.7, min(o, cl)), 3.4, max(abs(cl-o), span*.0025),
+                     facecolor=col if up else "white", edgecolor=col, lw=1.0, zorder=3))
+    ax.axvspan(b[t["sweep_i"]][0]-x0, b[t["ei"]][0]-x0+5, color=ACC, alpha=.07, zorder=0)
     lv = [(t["entry"], ACC, "entry  %.2f" % t["entry"], True),
           (t["sl"], NEG, "stop  %.2f   \u22121R" % t["sl"], True),
-          (t["tp"], POS, "target  %.2f   +2R" % t["tp"], True)]
-    for y, lab in ((t["ph"], "yesterday's high"), (t["pl"], "yesterday's low")):
-        if lo_ - span*.05 <= y <= hi_ + span*.05:
-            lv.append((y, MUT, lab, False))
+          (t["tp"], POS, "target  %.2f   +2R" % t["tp"], True),
+          (mid, MUT, "mid of yesterday  %.2f" % mid, False),
+          (t["lvl"], INK, "yesterday's %s  %.2f" % ("low" if t["buy"] else "high", t["lvl"]), False)]
+    far = t["ph"] if t["buy"] else t["pl"]
+    if lo_ - span*.04 <= far <= hi_ + span*.04:
+        lv.append((far, MUT, "yesterday's %s  %.2f" % ("high" if t["buy"] else "low", far), False))
     pad = span * .11
     ax.set_ylim(lo_ - pad, hi_ + pad)
     for y0, ytxt, col, lab, bold in place(lv, span):
-        ax.plot([-2, xr+.4], [y0, y0], color=col, ls="--" if bold else "-",
+        ax.plot([-4, xr+4.5], [y0, y0], color=col, ls="--" if bold else "-",
                 lw=1.15 if bold else 1.0, alpha=.85, zorder=1)
-        ax.plot([xr+1.0, xr+xr*0.035+2], [y0, ytxt], color=col, lw=.7, alpha=.45, zorder=1)
-        ax.text(xr + xr*0.045 + 3, ytxt, lab, color=col, fontsize=9, va="center",
+        ax.plot([xr+5.5, xr+xr*0.035+7], [y0, ytxt], color=col, lw=.7, alpha=.45, zorder=1)
+        ax.text(xr + xr*0.045 + 8, ytxt, lab, color=col, fontsize=9, va="center",
                 weight="bold" if bold else "normal")
-    ax.plot([b[t["ei"]][0]-x0], [t["entry"]], marker="^" if t["buy"] else "v", ms=12,
+    ax.plot([b[t["ei"]][0]-x0+2.5], [t["entry"]], marker="^" if t["buy"] else "v", ms=12,
             color=ACC, zorder=6, markeredgecolor="white", markeredgewidth=.9)
     win = t["R"] > 0
-    ax.plot([b[t["xi"]][0]-x0], [t["xp"]], marker="X", ms=11, color=POS if win else NEG,
+    ax.plot([b[t["xi"]][0]-x0+2.5], [t["xp"]], marker="X", ms=11, color=POS if win else NEG,
             zorder=6, markeredgecolor="white", markeredgewidth=.9)
     res = "%s   %+.2f R" % ("WIN" if win else "LOSS", t["R"])
     ax.set_title("%s   \u00b7   %s   \u00b7   %s   \u2014   %s"
                  % (t["date"].strftime("%d %B %Y"), t["date"].strftime("%A"),
                     "LONG" if t["buy"] else "SHORT", res),
                  fontsize=14, color=POS if win else NEG, weight="bold", loc="left", pad=16)
-    ax.text(0, 1.02, "swept the %s   \u00b7   closed %.0f pts back inside   \u00b7   "
+    ax.text(0, 1.02, "M5 candles   \u00b7   swept the %s   \u00b7   closed %.0f pts back inside   \u00b7   "
             "yesterday's range %.0f pts   \u00b7   risk %.0f pts   \u00b7   held %d min   \u00b7   trade %d"
             % ("low" if t["buy"] else "high", t["depth"]/0.01, t["rg"]/0.01,
                t["risk"]/0.01, b[t["xi"]][0]-b[t["ei"]][0], n),
@@ -180,7 +193,7 @@ def draw(t, bars, n):
     ax.set_xticklabels(["%02d:%02d" % (((x0+m-off)//60) % 24, (x0+m) % 60) for m in tick],
                        fontsize=9)
     ax.set_xlabel("UTC", fontsize=9, color=MUT); ax.set_ylabel("XAUUSD", fontsize=9, color=MUT)
-    ax.set_xlim(-3, xr + xr*0.30 + 6)
+    ax.set_xlim(-5, xr + xr*0.30 + 12)
     for s_ in ("top", "right"):
         ax.spines[s_].set_visible(False)
     ax.grid(axis="y", color=GRID, lw=.6, zorder=0)

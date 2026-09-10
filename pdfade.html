@@ -300,10 +300,11 @@ No limit order, no waiting for a retest.</span></li>
 your entry — so the sweep itself cannot take you out.</span></li>
 <li><b>Target: 2 × your risk</b><span>Risk is entry to stop, which is a little more than
 range ÷ 3 because you entered inside the level.</span></li>
-<li><b>Hold to the end of the trading day</b><span>Not the end of Asia. If neither the stop nor
-the target is hit by the broker day’s close, take whatever it is worth. The median trade runs
-<b>799 minutes</b> — through London and New York. Cutting the hold at 08:00 UTC drops the result
-from +28.4 R to <b>+16.4 R</b>, so most of the move arrives long after the entry.</span></li>
+<li><b>Close it before the day ends — never carry it overnight</b><span>Not the end of Asia:
+the position runs on through London and New York and is flat by the broker day’s close. The
+median trade lasts <b>799 minutes</b> and the latest exit in 2026 was 23:49 broker time. Cutting the
+hold at 08:00 UTC instead drops the result from +28.4 R to <b>+16.4 R</b>, so most of the move
+arrives long after the entry.</span></li>
 </ol>
 
 <div class="card">
@@ -376,11 +377,12 @@ into 2026 — or it may be that 2026 is the year the noise happened to line up.<
 <p>A placebo test replaced yesterday's high and low with the high and low from <b>ten days
 ago</b>, and the search scored just as well. What is being paid for is waiting after an
 overshoot, not yesterday's orders specifically.</p></div>
-<div class="note"><div class="t">It is an overnight trade, and financing is not modelled</div>
-<p>Median hold <b>799 minutes</b>; the target takes a median of <b>733 minutes</b> to arrive and
-19 trades ran to the day’s close. Spread is charged at entry, but <b>swap and any rollover
-crossing are not</b>. A position carried that long on gold has a real financing cost this study
-does not subtract.</p></div>
+<div class="note"><div class="t">A day trade, but a slow one</div>
+<p>Nothing is carried overnight: every one of the 65 trades closes inside the same broker day, the
+latest at <b>23:49</b> broker time. But the hold is long — median <b>799 minutes</b>, and the
+target takes a median of <b>733 minutes</b> to arrive. <b>22 of 65 exit after 22:00 broker time</b>,
+so depending on where your broker sets its rollover some of them may be charged one swap. Spread is
+charged at entry; swap is not modelled.</p></div>
 <div class="note"><div class="t">The 600-point skip was chosen after the fact</div>
 <p>It survives a constant-risk control (so it is not just arithmetic) and sits at the
 <b>98.3rd percentile</b> of dropping 17 trades at random — but seven thresholds were tried, and
