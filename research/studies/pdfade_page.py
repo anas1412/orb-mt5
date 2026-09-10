@@ -282,10 +282,10 @@ failed. A wick back inside does not count.</span></li>
 has already happened and you are late. It also caps how large your stop can get.</span></li>
 <li><b>Enter at market on that close</b><span>Sell if the high was swept, buy if the low was.
 No limit order, no waiting for a retest.</span></li>
-<li><b>Stop: yesterday's range ÷ 3, beyond the level</b><span>Measured from the level, not from
+<li><b>Stop: yesterday's range &times; %(slfrac).2f, beyond the level</b><span>Measured from the level, not from
 your entry — so the sweep itself cannot take you out.</span></li>
 <li><b>Target: %(rr)g × your risk</b><span>Risk is entry to stop, which is a little more than
-range ÷ 3 because you entered inside the level. A bigger target is deliberate: on a challenge
+%(slfrac).2f &times; the range because you entered inside the level. A bigger target is deliberate: on a challenge
 account you need a lump, and three wins of this size clear a 12%% goal where three smaller ones
 do not.</span></li>
 <li><b>Close it before the day ends \u2014 never carry it overnight</b><span>Not the end of Asia:
@@ -297,12 +297,13 @@ so most of the move arrives long after the entry.</span></li>
 
 <div class="card">
 <h3>A worked example</h3>
-<p>Yesterday: high <b>4650.00</b>, low <b>4548.00</b> → range <b>10200 points</b>, ÷3 =
-<b>3400 points</b>.</p>
+<p>Yesterday: high <b>4650.00</b>, low <b>4548.00</b> &rarr; range <b>10200 points</b>,
+&times; %(slfrac).2f = <b>%(exdist).0f points</b>.</p>
 <p>Price pokes above 4650, then an M5 candle closes back below it at <b>4646.00</b> — 400 points
 back inside, under the 600 limit, so it is valid.</p>
-<p><b>Sell 4646.00</b> · <b>stop 4650 + 3400 = 4684.00</b> · risk <b>3800 points</b> ·
-<b>target 4646 − 9500 = 4551.00</b> &nbsp;(%(rr)g × 3800)</p>
+<p><b>Sell 4646.00</b> &middot; <b>stop 4650 + %(exdist).0f = %(exstop).2f</b> &middot;
+risk <b>%(exrisk).0f points</b> &middot; <b>target %(extp).2f</b> &nbsp;(%(rr)g &times;
+%(exrisk).0f)</p>
 </div>
 </section>
 
@@ -331,8 +332,8 @@ are the only inputs.</p>
 
 <p style="font-size:13px;color:var(--mut);margin-top:14px">Your risk is that stop distance
 <b>plus</b> however far inside the level you got filled, so it is a little more than
-%(slfrac).2f&nbsp;&times; the range. The rules above round the fraction to &ldquo;a third&rdquo;;
-the tested constant is <b>%(slfrac).2f</b> and that is what this uses.</p>
+%(slfrac).2f&nbsp;&times; the range, because the stop is measured from the level and you fill
+inside it.</p>
 </section>
 
 <section id="curve">
@@ -579,6 +580,9 @@ open(os.path.join(REPO, "pdfade.html"), "w").write(HTML % dict(
     gen=dt.date.today().strftime("%d %B %Y"),
     wrun=WRUN, brk=12.0/max(dd, WRUN), ddr=dd, rr=RR,
     sldiv=1.0/SL_FRAC, slfrac=SL_FRAC, maxd=MAX_DEPTH_PTS,
+    exdist=SL_FRAC*102.0/0.01, exstop=4650.0+SL_FRAC*102.0,
+    exrisk=(4650.0+SL_FRAC*102.0-4646.0)/0.01,
+    extp=4646.0-RR*(4650.0+SL_FRAC*102.0-4646.0),
     rows_wd=rows_wd, mon_n=len(_mon), mon_ev=sum(_mon)/len(_mon),
     rest_ev=sum(_rest)/len(_rest),
     hmed=HOLD["med"], htp=HOLD["tp"], hsl=HOLD["sl"], hlast=HOLD["last"],

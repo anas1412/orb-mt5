@@ -28,7 +28,10 @@ import statistics as st
 YEAR      = 2026
 TF        = 5          # confirmation candle
 WINDOW    = (0, 480)   # UTC minutes: Asia 00:00-08:00
-SL_FRAC   = 0.33       # of yesterday's range, beyond the level
+# Re-swept after the target moved to 2.5 R and Monday was dropped: 0.25 returns
+# +0.606 R a trade against 0.33's +0.527, for a deeper drawdown (5.0 R against
+# 3.3). Carrying 0.33 over from the 2.0 R configuration was an oversight.
+SL_FRAC   = 0.25       # of yesterday's range, beyond the level
 RR        = 2.5
 MAX_DEPTH = 6.00       # 600 points; skip a close that ran further back inside
 # Monday is out. Its levels come from FRIDAY, with a whole weekend in between,
