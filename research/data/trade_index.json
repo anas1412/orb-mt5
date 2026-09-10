@@ -886,5 +886,17 @@
   "held": 10,
   "file": "2026-09-07_long_loss.png",
   "sig": "2e67145f4bcc6fd4"
+ },
+ {
+  "n": 75,
+  "date": "2026-09-10",
+  "day": "Thu",
+  "dir": "buy",
+  "R": -1.034,
+  "score": 0.719,
+  "range_pts": 730,
+  "held": 13,
+  "file": "2026-09-10_long_loss.png",
+  "sig": "e7a7984f9afcf98c"
  }
 ]

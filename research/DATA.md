@@ -8,7 +8,7 @@ bars themselves, which is what `BarDump.mq5` does.
 
 **The raw input. Everything else here is derived from this file.**
 
-752,023 one-minute bars, 2 Jan 2024 to 7 Sep 2026, broker hours 01 to 18
+754,424 one-minute bars, 2 Jan 2024 to 9 Sep 2026, broker hours 01 to 18
 (broker is UTC+3 in summer, UTC+2 in winter, so this covers roughly 22:00 to
 16:00 UTC). Exported from MetaTrader with `BarDump.mq5`; the most recent ~30 days come from
 `SyncDump.mq5` on a live chart and carry all 24 hours.
@@ -25,7 +25,7 @@ MetaTrader or a broker feed to rebuild anything below it.
 
 ## sessions_2024_2026.csv
 
-One row per Asia session, 695 of them. **This is the dataset for session-quality
+One row per Asia session, 696 of them. **This is the dataset for session-quality
 modelling** — the question of whether a session is worth trading at all, rather
 than which trades to filter.
 
@@ -52,15 +52,34 @@ Built by `build_sessions.py` from raw M1 bars.
 **No lookahead.** Every feature is computable at 00:15 UTC, before any entry
 decision exists. The rolling columns use earlier sessions only.
 
-**It reproduces the EA.** Filter to 2026 and Monday–Thursday: 143 eligible
-sessions, 78 trades, 51.3% win rate, +0.564 R per trade, +44.0 R total —
+**It reproduces the EA.** Filter to 2026 and Monday–Thursday: 144 eligible
+sessions, 75 trades, 52.0% win rate, +0.582 R per trade, +43.6 R total —
 identical to the MT5 backtest, reached from raw bars by a separate path.
 
 **Rows cover Monday–Friday; the EA trades Monday–Thursday.** Filter on `dow`
 before comparing.
 
 <!-- replayed:start -->
-Every row in both trade files came from the Strategy Tester.
+## Rows that are not from the Strategy Tester
+
+**`2026.09.10 03:16` replayed from the bars, not tested.** Worth knowing before you
+diff anything against your own run.
+
+MetaTrader's history server only serves bars up to the last *completed*
+trading day. Today's bars exist in a live chart, because the terminal builds
+them from the tick stream, but they never reach the history base the Strategy
+Tester reads, so the tester quietly clamps its date range instead of failing.
+
+`sim_offline.py` replays the EA over raw bars to cover those days. Run it with
+no arguments and it checks itself against the tester across 2026: same days,
+same directions, agreeing within 0.10 R on the large majority. Where it differs
+is intrabar ordering, since an M1 bar cannot say whether its high or its low
+came first.
+
+R carries the mean drag measured from every full stop-out in the tested rows,
+so a replayed row is no cleaner than a real one.
+
+These rows vanish on the next tester run that can see the day.
 <!-- replayed:end -->
 
 ## trades_live_config.csv
@@ -71,7 +90,7 @@ Every row in both trade files came from the Strategy Tester.
 
 ## trades_all_breaks.csv
 
-367 trades, same configuration with the half filter **off**, so every break that
+369 trades, same configuration with the half filter **off**, so every break that
 happened carries its outcome. Use this when you need both classes — the trades
 the filter allowed and the ones it rejected.
 

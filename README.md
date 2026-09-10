@@ -32,17 +32,17 @@ the other way is skipped.
 
 ## Results
 
-XAUUSD, real ticks, 2026 (2 Jan – 9 Sep), 2.5% risk per trade.
+XAUUSD, real ticks, 2026 (2 Jan – 10 Sep), 2.5% risk per trade.
 
 | | |
 |---|---|
-| Trades | **78** from 143 eligible sessions |
-| Win rate | **51.3%** — 40 wins, 38 losses |
-| Expectancy | **+0.564 R** per trade (±0.161 standard error) |
-| Profit factor | **2.35** — won +76.7 R against -32.7 R lost |
-| Total | **+44.0 R** = **+110%** of the account |
-| Worst drawdown | **12.8%** |
-| Longest losing run | **5** |
+| Trades | **75** from 144 eligible sessions |
+| Win rate | **52.0%** — 39 wins, 36 losses |
+| Expectancy | **+0.582 R** per trade (±0.165 standard error) |
+| Profit factor | **2.40** — won +74.7 R against -31.1 R lost |
+| Total | **+43.6 R** = **+109%** of the account |
+| Worst drawdown | **15.4%** |
+| Longest losing run | **6** |
 
 **Challenge pass rate** — FundingPips 1 Step Flex: +12% target, 12% max loss,
 3% daily loss, no minimum days. Each row is a barrier simulation over the real
@@ -51,18 +51,18 @@ record would break the maximum loss.
 
 | Risk per trade | Pass | Trades | Days | Return | Worst drawdown | Worst run costs |
 |---|---|---|---|---|---|---|
-| 1% | 100.0% | 20 | ~37 | +44% | 5.1% | 5.1% |
-| 1.5% | 99.5% | 13 | ~24 | +66% | 7.7% | 7.6% |
-| 2% | 98.2% | 9 | ~16 | +88% | 10.2% | 10.2% |
-| 2.25% | 97.4% | 8 | ~15 | +99% | 11.5% | 11.5% |
-| **2.5%** | **96.3%** | **7** | **~13** | **+110%** | **12.8%** | **12.7% ⚠** |
+| 1% | 100.0% | 19 | ~36 | +44% | 6.2% | 6.1% |
+| 1.5% | 99.5% | 13 | ~25 | +65% | 9.2% | 9.2% |
+| 2% | 98.4% | 9 | ~17 | +87% | 12.3% | 12.2% ⚠ |
+| 2.25% | 97.4% | 8 | ~15 | +98% | 13.8% | 13.8% ⚠ |
+| **2.5%** | **96.8%** | **7** | **~13** | **+109%** | **15.4%** | **15.3% ⚠** |
 
-How the 78 trades ended:
+How the 75 trades ended:
 
 | Exit | Trades | Total |
 |---|---|---|
-| Stopped out | 38 | -32.7 R |
-| Target hit (+2R) | 36 | +73.3 R |
+| Stopped out | 36 | -31.1 R |
+| Target hit (+2R) | 35 | +71.3 R |
 | 90-minute cap | 4 | +3.3 R |
 
 ---
@@ -185,7 +185,7 @@ The study is in [`research/`](research/); the one-off scripts behind
   −5.10 R: **12.8% at 2.5% risk, past the 12% limit**. 2.25% is the most that
   survives it. Above 2.74% a single worst-case loss breaches the 3% daily limit
   on its own, which is why the selector stops at 2.5%.
-- - **78 trades is a small sample.** The standard error on expectancy is in the
+- - **75 trades is a small sample.** The standard error on expectancy is in the
   table above, and so is the chance that 2026 was kind.
 
 Not financial advice. Test on demo first.
