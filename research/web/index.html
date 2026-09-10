@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORB Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* IBM Carbon. g100 dark / g10 light token pairs, the 2-4-8 spacing scale,
+   40px data-table rows, and Carbon's square corners -- no radius anywhere. */
+:root[data-theme="dark"]{
+  --bg:#161616; --layer:#262626; --layer-hover:#333; --layer-2:#393939;
+  --field:#393939; --border-subtle:#393939; --border-strong:#6f6f6f;
+  --text:#f4f4f4; --text-2:#c6c6c6; --text-helper:#8d8d8d; --text-on:#fff;
+  --link:#78a9ff; --interactive:#0f62fe; --interactive-hover:#0353e9;
+  --err:#fa4d56; --ok:#42be65; --warn:#f1c21b; --err-bg:#2d0709; --warn-bg:#302400;
+}
+:root[data-theme="light"]{
+  --bg:#f4f4f4; --layer:#fff; --layer-hover:#e8e8e8; --layer-2:#f4f4f4;
+  --field:#f4f4f4; --border-subtle:#e0e0e0; --border-strong:#8d8d8d;
+  --text:#161616; --text-2:#525252; --text-helper:#6f6f6f; --text-on:#fff;
+  --link:#0f62fe; --interactive:#0f62fe; --interactive-hover:#0353e9;
+  --err:#da1e28; --ok:#24a148; --warn:#f1c21b; --err-bg:#fff1f1; --warn-bg:#fcf4d6;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);
+  font:400 14px/1.28572 "IBM Plex Sans",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.mono,td.n,th.n{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i.sm{width:14px;height:14px}
+
+/* ---- Carbon UI shell: 48px header ---- */
+header{height:48px;display:flex;align-items:center;gap:16px;padding:0 16px;
+  background:var(--layer);border-bottom:1px solid var(--border-subtle);
+  position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;letter-spacing:.01em}
+.brand .dot{width:8px;height:8px;background:var(--ok)}
+header .spacer{flex:1}
+.meta{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--text-helper)}
+.meta b{color:var(--text-2);font-weight:500}
+.iconbtn{background:none;border:1px solid transparent;color:var(--text-2);
+  width:32px;height:32px;display:grid;place-items:center;cursor:pointer;padding:0}
+.iconbtn:hover{background:var(--layer-hover);color:var(--text)}
+.iconbtn:focus-visible{outline:2px solid var(--interactive);outline-offset:-2px}
+
+/* ---- tabs ---- */
+nav.tabs{display:flex;background:var(--layer);border-bottom:1px solid var(--border-subtle);
+  padding:0 16px;gap:0;position:sticky;top:48px;z-index:19}
+nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;
+  color:var(--text-2);padding:13px 16px;font:500 14px/1 "IBM Plex Sans",sans-serif;
+  cursor:pointer;display:flex;align-items:center;gap:8px}
+nav.tabs button:hover{color:var(--text);background:var(--layer-hover)}
+nav.tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--interactive)}
+nav.tabs .count{font:500 11px/1 "IBM Plex Mono",monospace;background:var(--layer-2);
+  color:var(--text-2);padding:3px 6px}
+
+main{padding:24px 16px 64px;max-width:1400px;margin:0 auto}
+section[hidden]{display:none}
+h2{font:400 20px/1.4 "IBM Plex Sans",sans-serif;margin:0 0 4px}
+.helper{color:var(--text-helper);font-size:12px;margin:0 0 16px}
+
+/* ---- data table, Carbon md = 40px rows, header matches ---- */
+.tablewrap{background:var(--layer);border:1px solid var(--border-subtle);overflow-x:auto}
+.thead{display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;height:48px;border-bottom:1px solid var(--border-subtle);gap:12px}
+.thead h3{font:600 14px/1 "IBM Plex Sans",sans-serif;margin:0}
+table{width:100%;border-collapse:collapse;min-width:720px}
+thead th{height:40px;padding:0 16px;text-align:left;vertical-align:middle;
+  font:600 12px/1.33 "IBM Plex Sans",sans-serif;color:var(--text);
+  background:var(--layer-2);border-bottom:1px solid var(--border-subtle);white-space:nowrap}
+tbody td{height:40px;padding:0 16px;vertical-align:middle;
+  font-size:14px;color:var(--text-2);border-bottom:1px solid var(--border-subtle);white-space:nowrap}
+tbody tr:hover td{background:var(--layer-hover)}
+tbody tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+td strong{color:var(--text);font-weight:500}
+.empty{padding:32px 16px;color:var(--text-helper);font-size:14px;text-align:center}
+
+/* ---- buttons, Carbon 32px sm / 40px md, square ---- */
+button.b{font:400 14px/1 "IBM Plex Sans",sans-serif;border:1px solid transparent;
+  cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:0 12px;height:32px}
+button.b:focus-visible{outline:2px solid var(--interactive);outline-offset:-3px}
+button.b.pri{background:var(--interactive);color:var(--text-on)}
+button.b.pri:hover{background:var(--interactive-hover)}
+button.b.gho{background:none;color:var(--link)}
+button.b.gho:hover{background:var(--layer-hover)}
+button.b.dan{background:none;color:var(--err)}
+button.b.dan:hover{background:var(--err-bg)}
+button.b[disabled]{opacity:.4;cursor:not-allowed}
+
+/* ---- form, Carbon fields are 40px with a bottom rule only ---- */
+form.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:16px;padding:16px;background:var(--layer);border:1px solid var(--border-subtle)}
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.f label{font:400 12px/1.33 "IBM Plex Sans",sans-serif;color:var(--text-2)}
+.f input,.f select{height:40px;background:var(--field);border:0;
+  border-bottom:1px solid var(--border-strong);color:var(--text);padding:0 12px;
+  font:400 14px/1 "IBM Plex Sans",sans-serif;min-width:0;width:100%}
+.f input:focus,.f select:focus{outline:2px solid var(--interactive);outline-offset:-2px}
+.f.wide{grid-column:1/-1}
+.actions{grid-column:1/-1;display:flex;gap:8px;align-items:center}
+.note{grid-column:1/-1;display:flex;gap:8px;align-items:flex-start;
+  background:var(--warn-bg);border-left:3px solid var(--warn);padding:12px;font-size:12px;color:var(--text)}
+.msg{font-size:12px;padding:8px 12px;border-left:3px solid var(--err);
+  background:var(--err-bg);color:var(--text);margin:0 0 16px;display:none}
+.msg.show{display:block}
+.msg.ok{border-left-color:var(--ok);background:transparent;color:var(--text-2)}
+
+/* ---- status pills ---- */
+.pill{display:inline-flex;align-items:center;gap:6px;font:500 12px/1 "IBM Plex Mono",monospace;
+  padding:4px 8px;background:var(--layer-2);color:var(--text-2)}
+.pill.ok{color:var(--ok)} .pill.err{color:var(--err)} .pill.run{color:var(--link)}
+.pill.warn{color:var(--warn)}
+.warnrow td{background:var(--warn-bg)}
+details.log{margin:0}
+details.log summary{cursor:pointer;color:var(--link);font-size:12px;list-style:none}
+details.log summary::-webkit-details-marker{display:none}
+pre.log{margin:8px 0 0;padding:12px;background:var(--bg);border:1px solid var(--border-subtle);
+  font:400 12px/1.5 "IBM Plex Mono",monospace;color:var(--text-2);
+  max-height:320px;overflow:auto;white-space:pre-wrap}
+.stack{display:flex;flex-direction:column;gap:24px}
+/* Carbon modal: 70% scrim, no radius, footer buttons split full width */
+.scrim{position:fixed;inset:0;background:rgba(22,22,22,.7);display:grid;place-items:center;
+  z-index:50;padding:16px}
+.scrim[hidden]{display:none}
+.modal{background:var(--layer);border:1px solid var(--border-subtle);width:min(560px,100%);
+  max-height:90vh;display:flex;flex-direction:column}
+.modal header{height:auto;padding:16px;border-bottom:0;background:none;display:block;position:static}
+.modal .kicker{font:400 12px/1.33 "IBM Plex Sans",sans-serif;color:var(--text-2);margin:0 0 4px}
+.modal h3{font:400 20px/1.4 "IBM Plex Sans",sans-serif;margin:0;color:var(--text)}
+.modal .body{padding:0 16px 16px;overflow:auto;display:flex;flex-direction:column;gap:16px}
+.modal dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:14px}
+.modal dt{color:var(--text-helper);font-size:12px;align-self:center}
+.modal dd{margin:0;color:var(--text);font-family:"IBM Plex Mono",monospace;font-size:13px}
+.modal .foot{display:flex;border-top:1px solid var(--border-subtle);margin-top:auto}
+.modal .foot button{flex:1;height:64px;border:0;cursor:pointer;
+  font:400 14px/1 "IBM Plex Sans",sans-serif;display:flex;align-items:center;
+  justify-content:center;gap:8px}
+.modal .foot .cancel{background:var(--layer-2);color:var(--text)}
+.modal .foot .cancel:hover{background:var(--layer-hover)}
+.modal .foot .go{background:var(--interactive);color:var(--text-on)}
+.modal .foot .go:hover{background:var(--interactive-hover)}
+td .res{display:flex;gap:12px;align-items:baseline}
+td .res b{color:var(--text);font-weight:500}
+td .none{color:var(--text-helper);font-size:12px}
+a.rep{color:var(--link);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+a.rep:hover{text-decoration:underline}
+.acts{display:flex;gap:2px;justify-content:flex-end}
+tbody td:last-child,thead th:last-child{position:sticky;right:0;background:var(--layer);
+  box-shadow:-1px 0 0 var(--border-subtle)}
+thead th:last-child{background:var(--layer-2)}
+tbody tr:hover td:last-child{background:var(--layer-hover)}
+.acts button{background:none;border:1px solid transparent;color:var(--text-2);
+  width:32px;height:32px;display:grid;place-items:center;cursor:pointer;padding:0}
+.acts button:hover{background:var(--layer-hover);color:var(--text)}
+.acts button.dan:hover{background:var(--err-bg);color:var(--err)}
+.acts button.go:hover{color:var(--link)}
+.acts button[disabled]{opacity:.25;cursor:not-allowed}
+.acts button[disabled]:hover{background:none;color:var(--text-2)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol viewBox="0 0 24 24" id="i-play"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-plus"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-trash"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-refresh"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-check"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-x"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-alert"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-server"><rect width="20" height="8" x="2" y="2"/><rect width="20" height="8" x="2" y="14"/><path d="M6 6h.01"/><path d="M6 18h.01"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-terminal"><polyline points="4 17 10 11 4 5"/><path d="M12 19h8"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-activity"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-layers"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m21 12-9 5-9-5"/><path d="m21 17-9 5-9-5"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497Z"/><path d="m15 5 4 4"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-copy"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+<symbol viewBox="0 0 24 24" id="i-ext"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+</svg>
+
+<header>
+  <span class="brand"><span class="dot" id="live"></span>ORB Control</span>
+  <span class="spacer"></span>
+  <div class="meta">
+    <span><svg class="i sm"><use href="#i-layers"/></svg> <b id="m-slots">–</b> slots</span>
+    <span><svg class="i sm"><use href="#i-server"/></svg> <b id="m-runner">–</b></span>
+    <span><svg class="i sm"><use href="#i-activity"/></svg> <b id="m-busy">0</b> running</span>
+  </div>
+  <button class="iconbtn" id="refresh" title="Refresh" aria-label="Refresh"><svg class="i"><use href="#i-refresh"/></svg></button>
+  <button class="iconbtn" id="theme" title="Theme" aria-label="Toggle theme"><svg class="i"><use href="#i-sun"/></svg></button>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-tab="run"><svg class="i sm"><use href="#i-play"/></svg>Backtests<span class="count" id="c-specs">0</span></button>
+  <button role="tab" aria-selected="false" data-tab="acc"><svg class="i sm"><use href="#i-server"/></svg>Accounts<span class="count" id="c-acc">0</span></button>
+  <button role="tab" aria-selected="false" data-tab="hist"><svg class="i sm"><use href="#i-terminal"/></svg>Runs<span class="count" id="c-runs">0</span></button>
+</nav>
+
+<main>
+<p class="msg" id="msg"></p>
+
+<!-- ================= BACKTESTS ================= -->
+<section id="tab-run" class="stack">
+  <div>
+    <h2>Queue a backtest</h2>
+    <p class="helper">Pick a strategy and the account to log in with. One job per slot; the rest wait.</p>
+    <div class="tablewrap">
+      <div class="thead"><h3>Strategies</h3>
+        <span class="helper" style="margin:0">Run, edit, duplicate or delete. The account is chosen when you run.</span>
+      </div>
+      <table><thead><tr>
+        <th>Strategy</th><th>Symbol</th><th>Session</th><th class="n">RR</th>
+        <th class="n">Risk</th><th>Last result</th><th class="n">Pass</th>
+        <th>Report</th><th></th></tr></thead>
+        <tbody id="specs"></tbody></table>
+    </div>
+  </div>
+  <div>
+    <h2 id="formtitle">New strategy</h2>
+    <p class="helper">Written to <span class="mono">strategies/generated/</span> and validated against the spec schema before it is queued. Editing a tracked strategy saves a copy here instead of changing the repo's file.</p>
+    <form class="grid" id="specform">
+      <div class="f"><label for="s-name">Name</label><input id="s-name" required placeholder="my-session"></div>
+      <div class="f"><label for="s-symbol">Symbol</label><input id="s-symbol" value="XAUUSD"></div>
+      <div class="f"><label for="s-start">Range opens, UTC</label><input id="s-start" value="00:00" placeholder="HH:MM"></div>
+      <div class="f"><label for="s-range">Range, minutes</label><input id="s-range" type="number" value="15" min="1" max="240"></div>
+      <div class="f"><label for="s-tf">Break confirmed on</label><select id="s-tf"></select></div>
+      <div class="f"><label for="s-win">Entry window, minutes</label><input id="s-win" type="number" value="15" min="0" max="240"></div>
+      <div class="f"><label for="s-hold">Time cap, minutes</label><input id="s-hold" type="number" value="90" min="0" max="1440"></div>
+      <div class="f"><label for="s-rr">Target, R</label><input id="s-rr" type="number" value="2" step="0.1" min="0.1" max="20"></div>
+      <div class="f"><label for="s-sl">Stop, % of range</label><input id="s-sl" type="number" value="50" step="5" min="0" max="100"></div>
+      <div class="f"><label for="s-dir">Direction</label><select id="s-dir"><option value="both">Both</option><option value="long">Long only</option><option value="short">Short only</option></select></div>
+      <div class="f"><label for="s-minr">Min range, % of price</label><input id="s-minr" type="number" value="0" step="0.01" min="0" max="9"></div>
+      <div class="f"><label for="s-risk">Risk per trade, %</label><input id="s-risk" type="number" value="2.5" step="0.25" min="0.1"></div>
+      <div class="f"><label for="s-from">From</label><input id="s-from" type="date" value="2026-01-01"></div>
+      <div class="f"><label for="s-to">To</label><input id="s-to" placeholder="today"></div>
+      <div class="actions">
+        <button class="b pri" type="submit"><svg class="i sm"><use href="#i-plus"/></svg><span id="formbtn">Create strategy</span></button>
+        <button class="b gho" type="button" id="formreset">Clear</button>
+        <span class="helper" style="margin:0" id="formhint">It appears in the table above, ready to run.</span>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ================= ACCOUNTS ================= -->
+<section id="tab-acc" class="stack" hidden>
+  <div>
+    <h2>Broker accounts</h2>
+    <p class="helper">Stored as <span class="mono">accounts/&lt;label&gt;.env</span>, mode 600, ignored by git. The password is never sent back to this page and never appears in a log or a run record.</p>
+    <div class="tablewrap">
+      <div class="thead"><h3>Saved</h3></div>
+      <table><thead><tr><th>Label</th><th>Server</th><th class="n">Login</th><th></th></tr></thead>
+        <tbody id="accts"></tbody></table>
+    </div>
+  </div>
+  <div>
+    <h2>Add an account</h2>
+    <form class="grid" id="acctform">
+      <div class="f"><label for="a-label">Label</label><input id="a-label" required placeholder="ftmo-demo"></div>
+      <div class="f"><label for="a-server">Server</label><input id="a-server" required placeholder="FTMO-Demo"></div>
+      <div class="f"><label for="a-login">Login</label><input id="a-login" required inputmode="numeric" autocomplete="off"></div>
+      <div class="f"><label for="a-pass">Password</label><input id="a-pass" type="password" required autocomplete="new-password"></div>
+      <div class="note"><svg class="i sm" style="margin-top:1px"><use href="#i-alert"/></svg>
+        <span>This panel listens on loopback only. Reach it from another device over a private network such as Tailscale &mdash; never through a port forward.</span></div>
+      <div class="actions"><button class="b pri" type="submit"><svg class="i sm"><use href="#i-plus"/></svg>Save account</button></div>
+    </form>
+  </div>
+</section>
+
+<!-- ================= RUNS ================= -->
+<section id="tab-hist" class="stack" hidden>
+  <div>
+    <h2>Queue</h2>
+    <div class="tablewrap">
+      <table><thead><tr><th>Job</th><th>Strategy</th><th>Account</th><th>Window</th><th class="n">Slot</th><th>State</th></tr></thead>
+        <tbody id="jobs"></tbody></table>
+    </div>
+  </div>
+  <div>
+    <h2>What MetaTrader did</h2>
+    <p class="helper">The window asked for against the one the tester actually covered, per-step timing, and the journal lines worth reading.</p>
+    <div class="tablewrap">
+      <table><thead><tr>
+        <th>Run</th><th>Symbol</th><th>Account</th><th>Asked</th><th>Covered</th>
+        <th class="n">Trades</th><th class="n">Tester</th><th class="n">Build</th><th>Status</th><th></th></tr></thead>
+        <tbody id="runs"></tbody></table>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="scrim" id="scrim" hidden role="dialog" aria-modal="true" aria-labelledby="mtitle">
+  <div class="modal">
+    <header>
+      <p class="kicker">Run a backtest</p>
+      <h3 id="mtitle">–</h3>
+    </header>
+    <div class="body">
+      <dl id="msum"></dl>
+      <div class="f"><label for="macct">Account to log in with</label><select id="macct"></select></div>
+      <div class="row" style="gap:16px">
+        <div class="f" style="flex:1"><label for="mfrom">From</label><input id="mfrom" class="mono"></div>
+        <div class="f" style="flex:1"><label for="mto">To</label><input id="mto" class="mono"></div>
+      </div>
+      <div class="note" id="mnote"><svg class="i sm" style="margin-top:1px"><use href="#i-alert"/></svg>
+        <span id="mnotetext"></span></div>
+    </div>
+    <div class="foot">
+      <button class="cancel" id="mcancel">Cancel</button>
+      <button class="go" id="mgo"><svg class="i sm"><use href="#i-play"/></svg>Run</button>
+    </div>
+  </div>
+</div>
+</main>
+
+<script>
+const TF = ["M1","M2","M3","M4","M5","M6","M10","M12","M15","M20","M30","H1"];
+const $ = s => document.querySelector(s);
+const el = (t, a = {}, kids = []) => {
+  const n = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) {
+    if (k === "class") n.className = v; else if (k === "html") n.innerHTML = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (v !== null && v !== undefined) n.setAttribute(k, v);
+  }
+  for (const c of [].concat(kids)) n.append(c);
+  return n;
+};
+const icon = (id, cls = "i sm") =>
+  el("span", { html: `<svg class="${cls}"><use href="#i-${id}"/></svg>` }).firstChild;
+
+let TOKEN = new URLSearchParams(location.search).get("token") || "";
+let STATE = { accounts: [], specs: [], runs: [], jobs: [], slots: 0, containers: false };
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, {
+    ...opts,
+    headers: { "X-Orb-Token": TOKEN, ...(opts.body ? { "Content-Type": "application/json" } : {}) }
+  });
+  const txt = await r.text();
+  let body; try { body = JSON.parse(txt); } catch { body = txt; }
+  if (!r.ok) throw new Error((body && body.error) || r.status);
+  return body;
+}
+function say(text, ok) {
+  const m = $("#msg");
+  m.textContent = text; m.className = "msg show" + (ok ? " ok" : "");
+  if (ok) setTimeout(() => m.classList.remove("show"), 4000);
+}
+
+/* ---------- render ---------- */
+function statePill(s) {
+  const map = { done: ["ok", "check"], ok: ["ok", "check"], failed: ["err", "x"],
+                running: ["run", "activity"], queued: ["", "clock"], cancelled: ["", "x"] };
+  const [cls, ic] = map[s] || ["", "clock"];
+  return el("span", { class: "pill " + cls }, [icon(ic), document.createTextNode(s)]);
+}
+const fmt = {
+  ev: v => (v > 0 ? "+" : "") + v.toFixed(3),
+  pc: v => v.toFixed(1) + "%"
+};
+function renderSpecs() {
+  const tb = $("#specs"); tb.textContent = "";
+  if (!STATE.specs.length) { tb.append(el("tr", {}, el("td", { colspan: 9, class: "empty" }, "No strategies"))); return; }
+  for (const s of STATE.specs) {
+    if (s.error) {
+      tb.append(el("tr", { class: "warnrow" }, [
+        el("td", { colspan: 8 }, s.name), el("td", {}, s.error)])); continue;
+    }
+    const r = s.result;
+    const result = r && r.trades
+      ? el("span", { class: "res" }, [
+          el("b", { class: "mono" }, String(r.trades)), document.createTextNode("trades"),
+          el("b", { class: "mono" }, fmt.pc(r.wr)), document.createTextNode("won"),
+          el("b", { class: "mono", style: `color:${r.ev > 0 ? "var(--ok)" : "var(--err)"}` }, fmt.ev(r.ev) + " R")])
+      : el("span", { class: "none" }, "not run yet");
+    const acts = el("td", {}, el("div", { class: "acts" }, [
+      el("button", { class: "go", title: "Run", onclick: () => openRun(s) }, icon("play")),
+      el("button", { title: s.generated ? "Edit" : "Copy and edit", onclick: () => editSpec(s.name) },
+         icon(s.generated ? "pencil" : "copy")),
+      el("button", { class: s.generated ? "dan" : "", title: s.generated ? "Delete" : "Tracked in the repo, not deletable here",
+                     disabled: s.generated ? null : "", onclick: () => delSpec(s.name) }, icon("trash"))
+    ]));
+    tb.append(el("tr", {}, [
+      el("td", {}, el("strong", {}, s.name)),
+      el("td", { class: "mono" }, s.symbol),
+      el("td", { class: "mono", style: "font-size:12px" }, `${s.start} ${s.tz} · ${s.range_min}m · ${s.signal_tf}`),
+      el("td", { class: "n mono" }, `${s.rr}R`),
+      el("td", { class: "n mono" }, `${s.risk}%`),
+      el("td", {}, result),
+      el("td", { class: "n mono" }, r && r.pass_pct != null ? fmt.pc(r.pass_pct) : "–"),
+      el("td", {}, r && r.report
+        ? el("a", { class: "rep", href: "/report/" + r.report, target: "_blank", rel: "noopener" },
+            [document.createTextNode(r.report), icon("ext")])
+        : el("span", { class: "none" }, "–")),
+      acts
+    ]));
+  }
+}
+
+/* ---------- run, behind a confirmation ---------- */
+let PENDING = null;
+function openRun(s) {
+  PENDING = s;
+  $("#mtitle").textContent = s.name;
+  const dl = $("#msum"); dl.textContent = "";
+  const rows = [
+    ["Symbol", s.symbol],
+    ["Session", `${s.start} ${s.tz}, ${s.range_min}-minute range`],
+    ["Break on", `${s.signal_tf} close, entries for ${s.entry_window}m`],
+    ["Target / stop", `${s.rr}R, stop at ${s.sl_pct}% of range`],
+    ["Direction", s.direction === "both" ? "either way" : s.direction + " only"],
+    ["Risk", `${s.risk}% per trade`],
+    ["Runner", STATE.containers ? "container, isolated volumes" : "this machine's terminal"]
+  ];
+  if (s.min_range_pct > 0) rows.splice(5, 0, ["Range filter", `skip under ${s.min_range_pct}% of price`]);
+  for (const [k, v] of rows) { dl.append(el("dt", {}, k)); dl.append(el("dd", {}, String(v))); }
+  const sel = $("#macct"); sel.textContent = "";
+  for (const a of STATE.accounts) sel.append(el("option", { value: a.label }, `${a.label} · ${a.server}`));
+  if (!STATE.accounts.length) sel.append(el("option", { value: "" }, "No accounts — add one first"));
+  $("#mfrom").value = s.frm.replace(/-/g, ".");
+  $("#mto").value = s.to === "today" ? "" : s.to.replace(/-/g, ".");
+  $("#mnotetext").textContent = STATE.containers
+    ? (STATE.accounts.length
+        ? "Starts a MetaTrader terminal in a container and logs into the account above. Your own terminal is not touched."
+        : "A container has no saved session, so a run needs an account. Add one on the Accounts tab.")
+    : "Runs on this machine's terminal, which holds the tester lock and your saved session.";
+  $("#mgo").disabled = STATE.containers && !STATE.accounts.length;
+  $("#scrim").hidden = false;
+  $("#mcancel").focus();
+}
+function closeRun() { $("#scrim").hidden = true; PENDING = null; }
+$("#mcancel").addEventListener("click", closeRun);
+$("#scrim").addEventListener("click", ev => { if (ev.target === $("#scrim")) closeRun(); });
+document.addEventListener("keydown", ev => { if (ev.key === "Escape" && !$("#scrim").hidden) closeRun(); });
+$("#mgo").addEventListener("click", async () => {
+  if (!PENDING) return;
+  const body = { spec: PENDING.file, account: $("#macct").value || null };
+  const f = $("#mfrom").value.trim(), t = $("#mto").value.trim();
+  if (f) body.from = f;
+  if (t) body.to = t;
+  const name = PENDING.name;
+  closeRun();
+  try { const j = await api("/api/runs", { method: "POST", body: JSON.stringify(body) });
+    say(`Queued ${name} — ${j.from} to ${j.to}`, true); load();
+  } catch (e) { say(e.message); }
+});
+
+/* ---------- edit / duplicate / delete ---------- */
+let EDITING = null;
+async function editSpec(name) {
+  try {
+    const d = await api("/api/specs/" + encodeURIComponent(name));
+    $("#s-name").value = d.editable ? d.name : d.name + "-copy";
+    $("#s-symbol").value = d.symbol; $("#s-start").value = d.start;
+    $("#s-range").value = d.range_min; $("#s-tf").value = d.signal_tf;
+    $("#s-win").value = d.entry_window; $("#s-hold").value = d.hold;
+    $("#s-rr").value = d.rr; $("#s-sl").value = d.sl_pct;
+    $("#s-dir").value = d.direction; $("#s-minr").value = d.min_range_pct;
+    $("#s-risk").value = d.risk; $("#s-from").value = d.frm;
+    $("#s-to").value = d.to === "today" ? "" : d.to;
+    EDITING = d.editable ? d.name : null;
+    $("#formtitle").textContent = d.editable ? "Edit " + d.name : "Copy of " + d.name;
+    $("#formbtn").textContent = d.editable ? "Save changes" : "Create copy";
+    $("#formhint").textContent = d.editable
+      ? "Overwrites strategies/generated/" + d.name + ".toml"
+      : d.name + " is tracked in the repo, so this saves a copy you can change.";
+    $("#s-name").scrollIntoView({ behavior: "smooth", block: "center" });
+    $("#s-name").focus();
+  } catch (e) { say(e.message); }
+}
+function resetForm() {
+  EDITING = null;
+  $("#specform").reset();
+  $("#formtitle").textContent = "New strategy";
+  $("#formbtn").textContent = "Create strategy";
+  $("#formhint").textContent = "It appears in the table above, ready to run.";
+}
+$("#formreset").addEventListener("click", resetForm);
+async function delSpec(name) {
+  if (!confirm(`Delete strategy "${name}"?\n\nRemoves strategies/generated/${name}.toml. Reports and charts it already produced are left alone.`)) return;
+  try { await api("/api/specs/" + encodeURIComponent(name), { method: "DELETE" });
+    say("Deleted " + name, true); if (EDITING === name) resetForm(); load();
+  } catch (e) { say(e.message); }
+}
+
+function renderAccounts() {
+  const tb = $("#accts"); tb.textContent = "";
+  if (!STATE.accounts.length) {
+    tb.append(el("tr", {}, el("td", { colspan: 4, class: "empty" }, "No accounts yet — add one below")));
+  }
+  for (const a of STATE.accounts) {
+    tb.append(el("tr", {}, [
+      el("td", {}, el("strong", {}, a.label)),
+      el("td", { class: "mono" }, a.server),
+      el("td", { class: "n mono" }, a.login),
+      el("td", { class: "n" }, el("button", {
+        class: "b dan", onclick: async () => {
+          if (!confirm(`Delete account "${a.label}"? The .env file is removed from this machine.`)) return;
+          try { await api("/api/accounts/" + encodeURIComponent(a.label), { method: "DELETE" }); say("Deleted " + a.label, true); load(); }
+          catch (e) { say(e.message); }
+        }
+      }, [icon("trash"), document.createTextNode("Delete")]))
+    ]));
+  }
+}
+function renderJobs() {
+  const tb = $("#jobs"); tb.textContent = "";
+  if (!STATE.jobs.length) { tb.append(el("tr", {}, el("td", { colspan: 6, class: "empty" }, "Nothing queued"))); return; }
+  for (const j of STATE.jobs) tb.append(el("tr", {}, [
+    el("td", { class: "mono", style: "font-size:12px" }, j.id),
+    el("td", {}, el("strong", {}, j.name)),
+    el("td", { class: "mono" }, j.account || "saved session"),
+    el("td", { class: "mono", style: "font-size:12px" }, `${j.from} → ${j.to}`),
+    el("td", { class: "n mono" }, j.slot ?? "–"),
+    el("td", {}, statePill(j.state))
+  ]));
+}
+function renderRuns() {
+  const tb = $("#runs"); tb.textContent = "";
+  if (!STATE.runs.length) { tb.append(el("tr", {}, el("td", { colspan: 10, class: "empty" }, "No runs recorded"))); return; }
+  for (const r of STATE.runs) {
+    const t = r.trades && r.trades.cp050;
+    const clamp = r.asked_to && r.tester_reported_to &&
+      (new Date(r.asked_to.replace(/\./g, "-")) - new Date(r.tester_reported_to.replace(/\./g, "-"))) / 864e5 > 1;
+    const bad = r.status !== "ok" || clamp || (r.status === "ok" && !t);
+    tb.append(el("tr", { class: bad ? "warnrow" : null }, [
+      el("td", { class: "mono", style: "font-size:12px" }, r.id),
+      el("td", { class: "mono" }, r.symbol || "–"),
+      el("td", { class: "mono" }, r.account || "–"),
+      el("td", { class: "mono", style: "font-size:12px" }, r.asked_to || "–"),
+      el("td", { class: "mono", style: "font-size:12px" }, clamp
+        ? el("span", { class: "pill warn" }, [icon("alert"), document.createTextNode(r.tester_reported_to)])
+        : (r.tester_reported_to || "–")),
+      el("td", { class: "n mono" }, t == null ? "–" : String(t)),
+      el("td", { class: "n mono" }, r.seconds_tester == null ? "–" : r.seconds_tester + "s"),
+      el("td", { class: "n mono" }, r.seconds_build == null ? "–" : r.seconds_build + "s"),
+      el("td", {}, statePill(r.status)),
+      el("td", { class: "n" }, el("button", {
+        class: "b gho", onclick: async ev => {
+          const row = ev.currentTarget.closest("tr");
+          if (row.nextSibling && row.nextSibling.dataset && row.nextSibling.dataset.log) { row.nextSibling.remove(); return; }
+          let txt; try { txt = await api(`/api/runs/${encodeURIComponent(r.id)}/log`); } catch (e) { txt = "no log: " + e.message; }
+          const pre = el("pre", { class: "log" }, String(txt));
+          const jr = (r.journal || []).length ? el("pre", { class: "log" }, r.journal.join("\n")) : null;
+          row.after(el("tr", { "data-log": "1" }, el("td", { colspan: 10 }, jr ? [pre, jr] : [pre])));
+        }
+      }, [icon("terminal"), document.createTextNode("Log")]))
+    ]));
+  }
+}
+function render() {
+  $("#m-slots").textContent = STATE.slots;
+  $("#m-runner").textContent = STATE.containers ? "containers" : "local";
+  $("#m-busy").textContent = STATE.jobs.filter(j => j.state === "running").length;
+  $("#c-specs").textContent = STATE.specs.length;
+  $("#c-acc").textContent = STATE.accounts.length;
+  $("#c-runs").textContent = STATE.runs.length;
+  $("#live").style.background = "var(--ok)";
+  renderSpecs(); renderAccounts(); renderJobs(); renderRuns();
+}
+
+/* ---------- actions ---------- */
+$("#specform").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+  const body = {
+    name: $("#s-name").value, symbol: $("#s-symbol").value,
+    start: $("#s-start").value, range_min: +$("#s-range").value,
+    signal_tf: $("#s-tf").value, entry_window_min: +$("#s-win").value,
+    hold_min: +$("#s-hold").value, rr: +$("#s-rr").value,
+    sl_pct_of_range: +$("#s-sl").value, direction: $("#s-dir").value,
+    min_range_pct: +$("#s-minr").value, per_trade: +$("#s-risk").value,
+    days, frm: $("#s-from").value, to: $("#s-to").value || "today"
+  };
+  try { const r = await api("/api/specs", { method: "POST", body: JSON.stringify(body) });
+    say((EDITING ? "Saved " : "Created ") + r.file, true); resetForm(); load();
+  } catch (e) { say(e.message); }
+});
+$("#acctform").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const body = { label: $("#a-label").value, server: $("#a-server").value,
+                 login: $("#a-login").value, password: $("#a-pass").value };
+  try { await api("/api/accounts", { method: "POST", body: JSON.stringify(body) });
+    say("Saved " + body.label, true); ev.target.reset(); load();
+  } catch (e) { say(e.message); }
+});
+document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("nav.tabs button").forEach(x => x.setAttribute("aria-selected", String(x === b)));
+  for (const id of ["run", "acc", "hist"]) $("#tab-" + id).hidden = id !== b.dataset.tab;
+}));
+$("#refresh").addEventListener("click", load);
+$("#theme").addEventListener("click", () => {
+  const dark = document.documentElement.dataset.theme === "dark";
+  document.documentElement.dataset.theme = dark ? "light" : "dark";
+  $("#theme").firstElementChild.firstElementChild.setAttribute("href", dark ? "#i-moon" : "#i-sun");
+  try { localStorage.setItem("orb-theme", dark ? "light" : "dark"); } catch {}
+});
+
+async function load() {
+  try { STATE = await api("/api/state"); render(); }
+  catch (e) { $("#live").style.background = "var(--err)"; say("Cannot reach the panel: " + e.message); }
+}
+(async function boot() {
+  try { const t = localStorage.getItem("orb-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+  for (const t of TF) $("#s-tf").append(el("option", { value: t, selected: t === "M1" ? "" : null }, t));
+  if (!TOKEN) { try { TOKEN = (await (await fetch("/token")).text()).trim(); } catch {} }
+  await load();
+  setInterval(load, 4000);
+})();
+</script>
+</body>
+</html>

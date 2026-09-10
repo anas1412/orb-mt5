@@ -64,7 +64,7 @@ record () {   # STATUS  [MESSAGE]
   T0="$T0" T_TEST="${T_TEST:-}" T_BUILD="${T_BUILD:-}" \
   D="$D" HERE="$HERE" JOURNAL="$JOURNAL" JMARK="$JMARK" LOG="$LOG" \
   python3 - <<'PY' > "$RUNS/$ID.json"
-import os, json, csv, datetime as dt, subprocess
+import os, re, json, csv, datetime as dt, subprocess
 E=os.environ
 def rows(p):
     try:
@@ -93,9 +93,16 @@ except Exception:
 # them after a failed tester step reported 144 trades from someone else's run,
 # which is worse than reporting nothing.
 ran = bool(E.get("T_TEST"))
+# run_window.sh only writes tested_through.txt for the DEFAULT pipeline, so a
+# spec run reading it got the last default run's date -- 2026.09.09 under a
+# window that asked for 2026.09.03. Its own log line is the honest source:
+#   close-pos 0.50  2026.09.01..2026.09.03 -> 1 trades
 actual=None
 if ran:
-    try: actual=open(os.path.join(E["D"],"tested_through.txt")).read().strip() or None
+    try:
+        for ln in open(E["LOG"]):
+            m=re.search(r"close-pos\s+\S+\s+\S+\.\.(\d{4}\.\d{2}\.\d{2})", ln)
+            if m: actual=m.group(1)
     except OSError: pass
 j=dict(id=E["ID"], spec=E["NAME"], spec_path=E["SPECPATH"], symbol=E["SYMBOL"],
        account=E["LABEL"], asked_from=E["FROM"], asked_to=E["TO"],

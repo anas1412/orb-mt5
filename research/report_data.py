@@ -85,7 +85,9 @@ for v in R:
         if cur: wseq.append(cur)
         cur=0
 if cur: wseq.append(cur)
-out['streaks']=dict(worst_loss=max(seq), best_win=max(wseq),
+# A window with no winners at all leaves wseq empty, and max() of nothing raised
+# ValueError -- which a three-day run through the control panel found at once.
+out['streaks']=dict(worst_loss=max(seq, default=0), best_win=max(wseq, default=0),
                     loss_hist=sorted(Counter(seq).items()),
                     win_hist=sorted(Counter(wseq).items()))
 # Cumulative R, not percent: risk is chosen on the page, so a percent curve
@@ -266,6 +268,9 @@ def rangefilter():
     allrows=list(csv.DictReader(open(ctx.CSV_LIVE)))
     if not allrows: return None
     v=sorted(((ctx.range_pct(r), float(r["R"])) for r in allrows), key=lambda x: x[0])
+    # Quartiles of a handful of trades are noise with an index error attached.
+    if len(v) < 8:
+        return None
     years={}
     for r in allrows:
         y=int(r["entry_time"][:4])

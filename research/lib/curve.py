@@ -12,8 +12,12 @@ def curve_svg(curve, risk=1.0, w=1180, h=280, pad=44):
     rs=[c[1] for c in curve]                       # cumulative R
     ys=[v*risk for v in rs]; lo=min(0,min(ys)); hi=max(ys)
     n=len(curve)
-    X=lambda i: pad + i*(w-pad-70)/(n-1)
-    Y=lambda v: h-pad - (v-lo)*(h-pad-18)/(hi-lo)
+    # A degenerate curve has no span in either direction: one trade gives n==1,
+    # and a single losing trade gives hi==lo==0. Both divided by zero, which a
+    # three-day window through the control panel walked straight into.
+    span=max(hi-lo, 1e-9)
+    X=lambda i: pad + i*(w-pad-70)/max(n-1, 1)
+    Y=lambda v: h-pad - (v-lo)*(h-pad-18)/span
     pts=" ".join("%.1f,%.1f"%(X(i),Y(v)) for i,v in enumerate(ys))
     area="%.1f,%.1f "%(X(0),Y(0))+pts+" %.1f,%.1f"%(X(n-1),Y(0))
     g=['<polygon points="%s" fill="url(#eqfill)" opacity=".5"/>'%area,

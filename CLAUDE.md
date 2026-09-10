@@ -320,6 +320,35 @@ Every one of these looked like something else first.
 | A fake login appears in the Navigator | **Never test with made-up credentials.** MetaTrader saves every attempted account to `accounts.dat`; a bogus `Login=1` shows up in the user's GUI and can become the terminal's last-used account, disconnecting the live EA |
 | The tester ignores the dates asked for | It **clamps `ToDate`** to its history and reports the clamped value. That clamped date is the coverage record, and it is an *exclusive* end -- the day it names is the day it did not test |
 
+### The control panel
+
+`python3 research/serve.py` on 127.0.0.1:8765, token printed at startup and
+required on every `/api` call. It is the only place broker credentials are
+entered: `POST /api/accounts` writes `accounts/<label>.env` at mode 600, and the
+password is never returned by any endpoint, never logged, and never in a run
+record -- which carries the label alone. Loopback only; reach it from a phone
+over Tailscale, never a port forward.
+
+**Runs go to containers by default.** `--local` opts out. A backtest must not
+reach into the terminal the live EA sits in.
+
+`research/web/index.html` follows IBM Carbon: g100/g10 token pairs, IBM Plex
+Sans and Mono, the 2-4-8 spacing scale, 40px data-table rows, square corners,
+and Lucide icons as an inline sprite. Icons are `<symbol viewBox="0 0 24 24">`,
+never `<g>` -- a `<g>` carries no viewBox, so 24px paths rendered inside a 16px
+box and overflowed.
+
+Running a backtest goes through a confirmation that names the spec, the account
+it will log in as, the window and the runner, because the alternative is a
+click that starts a terminal and a broker login with no summary of either.
+
+Every degenerate input the panel made easy to send found a crash in code that
+had only ever seen a full year. A three-day window on one trade hit six:
+`max()` of an empty streak list, quartiles of fewer than four trades, a curve
+with no horizontal span and then none vertically, `next()` for an exit kind that
+never happened, and an average over a zero count. Short windows are worth
+testing.
+
 ### Parallel backtests, and what the container did
 
 `report.sh` takes `--account FILE` and `--id ID`, and every run leaves

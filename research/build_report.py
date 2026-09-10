@@ -192,7 +192,7 @@ def mc_svg(risk):
     T=ctx.BENCH['p1']; L=-(ctx.BENCH['maxloss'])
     Rv=d['R']; hi=T*1.45; lo=L*1.35
     X=lambda i,n: PAD + i*(W-PAD-24)/max(n-1,1)
-    Y=lambda v: H-PAD - (v-lo)*(H-PAD-16)/(hi-lo)
+    Y=lambda v: H-PAD - (v-lo)*(H-PAD-16)/max(hi-lo,1e-9)
     runs=[]
     longest=1
     for seq in d['mc_seq']:
@@ -333,6 +333,13 @@ def renumber(html):
     if n[0]!=want:
         raise SystemExit("build_report: numbered %d sections, nav lists %d" % (n[0], want))
     return html
+
+def exits_n(kind):
+    """How many trades ended this way, zero if none did.
+
+    A short window can finish with no target hit at all, and next() without a
+    default raised StopIteration in the middle of building the page."""
+    return next((e["n"] for e in d["exits"] if e["kind"] == kind), 0)
 
 def range_section():
     """Section before the Monte Carlo: what the range filter is for.
@@ -566,13 +573,13 @@ html=(tpl
  .replace("{{LAVG}}","%+.2f"%d["losses"]["avg"])
  .replace("{{LAVGABS}}","%.2f"%abs(d["losses"]["avg"]))
  .replace("{{LSAVED}}","%+.1f"%d["losses"]["saved"])
- .replace("{{NTARGET}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="target"))
- .replace("{{NSTOP}}","%d"%next(e["n"] for e in d["exits"] if e["kind"]=="stop"))
- .replace("{{SELFPCT}}","%.0f%%"%(100.0*(H["trades"]-next(e["n"] for e in d["exits"] if e["kind"]=="time cap"))/H["trades"]))
+ .replace("{{NTARGET}}","%d"%exits_n("target"))
+ .replace("{{NSTOP}}","%d"%exits_n("stop"))
+ .replace("{{SELFPCT}}","%.0f%%"%(100.0*(H["trades"]-exits_n("time cap"))/max(H["trades"],1)))
  .replace("{{HOLD}}","%d"%HOLD)
  .replace("{{PF}}","%.2f"%H["pf"])
- .replace("{{AVGWIN}}","%+.2f"%(H["gain"]/H["wins"]))
- .replace("{{AVGLOSS}}","%+.2f"%(H["loss"]/(H["trades"]-H["wins"])))
+ .replace("{{AVGWIN}}","%+.2f"%(H["gain"]/max(H["wins"],1)))
+ .replace("{{AVGLOSS}}","%+.2f"%(H["loss"]/max(H["trades"]-H["wins"],1)))
  .replace("{{BESTWIN}}","%d"%d["streaks"]["best_win"])
  .replace("{{WORSTLOSS}}","%d"%d["streaks"]["worst_loss"])
  .replace("{{WORSTLOSSPCT}}",'<span data-sweep="run_cost" data-fmt="plain1"></span>')
@@ -609,7 +616,8 @@ html=(tpl
 # Pages with JS off, in print, in a reader view. A blank report is worse than a
 # report at one fixed risk, and the numbers are the same ones the script writes.
 def fill_defaults(html):
-    row = next(s for s in d['sweep'] if abs(s['risk'] - RISK) < 1e-9)
+    row = next((s for s in d['sweep'] if abs(s['risk'] - RISK) < 1e-9), None)
+    if row is None: return ""
     def f(v, k):
         if k == 'signint': return "%+d" % round(v)
         if k == 'int':     return "%d" % round(v)
@@ -634,7 +642,8 @@ def fill_warning(html):
     hidden and empty in the file, so with JS off -- or in print, or to a crawler
     -- the finding that the worst run breaks the limit at the default risk would
     be invisible. That is the one thing the page exists to say."""
-    row = next(s for s in d['sweep'] if abs(s['risk'] - RISK) < 1e-9)
+    row = next((s for s in d['sweep'] if abs(s['risk'] - RISK) < 1e-9), None)
+    if row is None: return ""
     daily = ctx.BENCH['daily'] or 0
     bad = []
     if row['run_breaks']:

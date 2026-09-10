@@ -32,6 +32,8 @@ done
 [ "${#SPECS[@]}" -gt 0 ] || { echo "usage: farm.sh [--slots N] [--env FILE] [--from D --to D] SPEC..." >&2; exit 2; }
 MT5H="$HOME/.wine_mt5/drive_c/Program Files/MetaTrader 5"
 CT="/root/.wine_mt5/drive_c/Program Files/MetaTrader 5"
+CTC="/root/.wine_mt5/drive_c/users/root/AppData/Roaming/MetaQuotes/Terminal/Common/Files"
+HOSTC="$HOME/.wine_mt5/drive_c/users/$USER/AppData/Roaming/MetaQuotes/Terminal/Common/Files"
 OUT="$REPO/research/out/farm"; mkdir -p "$OUT"
 
 # Each spec names its own window unless the caller overrides it, so a farm can
@@ -48,7 +50,7 @@ PY
 
 seed () {   # SLOT -- create the three volumes, and fill Bases once
   local i="$1"
-  for v in bases tester config; do docker volume create "orb-$v-$i" >/dev/null; done
+  for v in bases tester config common; do docker volume create "orb-$v-$i" >/dev/null; done
   if [ -z "$(docker run --rm -v "orb-bases-$i:/b" "$IMAGE" sh -c 'ls -A /b 2>/dev/null | head -1')" ]; then
     echo "  slot $i: seeding Bases from this machine (once)"
     docker run --rm -v "orb-bases-$i:/b" -v "$MT5H/Bases:/src:ro" \
@@ -64,6 +66,7 @@ run_one () {   # SLOT SPEC
   id="$name-$(date +%H%M%S)-s$i"
   local args=(--rm --name "orb-farm-$i" --cpus 1.5 --memory 2g
     -v "orb-bases-$i:$CT/Bases" -v "orb-tester-$i:$CT/Tester" -v "orb-config-$i:$CT/Config"
+    -v "orb-common-$i:$CTC" -v "$HOSTC:/bars:ro"
     -v "$REPO:/root/orb/strategy" -v "$OUT:/out")
   [ -n "$ENVFILE" ] && args+=(--env-file "$ENVFILE")
   if [ "$DRY" = yes ]; then
