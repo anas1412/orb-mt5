@@ -353,37 +353,41 @@ back inside, under the 600 limit, so it is valid.</p>
 
 <section id="calc">
 <h2><span class="num">02</span>Stop calculator</h2>
-<p class="sub">Yesterday's high and low, which side got swept, and the price you filled at. It
-returns the level, the stop, the risk in points and the target, using the same
-<b>&times;&nbsp;0.33</b> stop and <b>2.5 R</b> target the 54 trades above were scored with.</p>
+<p class="sub">The stop is anchored to the <b>level</b>, not to your fill, so it can be worked out
+before the session opens and it never moves. Put in yesterday's high and low once and the whole
+table below is fixed for the day &mdash; at the moment you get filled there is nothing left to
+calculate, only a row to read.</p>
 
 <div class="calc">
 <div><label for="cy_hi">Yesterday's high</label><input id="cy_hi" type="number" step="0.01" value="4650.00"></div>
 <div><label for="cy_lo">Yesterday's low</label><input id="cy_lo" type="number" step="0.01" value="4548.00"></div>
-<div><label>Which side was swept</label><div class="side">
+<div><label>Which side gets swept</label><div class="side">
 <button id="c_hi" aria-pressed="true">High &rarr; sell</button>
 <button id="c_lo" aria-pressed="false">Low &rarr; buy</button></div></div>
-<div><label for="c_entry">Your fill (the M5 close)</label><input id="c_entry" type="number" step="0.01" value="4646.00"></div>
 <div><label for="c_bal">Account balance</label><input id="c_bal" type="number" step="100" value="10000"></div>
 <div><label for="c_risk">Risk per trade %</label><input id="c_risk" type="number" step="0.25" value="2.5"></div>
 </div>
 <div id="c_msg"></div>
+
 <div class="out"><table>
 <tbody>
 <tr><td>Yesterday's range</td><td id="o_range"></td></tr>
 <tr><td>Stop distance from the level &mdash; range &times; 0.33</td><td id="o_dist"></td></tr>
 <tr><td>The level you are fading</td><td id="o_level"></td></tr>
-<tr><td>How far your fill ran back inside</td><td id="o_depth"></td></tr>
-<tr class="big"><td><b>Stop</b></td><td id="o_stop"></td></tr>
-<tr class="big"><td><b>Risk</b></td><td id="o_risk"></td></tr>
-<tr class="big"><td><b>Target</b></td><td id="o_tp"></td></tr>
-<tr><td>Position size at that risk</td><td id="o_lots"></td></tr>
+<tr class="big"><td><b>Stop &mdash; place it here whatever your fill</b></td><td id="o_stop"></td></tr>
 </tbody></table></div>
-<p style="font-size:13px;color:var(--mut);margin-top:12px">Size assumes gold at $1 per point per
-lot (100 oz, 1 point = 0.01). Check it against your own contract before trusting it. The stop is
-measured from the <b>level</b>, not from your fill, so your risk is that distance <b>plus</b>
-however far price ran back inside before you got in. The rules above round the fraction to
-&ldquo;a third&rdquo;; the tested constant is <b>0.33</b> and that is what this uses.</p>
+
+<h3>Then read the row that matches your fill</h3>
+<p>Every row is valid for the day. The further inside the level you get filled, the more you are
+risking, so the size shrinks. Past <b>600 points</b> the setup is skipped.</p>
+<div class="scroll"><table id="o_grid">
+<caption>Fill depth is how far back inside the level the price you got was. Size assumes gold at
+$1 per point per lot; check it against your own contract.</caption>
+<thead><tr><th>Fill depth</th><th>You filled at</th><th>Risk</th><th>Target</th><th>Size</th></tr></thead>
+<tbody></tbody></table></div>
+<p style="font-size:13px;color:var(--mut);margin-top:12px">The rules above round the stop fraction
+to &ldquo;a third&rdquo;; the tested constant is <b>0.33</b> and that is what this uses,
+along with the <b>2.5 R</b> target and the <b>600</b>-point limit.</p>
 </section>
 
 <section id="curve">
@@ -534,56 +538,49 @@ lb.onclick=function(e){if(e.target===lb)lb.classList.remove('on')};
 (function(){
   var SLF=0.3300, RRV=2.5000, MAXD=600;
   var hi=document.getElementById('cy_hi'), lo=document.getElementById('cy_lo'),
-      en=document.getElementById('c_entry'), bal=document.getElementById('c_bal'),
-      rk=document.getElementById('c_risk'),
+      bal=document.getElementById('c_bal'), rk=document.getElementById('c_risk'),
       bHi=document.getElementById('c_hi'), bLo=document.getElementById('c_lo'),
-      msg=document.getElementById('c_msg'), sellSide=true;
+      msg=document.getElementById('c_msg'),
+      body=document.querySelector('#o_grid tbody'), sellSide=true;
   function px(v){return (v*100).toFixed(0)+' pts'}
-  function set(id,txt){document.getElementById(id).innerHTML=txt}
+  function set(id,t){document.getElementById(id).innerHTML=t}
   function calc(){
-    var H=parseFloat(hi.value), L=parseFloat(lo.value), E=parseFloat(en.value),
+    var H=parseFloat(hi.value), L=parseFloat(lo.value),
         B=parseFloat(bal.value), P=parseFloat(rk.value);
-    msg.innerHTML='';
-    if(!(H>L)){msg.innerHTML='<div class="calcwarn"><b>The high must be above the low.</b></div>';
-      ['o_range','o_dist','o_level','o_depth','o_stop','o_risk','o_tp','o_lots'].forEach(function(i){set(i,'&mdash;')});return}
-    var rng=H-L, dist=SLF*rng, lvl=sellSide?H:L, sgn=sellSide?1:-1;
+    msg.innerHTML=''; body.innerHTML='';
+    if(!(H>L)){
+      msg.innerHTML='<div class="calcwarn"><b>The high must be above the low.</b></div>';
+      ['o_range','o_dist','o_level','o_stop'].forEach(function(i){set(i,'&mdash;')});
+      return}
+    var rng=H-L, dist=SLF*rng, lvl=sellSide?H:L, sgn=sellSide?1:-1, stop=lvl+sgn*dist;
     set('o_range', rng.toFixed(2)+' &nbsp; <b>'+px(rng)+'</b>');
     set('o_dist', dist.toFixed(2)+' &nbsp; <b>'+px(dist)+'</b>');
     set('o_level', '<b>'+lvl.toFixed(2)+'</b> &nbsp; the '+(sellSide?'high':'low')+' of yesterday');
-    var stop=lvl+sgn*dist;
-    set('o_stop','<b>'+stop.toFixed(2)+'</b>');
-    if(!isFinite(E)){
-      set('o_depth','enter your fill'); set('o_risk','&mdash;'); set('o_tp','&mdash;'); set('o_lots','&mdash;');
-      return}
-    var depth=(lvl-E)*sgn;
-    if(depth<0){
-      msg.innerHTML='<div class="calcwarn">A '+(sellSide?'sell':'buy')+' fades the '+
-        (sellSide?'high':'low')+', so your fill must be <b>'+(sellSide?'below':'above')+
-        '</b> '+lvl.toFixed(2)+'. That is not this setup.</div>';
-      set('o_depth','<b class="neg">wrong side of the level</b>');
-      set('o_risk','&mdash;'); set('o_tp','&mdash;'); set('o_lots','&mdash;'); return}
-    var over=depth*100>MAXD;
-    set('o_depth', px(depth)+(over
-      ? ' &nbsp; <b class="neg">past the '+MAXD.toFixed(0)+'-point limit &mdash; skip it</b>'
-      : ' &nbsp; <span class="pos">within '+MAXD.toFixed(0)+' &mdash; valid</span>'));
-    var risk=Math.abs(E-stop), tp=E-sgn*RRV*risk;
-    set('o_risk','<b>'+px(risk)+'</b> &nbsp; '+risk.toFixed(2)+' from '+E.toFixed(2)+' to '+stop.toFixed(2));
-    set('o_tp','<b>'+tp.toFixed(2)+'</b> &nbsp; '+px(RRV*risk)+' away');
-    if(B>0&&P>0){
-      var money=B*P/100.0, lots=money/(risk*100.0);
-      set('o_lots','<b>'+lots.toFixed(2)+' lots</b> &nbsp; risking $'+money.toFixed(2));
-    } else set('o_lots','&mdash;');
-    msg.innerHTML = over
-      ? '<div class="calcwarn">The fill ran <b>'+px(depth)+'</b> back inside the level, past the '+
-        MAXD.toFixed(0)+'-point limit. <b>This setup is skipped.</b></div>'
-      : '<div class="calcok">Valid setup. Sell'.replace('Sell',sellSide?'Sell':'Buy')+
-        ' '+E.toFixed(2)+', stop '+stop.toFixed(2)+', target '+tp.toFixed(2)+'.</div>';
+    set('o_stop', '<b>'+stop.toFixed(2)+'</b>');
+    var money=(B>0&&P>0)?B*P/100.0:0;
+    var rows='';
+    for(var d=0; d<=MAXD; d+=100){
+      var entry=lvl-sgn*d/100.0, risk=Math.abs(entry-stop), tp=entry-sgn*RRV*risk;
+      var lots=money?money/(risk*100.0):0;
+      rows+='<tr'+(d===0?' class="hi"':'')+'><td><b>'+d+' pts</b></td>'
+        +'<td>'+entry.toFixed(2)+'</td>'
+        +'<td><b>'+px(risk)+'</b></td>'
+        +'<td>'+tp.toFixed(2)+'</td>'
+        +'<td>'+(money?'<b>'+lots.toFixed(2)+'</b> lots':'&mdash;')+'</td></tr>';
+    }
+    var e2=lvl-sgn*(MAXD+100)/100.0, r2=Math.abs(e2-stop);
+    rows+='<tr class="q"><td>'+(MAXD+100)+' pts and beyond</td><td>'+e2.toFixed(2)
+      +'</td><td colspan="3"><b class="neg">past the limit &mdash; skip the setup</b></td></tr>';
+    body.innerHTML=rows;
+    msg.innerHTML='<div class="calcok">Sell'.replace('Sell',sellSide?'Sell':'Buy')
+      +' the retest of <b>'+lvl.toFixed(2)+'</b>, stop <b>'+stop.toFixed(2)
+      +'</b>. That stop holds for every fill; only the size changes.</div>';
   }
   function side(sell){sellSide=sell;
     bHi.setAttribute('aria-pressed',sell?'true':'false');
     bLo.setAttribute('aria-pressed',sell?'false':'true');calc()}
   bHi.onclick=function(){side(true)}; bLo.onclick=function(){side(false)};
-  [hi,lo,en,bal,rk].forEach(function(el){el.oninput=calc});
+  [hi,lo,bal,rk].forEach(function(el){el.oninput=calc});
   calc();
 })();
 
