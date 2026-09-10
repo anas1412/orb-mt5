@@ -1,0 +1,401 @@
+"""Render the previous-day fade report from the trades pdfade_report.py found.
+
+Reuses template.html's stylesheet so the page matches index.html, but none of
+its prose -- different strategy, different claims.
+
+    python3 studies/pdfade_page.py
+"""
+import os, sys, re, json, datetime as dt
+from collections import defaultdict
+import statistics as st
+HERE = os.path.dirname(os.path.abspath(__file__))
+RESEARCH = os.path.dirname(HERE); REPO = os.path.dirname(RESEARCH)
+BE = 0.10          # a trade inside +-0.10 R is a scratch, not a win or a loss
+RISK_PCT = 2.5     # the default the page renders at; the selector rescales it
+
+T = json.load(open(os.path.join(RESEARCH, "data", "pdfade_trades.json")))
+for t in T:
+    t["d"] = dt.date.fromisoformat(t["date"])
+R = [t["R"] for t in T]
+W = [x for x in R if x > BE]; L = [x for x in R if x < -BE]; BEn = len(R)-len(W)-len(L)
+aw = sum(W)/len(W); al = sum(L)/len(L)
+wr = 100.0*len(W)/(len(W)+len(L)); need = 100.0/(1+aw/abs(al))
+ev = sum(R)/len(R); se = st.pstdev(R)/len(R)**0.5
+pk = run = dd = 0.0; curve = []
+for t in T:
+    run += t["R"]; pk = max(pk, run); dd = max(dd, pk-run); curve.append(run)
+def streak(win):
+    b = c = 0
+    for x in R:
+        if (x > BE) == win and abs(x) > BE: c += 1; b = max(b, c)
+        elif abs(x) > BE: c = 0
+    return b
+mo = defaultdict(list)
+for t in T: mo[t["d"].strftime("%b")].append(t)
+MONTHS = [m for m in ("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec") if m in mo]
+kinds = defaultdict(list)
+for t in T: kinds[t["kind"]].append(t["R"])
+
+css = re.search(r"<style>(.*?)</style>", open(os.path.join(RESEARCH,"template.html")).read(), re.S).group(1)
+
+def sgn(v, dp=1, suf=" R"):
+    return '<span class="%s">%+.*f%s</span>' % ("pos" if v > 0 else "neg", dp, v, suf)
+
+def pct(r, dp=1):
+    """A percentage that follows the risk selector. Store R on the element and
+    multiply once in the browser -- never rescale an already-rounded percent."""
+    return ('<span class="%s" data-pct="%.4f" data-dp="%d">%+.*f%%</span>'
+            % ("pos" if r > 0 else "neg", r, dp, dp, RISK_PCT * r))
+
+# ---- equity curve, drawn as plain SVG so the page needs no library ----
+w_, h_ = 1080, 300; pad = 46
+lo = min(0, min(curve)); hi = max(curve)
+sx = lambda i: pad + i*(w_-pad-16)/max(1, len(curve)-1)
+sy = lambda v: h_-28 - (v-lo)*(h_-28-14)/max(1e-9, hi-lo)
+pts = " ".join("%.1f,%.1f" % (sx(i), sy(v)) for i, v in enumerate(curve))
+grid = "".join('<line x1="%d" y1="%.1f" x2="%d" y2="%.1f" stroke="var(--line)" stroke-width="1"/>'
+               '<text x="%d" y="%.1f" fill="var(--mut)" font-size="11" text-anchor="end">%d R</text>'
+               % (pad, sy(v), w_-16, sy(v), pad-8, sy(v)+4, v)
+               for v in range(int(lo//5*5), int(hi)+6, 5))
+mk = ""
+seen = set()
+for i, t in enumerate(T):
+    m = t["d"].strftime("%b")
+    if m not in seen:
+        seen.add(m)
+        mk += ('<line x1="%.1f" y1="14" x2="%.1f" y2="%d" stroke="var(--line)" stroke-dasharray="3 4"/>'
+               '<text x="%.1f" y="%d" fill="var(--mut)" font-size="10.5" text-anchor="middle">%s</text>'
+               % (sx(i), sx(i), h_-28, sx(i), h_-12, m))
+curve_svg = ('<svg viewBox="0 0 %d %d" style="width:100%%;height:auto" role="img" '
+             'aria-label="Cumulative return in R across the %d trades of 2026, ending at %+.1f R">'
+             '%s%s<polyline points="%s" fill="none" stroke="var(--acc)" stroke-width="2.2" '
+             'stroke-linejoin="round"/><line x1="%d" y1="%.1f" x2="%d" y2="%.1f" '
+             'stroke="var(--mut)" stroke-width="1"/></svg>'
+             % (w_, h_, len(T), sum(R), grid, mk, pts, pad, sy(0), w_-16, sy(0)))
+
+def pf(v):
+    """Gross wins over gross losses. None when nothing lost -- an infinite
+    ratio is true and says nothing, so the table prints a dash."""
+    g = sum(x for x in v if x > 0); l = -sum(x for x in v if x <= 0)
+    return round(g / l, 2) if l > 0 else None
+
+def seq(ts):
+    """W/L/. per trade in the order they happened. A scratch is a dot."""
+    return "-".join("W" if t["R"] > BE else "L" if t["R"] < -BE else "."
+                    for t in sorted(ts, key=lambda z: (z["d"], z["n"])))
+
+def block(label, ts):
+    v = [t["R"] for t in ts]
+    w = [x for x in v if x > BE]; l = [x for x in v if x < -BE]
+    p = pf(v)
+    return ('<tr class="%s"><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d</td><td>%d</td>'
+            '<td>%d</td><td>%.0f%%</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>'
+            '<td class="seq">%s</td></tr>'
+            % ("neg" if sum(v) < 0 else "", label, len({t["d"] for t in ts}), len(v),
+               len(w), len(l), len(v)-len(w)-len(l),
+               100.0*len(w)/max(1, len(w)+len(l)),
+               sgn(sum(v)/len(v), 3), sgn(sum(v)), pct(sum(v)),
+               ("%.2f" % p) if p else "&mdash;", seq(ts)))
+
+QH = ('<thead><tr><th>%s</th><th>Days</th><th>Trades</th><th>Won</th><th>Lost</th>'
+      '<th>Scratch</th><th>Win rate</th><th>Per trade</th><th>Total</th><th>Account</th>'
+      '<th>Profit factor</th><th>Order</th></tr></thead>')
+
+qs = defaultdict(list)
+for t in T: qs["Q%d" % ((t["d"].month - 1)//3 + 1)].append(t)
+rows_q = "".join(block(q, qs[q]) for q in sorted(qs))
+rows_mm = "".join(block(m, mo[m]) for m in MONTHS)
+rows_all = block("2026", T)
+
+ws = defaultdict(list)
+for t in T: ws[t["d"].isocalendar()[1]].append(t)
+best_w = max(ws.values(), key=lambda v: sum(x["R"] for x in v))
+worst_w = min(ws.values(), key=lambda v: sum(x["R"] for x in v))
+
+rows_m = "".join(
+    '<tr class="%s"><td><b>%s</b></td><td>%d</td><td>%d</td><td>%d</td><td>%d</td>'
+    '<td>%.0f%%</td><td>%s</td><td>%s</td></tr>'
+    % ("neg" if sum(x["R"] for x in v) < 0 else "",
+       m, len(v), len([x for x in v if x["R"] > BE]), len([x for x in v if x["R"] < -BE]),
+       len([x for x in v if abs(x["R"]) <= BE]),
+       100.0*len([x for x in v if x["R"] > BE])/max(1, len([x for x in v if abs(x["R"]) > BE])),
+       sgn(sum(x["R"] for x in v)), pct(sum(x["R"] for x in v)))
+    for m, v in ((m, mo[m]) for m in MONTHS))
+
+KIND = {"tp":("hit the 2R target","pos"),"sl":("stopped out","neg"),
+        "eod":("closed at the session end","")}
+rows_k = "".join('<tr><td><b>%s</b></td><td>%d</td><td>%.0f%%</td><td>%s</td><td>%s</td></tr>'
+                 % (KIND[k][0], len(v), 100.0*len(v)/len(R), sgn(sum(v)/len(v), 2), sgn(sum(v)))
+                 for k, v in sorted(kinds.items(), key=lambda z: -len(z[1])))
+
+cards = "".join(
+    '<a class="tc %s" data-outcome="%s" data-dir="%s" data-month="%s" href="%s" '
+    'data-r="%+.3f"><img loading="lazy" src="%s" alt="%s %s, %+.2f R"><span class="tm">'
+    '<b>%s</b> · %s · <i>%+.2f R</i> · risk %.0f pts</span></a>'
+    % ("win" if t["R"] > BE else "loss", "win" if t["R"] > BE else "loss",
+       "long" if t["buy"] else "short", t["d"].strftime("%b"),
+       "trades-pdfade/"+t["file"], t["R"], "trades-pdfade/"+t["file"],
+       t["date"], "long" if t["buy"] else "short", t["R"],
+       t["d"].strftime("%d %b"), "long" if t["buy"] else "short", t["R"], t["risk"]/0.01)
+    for t in T)
+
+mchips = "".join('<button class="chip" data-f="month" data-v="%s" aria-pressed="false">%s</button>' % (m, m)
+                 for m in MONTHS)
+
+HTML = """<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Previous-day level fade — gold, Asia session</title>
+<style>%(css)s</style>
+</head><body><div class="wrap">
+
+<header>
+<div class="eyebrow"><span class="dot"></span>research · not the live strategy</div>
+<h1>Fading yesterday's <em>high and low</em></h1>
+<p class="lede">Price sweeps yesterday\u2019s extreme, fails to hold, and an M5 candle closes back inside. You
+take that close and trade against the sweep. Gold, entries in the Asia session, held to the end of
+the day. %(year)d only — %(n)d trades.</p>
+
+<div class="riskbar">
+<label for="risk">Risk per trade</label>
+<div class="riskin"><input id="risk" type="number" min="0.25" max="3.5" step="0.25" value="2.5"><span>%%</span></div>
+<div class="chips">
+<button data-r="1" aria-pressed="false">1%%</button>
+<button data-r="1.5" aria-pressed="false">1.5%%</button>
+<button data-r="2" aria-pressed="false">2%%</button>
+<button data-r="2.5" aria-pressed="true">2.5%%</button>
+<button data-r="3" aria-pressed="false">3%%</button></div>
+<p class="risknote">Every percentage on this page is R \u00d7 risk. The R figures, the win rate and
+the payoff do not move. The worst losing run on record is <b>%(wrun).1f R</b> and the worst
+drawdown <b>%(dd).1f R</b>, so a 12%% maximum loss is not reached until <b>%(brk).2f%%</b> and one
+losing trade breaches a 3%% daily limit past <b>3.00%%</b>.</p>
+</div>
+<div id="riskwarn" class="riskwarn" hidden></div>
+
+<div class="kpi">
+<div class="k big"><div class="l">Total</div><div class="v">%(tot)s</div><div class="n">%(retpct)s of the account</div></div>
+<div class="k"><div class="l">Per trade</div><div class="v">%(ev)s</div><div class="n">± %(se).3f standard error</div></div>
+<div class="k"><div class="l">Win rate</div><div class="v">%(wr).1f%%</div><div class="n">%(W)d won · %(L)d lost · %(BE)d scratch</div></div>
+<div class="k"><div class="l">Needs</div><div class="v">%(need).1f%%</div><div class="n">%(cush)+.1f points of cushion</div></div>
+<div class="k"><div class="l">Worst dip</div><div class="v">%(dd).1f R</div><div class="n">%(ddpct)s of the account</div></div>
+<div class="k"><div class="l">Runs</div><div class="v">%(ws)d / %(ls)d</div><div class="n">longest win / loss streak</div></div>
+</div>
+
+<nav>
+<a href="#rules"><span>01</span>The rules</a>
+<a href="#curve"><span>02</span>The curve</a>
+<a href="#months"><span>03</span>Month by month</a>
+<a href="#exits"><span>04</span>How trades end</a>
+<a href="#honest"><span>05</span>What is weak</a>
+<a href="#gal"><span>06</span>Every trade</a>
+</nav>
+</header>
+
+<section id="rules">
+<h2><span class="num">01</span>The rules</h2>
+<p class="sub">Two numbers off yesterday's chart, then one candle to wait for.</p>
+<ol class="steps">
+<li><b>Mark yesterday's high and low</b><span>Those are the two levels. Subtract them for
+yesterday's range — you need it for the stop.</span></li>
+<li><b>Take entries only between 00:00 and 08:00 UTC</b><span>The Asia session. Entering during
+London or New York loses money on these same rules — section 05. The <em>exit</em> is not
+restricted to Asia; see rule 9.</span></li>
+<li><b>Wait for a sweep</b><span>Price has to trade beyond one of the levels. Above yesterday's
+high, or below yesterday's low.</span></li>
+<li><b>Wait for an M5 candle to CLOSE back inside</b><span>That close is the signal the sweep
+failed. A wick back inside does not count.</span></li>
+<li><b>Skip it if the close ran more than 600 points back inside</b><span>By then the snap-back
+has already happened and you are late. It also caps how large your stop can get.</span></li>
+<li><b>Enter at market on that close</b><span>Sell if the high was swept, buy if the low was.
+No limit order, no waiting for a retest.</span></li>
+<li><b>Stop: yesterday's range ÷ 3, beyond the level</b><span>Measured from the level, not from
+your entry — so the sweep itself cannot take you out.</span></li>
+<li><b>Target: 2 × your risk</b><span>Risk is entry to stop, which is a little more than
+range ÷ 3 because you entered inside the level.</span></li>
+<li><b>Hold to the end of the trading day</b><span>Not the end of Asia. If neither the stop nor
+the target is hit by the broker day\u2019s close, take whatever it is worth. The median trade runs
+<b>799 minutes</b> \u2014 through London and New York. Cutting the hold at 08:00 UTC drops the result
+from +28.4 R to <b>+16.4 R</b>, so most of the move arrives long after the entry.</span></li>
+</ol>
+
+<div class="card">
+<h3>A worked example</h3>
+<p>Yesterday: high <b>4650.00</b>, low <b>4548.00</b> → range <b>10200 points</b>, ÷3 =
+<b>3400 points</b>.</p>
+<p>Price pokes above 4650, then an M5 candle closes back below it at <b>4646.00</b> — 400 points
+back inside, under the 600 limit, so it is valid.</p>
+<p><b>Sell 4646.00</b> · <b>stop 4650 + 3400 = 4684.00</b> · risk <b>3800 points</b> ·
+<b>target 4646 − 7600 = 4570.00</b></p>
+</div>
+</section>
+
+<section id="curve">
+<h2><span class="num">02</span>The curve</h2>
+<p class="sub">Cumulative return in R, trade by trade, in the order they happened.</p>
+<figure><div class="fig">%(curve)s</div>
+<figcaption>%(n)d trades, %(year)d. R is multiples of what you risked, so the curve does not
+depend on account size.</figcaption></figure>
+</section>
+
+<section id="months">
+<h2><span class="num">03</span>Quarter, month, week</h2>
+<p class="sub">The test that matters for a small sample: is this one lucky stretch, or all of them?
+The last column is every trade in order &mdash; W won, L lost, a dot is a scratch.</p>
+
+<div class="scroll"><table>
+<caption>By quarter. Scratch = finished within 0.10 R of flat; not counted in the win rate.</caption>
+%(QH_q)s<tbody>%(rows_q)s<tr class="hi">%(rows_all_inner)s</tbody></table></div>
+
+<div class="scroll"><table>
+<caption>By month.</caption>
+%(QH_m)s<tbody>%(rows_mm)s</tbody></table></div>
+
+<div class="kpi" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+<div class="k"><div class="l">Best week</div><div class="v">%(bw)s</div><div class="n">%(bwn)d trades</div></div>
+<div class="k"><div class="l">Worst week</div><div class="v">%(ww)s</div><div class="n">%(wwn)d trades</div></div>
+<div class="k"><div class="l">Winning weeks</div><div class="v">%(pw)d / %(nw)d</div><div class="n">weeks with a trade</div></div>
+<div class="k"><div class="l">Best month deleted</div><div class="v">%(evrest)+.3f R</div><div class="n">per trade, without %(bestm)s</div></div>
+</div>
+<p>Deleting the single best month still leaves <b>%(evrest)+.3f R</b> per trade against
+<b>%(ev_plain)+.3f R</b> with it, so no one month is carrying the result.</p>
+</section>
+
+<section id="exits">
+<h2><span class="num">04</span>How trades end</h2>
+<p class="sub">Median hold 799 minutes. Targets take a median of 733 minutes; stops land in 252.</p>
+<div class="scroll"><table>
+<thead><tr><th>Exit</th><th>Count</th><th>Share</th><th>Average</th><th>Total</th></tr></thead>
+<tbody>%(rows_k)s</tbody></table></div>
+<p>Average win <b>%(aw)+.2f R</b>, average loss <b>%(al)+.2f R</b> — a real payoff of
+<b>%(payoff).2f : 1</b>, which is why %(need).1f%% is the break-even win rate rather than 33%%.</p>
+</section>
+
+<section id="honest">
+<h2><span class="num">05</span>What is weak about this</h2>
+<p class="sub">Everything below is a reason not to size this like a proven edge.</p>
+<div class="note"><div class="t">Small sample, and it was searched</div>
+<p><b>%(n)d trades over nine months.</b> The configuration was picked from a grid of roughly a
+thousand. t = <b>%(t).2f</b> — it clears the usual bar, but the usual bar assumes one test,
+not a thousand.</p></div>
+<div class="note"><div class="t">2026 only, and 2024–25 lose</div>
+<p>These same rules lose money on 2024 and 2025. That may be regime — gold's Asia range tripled
+into 2026 — or it may be that %(year)d is the year the noise happened to line up.</p></div>
+<div class="note"><div class="t">The level itself may not matter</div>
+<p>A placebo test replaced yesterday's high and low with the high and low from <b>ten days
+ago</b>, and the search scored just as well. What is being paid for is waiting after an
+overshoot, not yesterday's orders specifically.</p></div>
+<div class="note"><div class="t">It is an overnight trade, and financing is not modelled</div>
+<p>Median hold <b>799 minutes</b>; the target takes a median of <b>733 minutes</b> to arrive and
+19 trades ran to the day\u2019s close. Spread is charged at entry, but <b>swap and any rollover
+crossing are not</b>. A position carried that long on gold has a real financing cost this study
+does not subtract.</p></div>
+<div class="note"><div class="t">The 600-point skip was chosen after the fact</div>
+<p>It survives a constant-risk control (so it is not just arithmetic) and sits at the
+<b>98.3rd percentile</b> of dropping 17 trades at random — but seven thresholds were tried, and
+correcting for that leaves it merely suggestive. Treat it as risk control with a possible bonus.</p></div>
+<div class="good"><div class="t">What does hold up</div>
+<p>Entering the moment price touches the level loses badly. Waiting for the M5 close back inside
+is worth roughly <b>+0.27 R per trade</b>, and that part is stable across every cut tested.</p></div>
+</section>
+
+<section id="gal">
+<h2><span class="num">06</span>Every trade</h2>
+<p class="sub">All %(n)d of them. Shaded band = from the sweep to the entry candle.</p>
+<div class="filters">
+<div class="fgroup"><b>Result</b>
+<button class="chip win" data-f="outcome" data-v="win" aria-pressed="false">Wins</button>
+<button class="chip loss" data-f="outcome" data-v="loss" aria-pressed="false">Losses</button></div>
+<div class="fgroup"><b>Side</b>
+<button class="chip" data-f="dir" data-v="long" aria-pressed="false">Long</button>
+<button class="chip" data-f="dir" data-v="short" aria-pressed="false">Short</button></div>
+<div class="fgroup"><b>Month</b>%(mchips)s</div>
+<div class="fcount"><b id="fc">%(n)d</b> of %(n)d shown · <button class="chip" id="clr">clear</button></div>
+</div>
+<div class="gal" id="gal">%(cards)s</div>
+<div class="legend">
+<span><i class="sw" style="background:#12694a"></i>up candle</span>
+<span><i class="sw" style="background:#a8352a"></i>down candle</span>
+<span>▲▼ entry · ✕ exit · dashed = entry, stop, target</span>
+</div>
+</section>
+
+<footer>
+<p><b>Previous-day level fade — gold.</b> Generated %(gen)s from %(n)d trades replayed over M1
+bars. Research only; the live strategy is the <a href="index.html">Asia opening range</a>.</p>
+</footer>
+</div>
+
+<div id="lb"><figure><img id="lbimg" alt=""><figcaption><b id="lbcap"></b><span id="lbn" class="lbn"></span></figcaption></figure>
+<button class="lbbtn" id="lbprev" aria-label="Previous">‹</button>
+<button class="lbbtn" id="lbnext" aria-label="Next">›</button>
+<button class="lbbtn" id="lbclose" aria-label="Close">×</button></div>
+
+<script>
+var cards=[].slice.call(document.querySelectorAll('.tc')),F={},i=0;
+function apply(){var n=0;cards.forEach(function(c){
+  var ok=Object.keys(F).every(function(k){return !F[k].length||F[k].indexOf(c.dataset[k])>=0});
+  c.hidden=!ok;if(ok)n++});document.getElementById('fc').textContent=n}
+document.querySelectorAll('.chip[data-f]').forEach(function(b){b.onclick=function(){
+  var k=b.dataset.f,v=b.dataset.v;F[k]=F[k]||[];var j=F[k].indexOf(v);
+  if(j<0){F[k].push(v);b.setAttribute('aria-pressed','true')}
+  else{F[k].splice(j,1);b.setAttribute('aria-pressed','false')}apply()}});
+document.getElementById('clr').onclick=function(){F={};
+  document.querySelectorAll('.chip[data-f]').forEach(function(b){b.setAttribute('aria-pressed','false')});apply()};
+var lb=document.getElementById('lb');
+function show(k){var vis=cards.filter(function(c){return !c.hidden});if(!vis.length)return;
+  i=(k+vis.length)%%vis.length;var c=vis[i];
+  document.getElementById('lbimg').src=c.querySelector('img').src;
+  document.getElementById('lbcap').textContent=c.querySelector('.tm').textContent;
+  document.getElementById('lbn').textContent=(i+1)+' / '+vis.length;lb.classList.add('on')}
+cards.forEach(function(c){c.onclick=function(e){e.preventDefault();
+  show(cards.filter(function(x){return !x.hidden}).indexOf(c))}});
+document.getElementById('lbprev').onclick=function(){show(i-1)};
+document.getElementById('lbnext').onclick=function(){show(i+1)};
+document.getElementById('lbclose').onclick=function(){lb.classList.remove('on')};
+lb.onclick=function(e){if(e.target===lb)lb.classList.remove('on')};
+var ri=document.getElementById('risk'),rw=document.getElementById('riskwarn'),
+    MAXDD=%(ddr).4f,WRUN=%(wrun).4f;
+function risk(){var v=parseFloat(ri.value);if(!(v>0))return;
+  document.querySelectorAll('[data-pct]').forEach(function(el){
+    var r=parseFloat(el.dataset.pct),d=parseInt(el.dataset.dp||1,10);
+    el.textContent=(r>0?'+':'')+(r*v).toFixed(d)+'%%'});
+  document.querySelectorAll('.chips button').forEach(function(b){
+    b.setAttribute('aria-pressed',parseFloat(b.dataset.r)===v?'true':'false')});
+  var m=[];
+  if(MAXDD*v>12)m.push('the worst drawdown on record costs <b>'+(MAXDD*v).toFixed(1)+'%%</b>, past a 12%% maximum loss');
+  if(WRUN*v>12)m.push('the worst losing run costs <b>'+(WRUN*v).toFixed(1)+'%%</b>, past a 12%% maximum loss');
+  if(v>3)m.push('a single full stop costs <b>'+v.toFixed(2)+'%%</b>, breaching a 3%% daily limit on its own');
+  rw.innerHTML=m.length?('At '+v.toFixed(2)+'%% risk, '+m.join('; ')+'.'):'';
+  rw.hidden=!m.length}
+ri.oninput=risk;
+document.querySelectorAll('.chips button').forEach(function(b){
+  b.onclick=function(){ri.value=b.dataset.r;risk()}});
+risk();
+document.onkeydown=function(e){if(!lb.classList.contains('on'))return;
+  if(e.key==='Escape')lb.classList.remove('on');
+  if(e.key==='ArrowLeft')show(i-1);if(e.key==='ArrowRight')show(i+1)};
+</script>
+</body></html>"""
+
+# The worst run must be the worst REAL sequence, never rebuilt from an average
+# loss -- averaging understates it and calls a limit safe that is not.
+WRUN = -min([sum(R[i:i+n]) for n in range(1, min(9, len(R)+1)) for i in range(len(R)-n+1)] + [0.0])
+
+best = max(MONTHS, key=lambda m: sum(x["R"] for x in mo[m]))
+rest = [x["R"] for m in MONTHS if m != best for x in mo[m]]
+open(os.path.join(REPO, "pdfade.html"), "w").write(HTML % dict(
+    css=css, year=2026, n=len(T), tot=sgn(sum(R)), retpct=pct(sum(R)),
+    ev=sgn(ev, 3), se=se, wr=wr, W=len(W), L=len(L), BE=BEn, need=need, cush=wr-need,
+    dd=dd, ddpct=pct(-dd), ws=streak(True), ls=streak(False),
+    curve=curve_svg, rows_m=rows_m, rows_k=rows_k, evrest=sum(rest)/len(rest),
+    rows_q=rows_q, rows_mm=rows_mm, ev_plain=ev, bestm=best,
+    QH_q=QH % "Quarter", QH_m=QH % "Month",
+    rows_all_inner=rows_all[rows_all.index(">")+1:rows_all.rindex("</tr>")],
+    bw=sgn(sum(x["R"] for x in best_w)), bwn=len(best_w),
+    ww=sgn(sum(x["R"] for x in worst_w)), wwn=len(worst_w),
+    pw=len([v for v in ws.values() if sum(x["R"] for x in v) > 0]), nw=len(ws),
+    aw=aw, al=al, payoff=aw/abs(al), t=ev/se, cards=cards, mchips=mchips,
+    gen=dt.date.today().strftime("%d %B %Y"),
+    wrun=WRUN, brk=12.0/max(dd, WRUN), ddr=dd))
+print("wrote pdfade.html  (%d trades, %+.1f R, WR %.1f%%, t=%.2f)" % (len(T), sum(R), wr, ev/se))

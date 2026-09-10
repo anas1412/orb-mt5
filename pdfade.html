@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Previous-day level fade — gold, Asia session</title>
+<style>
+:root{
+  --bg:#faf8f4; --panel:#fff; --panel2:#f5f2ec; --ink:#17150f; --ink2:#413c33;
+  --mut:#7d766c; --line:#e6e0d4; --acc:#8a6d3b; --acc2:#b08d4f;
+  --pos:#12694a; --posbg:#e8f2ec; --neg:#a8352a; --negbg:#faeae7;
+  --warn:#8a5a00; --warnbg:#fdf4e3;
+  --r:14px; --sh:0 1px 2px rgba(23,21,15,.05),0 8px 24px -12px rgba(23,21,15,.14);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 8px 28px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme=dark]{
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.62 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 110px}
+
+/* ---------- hero ---------- */
+header{padding:66px 0 30px}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:650;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--acc);
+  background:color-mix(in srgb,var(--acc) 11%,transparent);
+  padding:7px 14px;border-radius:100px;margin-bottom:22px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--pos);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--pos) 25%,transparent)}
+h1{font-size:clamp(2.3rem,5.2vw,3.5rem);line-height:1.03;margin:0 0 16px;
+  letter-spacing:-.032em;font-weight:680}
+h1 em{font-style:normal;color:var(--acc);}
+.lede{font-size:1.14rem;color:var(--ink2);max-width:60ch;margin:0}
+
+/* ---------- kpi ---------- */
+.kpi{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px;margin:36px 0 8px}
+/* ten cards divide evenly by 5 and by 2, so neither layout leaves a stranded
+   tile on its own row; 3 across would. */
+@media (max-width:1240px){.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1000px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px) {.kpi{grid-template-columns:1fr}}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;box-shadow:var(--sh);min-width:0}
+.k .l{font-size:10.5px;font-weight:640;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:9px}
+.k .v{font-size:clamp(1.45rem,2.4vw,1.8rem);font-weight:670;letter-spacing:-.03em;line-height:1}
+.k .n{font-size:12px;color:var(--mut);margin-top:7px;line-height:1.4}
+.k.big{background:linear-gradient(150deg,color-mix(in srgb,var(--pos) 13%,var(--panel)),var(--panel))}
+
+/* ---------- sections ---------- */
+section{margin-top:72px;scroll-margin-top:20px}
+h2{font-size:1.62rem;letter-spacing:-.022em;margin:0 0 8px;font-weight:670;display:flex;align-items:baseline;gap:13px}
+h2 .num{font-size:.72em;color:var(--acc);font-variant-numeric:tabular-nums;font-weight:640}
+.sub{color:var(--mut);margin:0 0 26px;max-width:66ch;font-size:1.02rem}
+h3{font-size:1.06rem;margin:34px 0 10px;font-weight:650}
+p{margin:0 0 15px;color:var(--ink2)}
+p strong,li strong{color:var(--ink);font-weight:640}
+a{color:var(--acc)}
+
+/* ---------- toc ---------- */
+nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:8px;margin:34px 0 0;box-shadow:var(--sh);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:4px}
+nav a{display:block;padding:10px 13px;border-radius:9px;text-decoration:none;
+  color:var(--ink2);font-size:13.5px;font-weight:520;transition:.14s}
+nav a:hover{background:var(--panel2);color:var(--ink)}
+nav a span{color:var(--acc);font-weight:640;margin-right:7px;font-variant-numeric:tabular-nums}
+
+/* ---------- cards / callouts ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:24px 26px;box-shadow:var(--sh);margin:22px 0}
+.note{border-left:3px solid var(--warn);background:var(--warnbg);border-radius:0 var(--r) var(--r) 0;
+  padding:18px 22px;margin:22px 0}
+.note .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);margin-bottom:9px}
+.note p:last-child,.card p:last-child{margin-bottom:0}
+.good{border-left:3px solid var(--pos);background:var(--posbg);border-radius:0 var(--r) var(--r) 0;padding:18px 22px;margin:22px 0}
+.good .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--pos);margin-bottom:9px}
+
+/* ---------- rules list ---------- */
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:22px 0}
+ol.steps li{counter-increment:s;position:relative;padding:15px 20px 15px 62px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:10px;box-shadow:var(--sh)}
+ol.steps li::before{content:counter(s);position:absolute;left:18px;top:14px;
+  width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--acc) 15%,transparent);
+  color:var(--acc);font-weight:680;font-size:14px;display:grid;place-items:center}
+ol.steps b{display:block;color:var(--ink);margin-bottom:2px}
+ol.steps span{color:var(--mut);font-size:14.5px}
+ul{margin:0 0 15px;padding-left:22px;color:var(--ink2)}
+li{margin-bottom:8px}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh);margin:20px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+caption{caption-side:top;text-align:left;padding:17px 20px 3px;color:var(--mut);font-size:12.5px}
+th{text-align:right;padding:13px 15px;font-size:10.5px;font-weight:660;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);white-space:nowrap;
+  background:var(--panel2)}
+th:first-child,td:first-child{text-align:left}
+td{padding:11px 15px;border-bottom:1px solid var(--line);text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink2)}
+td b{color:var(--ink)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--panel2)}
+tr.hi td{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+tr.q td{color:var(--mut);opacity:.62}
+tr.neg td:first-child{box-shadow:inset 3px 0 0 var(--neg)}
+tr.warn td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+.pos{color:var(--pos);font-weight:600} .neg{color:var(--neg);font-weight:600}
+.pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:640;letter-spacing:.02em}
+.pill.ok{background:var(--posbg);color:var(--pos)} .pill.no{background:var(--negbg);color:var(--neg)}
+
+/* ---------- figures ---------- */
+figure{margin:26px 0}
+figcaption{color:var(--mut);font-size:13px;margin-top:12px;max-width:70ch}
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px;box-shadow:var(--sh);color:var(--ink)}
+
+/* ---------- gallery filters ---------- */
+.filters{display:flex;flex-direction:column;gap:11px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;
+  box-shadow:var(--sh);margin:22px 0 0}
+.fgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fgroup>b{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);min-width:62px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--ink2);
+  font:inherit;font-size:12.5px;font-weight:550;padding:6px 13px;border-radius:100px;
+  cursor:pointer;transition:.13s;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--acc);color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--bg);font-weight:640}
+.chip.win[aria-pressed=true]{background:var(--pos);border-color:var(--pos)}
+.chip.loss[aria-pressed=true]{background:var(--neg);border-color:var(--neg)}
+.fcount{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums;
+  border-top:1px solid var(--line);padding-top:11px}
+.fcount b{color:var(--ink)}
+.gal .tc[hidden]{display:none}
+.noresult{color:var(--mut);font-size:14px;padding:26px 2px}
+
+/* ---------- lightbox ---------- */
+#lb{position:fixed;inset:0;z-index:99;display:none;background:rgba(8,7,6,.93);
+  backdrop-filter:blur(6px);padding:22px;align-items:center;justify-content:center}
+#lb.on{display:flex}
+#lb figure{margin:0;max-width:min(1300px,100%);max-height:100%;display:flex;
+  flex-direction:column;gap:12px}
+#lb img{max-width:100%;max-height:calc(100vh - 130px);object-fit:contain;
+  background:#fff;border-radius:12px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+#lb figcaption{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  color:#f3efe7;font-size:14px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+#lb figcaption b{color:#fff}
+#lb .lbwin{color:#4fbe8b;font-weight:660} #lb .lbloss{color:#e0806f;font-weight:660}
+#lb .lbn{color:#948c80;font-size:12.5px;letter-spacing:.04em}
+.lbbtn{position:fixed;top:50%;transform:translateY(-50%);width:46px;height:46px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;
+  border-radius:50%;font-size:20px;line-height:1;cursor:pointer;display:grid;
+  place-items:center;transition:.14s}
+.lbbtn:hover{background:rgba(255,255,255,.2)}
+#lbprev{left:14px} #lbnext{right:14px}
+#lbclose{position:fixed;top:14px;right:14px;transform:none}
+@media (max-width:620px){.lbbtn{top:auto;bottom:14px;transform:none}
+  #lbprev{left:calc(50% - 58px)} #lbnext{left:calc(50% + 12px);right:auto}
+  #lbclose{top:14px;right:14px;bottom:auto}}
+
+/* ---------- gallery ---------- */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:22px}
+.tc{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;overflow:hidden;box-shadow:var(--sh);transition:.16s}
+.tc:hover{transform:translateY(-2px);border-color:var(--acc)}
+.tc img{width:100%;display:block;background:#fff}
+.tc .tm{display:block;padding:11px 14px;font-size:12.5px;color:var(--mut);
+  border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.tc .tm b{color:var(--ink)}
+.tc.win .tm i{color:var(--pos);font-style:normal;font-weight:660}
+.tc.loss .tm i{color:var(--neg);font-style:normal;font-weight:660}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0 0;font-size:13px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:11px;height:11px;border-radius:3px}
+
+footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+@media(max-width:640px){
+  header{padding-top:44px}
+  .k .v{font-size:1.55rem}
+  section{margin-top:56px}
+}
+.seq{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em;letter-spacing:.03em;white-space:nowrap}
+.riskbar{display:grid;grid-template-columns:auto auto 1fr;gap:10px 14px;align-items:center;
+  margin:0 0 18px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.riskbar label{font-size:13px;font-weight:640;letter-spacing:.01em}
+.riskin{display:flex;align-items:center;gap:6px}
+.riskin input{width:5.6rem;font:inherit;font-weight:700;font-size:19px;padding:6px 9px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;text-align:right}
+.riskin input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.riskin span{font-size:15px;color:var(--mut);font-weight:640}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:12.5px;padding:5px 11px;border:1px solid var(--line);
+  border-radius:999px;background:transparent;color:var(--mut);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:640}
+.risknote{grid-column:1/-1;margin:2px 0 0;font-size:12.5px;line-height:1.6;color:var(--mut)}
+.riskwarn{margin:0 0 18px;padding:12px 16px;border-radius:12px;font-size:13.5px;line-height:1.6;
+  border:1px solid var(--neg);background:color-mix(in srgb,var(--neg) 9%,transparent)}
+.riskwarn b{color:var(--neg)}
+.mclegend{display:flex;flex-wrap:wrap;gap:18px;margin:0 0 10px;font-size:12.5px;color:var(--mut)}
+.mclegend span{display:inline-flex;align-items:center;gap:7px}
+.mclegend .sw{width:15px;height:2.5px;border-radius:2px;background:currentColor}
+.mclegend .sw.pos{color:var(--pos)}
+.mclegend .sw.neg{color:var(--neg)}
+.kpi.mcstats{grid-template-columns:repeat(4,minmax(0,1fr));margin:20px 0 0}
+@media (max-width:700px){.kpi.mcstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--mut)}
+::-webkit-scrollbar-corner{background:transparent}
+tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:640}
+@media (max-width:640px){.riskbar{grid-template-columns:1fr auto}.chips{grid-column:1/-1}}
+.vtog{display:inline-flex;margin:18px 0 0;border:1px solid var(--line);border-radius:2px;
+  overflow:hidden;font:500 12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+.vtog a,.vtog span{padding:9px 15px;text-decoration:none;display:block;letter-spacing:.02em}
+.vtog span{background:var(--acc);color:#fff}
+.vtog a{color:var(--ink);background:transparent}
+.vtog a:hover{background:var(--line)}
+.vtog .lbl{background:transparent;color:var(--mut);border-right:1px solid var(--line);
+  font-weight:400;cursor:default}
+.twofig{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin:16px 0 0}
+.twofig figure{margin:0}
+</style>
+</head><body><div class="wrap">
+
+<header>
+<div class="eyebrow"><span class="dot"></span>research · not the live strategy</div>
+<h1>Fading yesterday's <em>high and low</em></h1>
+<p class="lede">Price sweeps yesterday’s extreme, fails to hold, and an M5 candle closes back inside. You
+take that close and trade against the sweep. Gold, entries in the Asia session, held to the end of
+the day. 2026 only — 65 trades.</p>
+
+<div class="riskbar">
+<label for="risk">Risk per trade</label>
+<div class="riskin"><input id="risk" type="number" min="0.25" max="3.5" step="0.25" value="2.5"><span>%</span></div>
+<div class="chips">
+<button data-r="1" aria-pressed="false">1%</button>
+<button data-r="1.5" aria-pressed="false">1.5%</button>
+<button data-r="2" aria-pressed="false">2%</button>
+<button data-r="2.5" aria-pressed="true">2.5%</button>
+<button data-r="3" aria-pressed="false">3%</button></div>
+<p class="risknote">Every percentage on this page is R × risk. The R figures, the win rate and
+the payoff do not move. The worst losing run on record is <b>3.0 R</b> and the worst
+drawdown <b>3.2 R</b>, so a 12% maximum loss is not reached until <b>3.69%</b> and one
+losing trade breaches a 3% daily limit past <b>3.00%</b>.</p>
+</div>
+<div id="riskwarn" class="riskwarn" hidden></div>
+
+<div class="kpi">
+<div class="k big"><div class="l">Total</div><div class="v"><span class="pos">+28.4 R</span></div><div class="n"><span class="pos" data-pct="28.3724" data-dp="1">+70.9%</span> of the account</div></div>
+<div class="k"><div class="l">Per trade</div><div class="v"><span class="pos">+0.436 R</span></div><div class="n">± 0.162 standard error</div></div>
+<div class="k"><div class="l">Win rate</div><div class="v">57.8%</div><div class="n">37 won · 27 lost · 1 scratch</div></div>
+<div class="k"><div class="l">Needs</div><div class="v">40.0%</div><div class="n">+17.8 points of cushion</div></div>
+<div class="k"><div class="l">Worst dip</div><div class="v">3.2 R</div><div class="n"><span class="neg" data-pct="-3.2494" data-dp="1">-8.1%</span> of the account</div></div>
+<div class="k"><div class="l">Runs</div><div class="v">4 / 3</div><div class="n">longest win / loss streak</div></div>
+</div>
+
+<nav>
+<a href="#rules"><span>01</span>The rules</a>
+<a href="#curve"><span>02</span>The curve</a>
+<a href="#months"><span>03</span>Month by month</a>
+<a href="#exits"><span>04</span>How trades end</a>
+<a href="#honest"><span>05</span>What is weak</a>
+<a href="#gal"><span>06</span>Every trade</a>
+</nav>
+</header>
+
+<section id="rules">
+<h2><span class="num">01</span>The rules</h2>
+<p class="sub">Two numbers off yesterday's chart, then one candle to wait for.</p>
+<ol class="steps">
+<li><b>Mark yesterday's high and low</b><span>Those are the two levels. Subtract them for
+yesterday's range — you need it for the stop.</span></li>
+<li><b>Take entries only between 00:00 and 08:00 UTC</b><span>The Asia session. Entering during
+London or New York loses money on these same rules — section 05. The <em>exit</em> is not
+restricted to Asia; see rule 9.</span></li>
+<li><b>Wait for a sweep</b><span>Price has to trade beyond one of the levels. Above yesterday's
+high, or below yesterday's low.</span></li>
+<li><b>Wait for an M5 candle to CLOSE back inside</b><span>That close is the signal the sweep
+failed. A wick back inside does not count.</span></li>
+<li><b>Skip it if the close ran more than 600 points back inside</b><span>By then the snap-back
+has already happened and you are late. It also caps how large your stop can get.</span></li>
+<li><b>Enter at market on that close</b><span>Sell if the high was swept, buy if the low was.
+No limit order, no waiting for a retest.</span></li>
+<li><b>Stop: yesterday's range ÷ 3, beyond the level</b><span>Measured from the level, not from
+your entry — so the sweep itself cannot take you out.</span></li>
+<li><b>Target: 2 × your risk</b><span>Risk is entry to stop, which is a little more than
+range ÷ 3 because you entered inside the level.</span></li>
+<li><b>Hold to the end of the trading day</b><span>Not the end of Asia. If neither the stop nor
+the target is hit by the broker day’s close, take whatever it is worth. The median trade runs
+<b>799 minutes</b> — through London and New York. Cutting the hold at 08:00 UTC drops the result
+from +28.4 R to <b>+16.4 R</b>, so most of the move arrives long after the entry.</span></li>
+</ol>
+
+<div class="card">
+<h3>A worked example</h3>
+<p>Yesterday: high <b>4650.00</b>, low <b>4548.00</b> → range <b>10200 points</b>, ÷3 =
+<b>3400 points</b>.</p>
+<p>Price pokes above 4650, then an M5 candle closes back below it at <b>4646.00</b> — 400 points
+back inside, under the 600 limit, so it is valid.</p>
+<p><b>Sell 4646.00</b> · <b>stop 4650 + 3400 = 4684.00</b> · risk <b>3800 points</b> ·
+<b>target 4646 − 7600 = 4570.00</b></p>
+</div>
+</section>
+
+<section id="curve">
+<h2><span class="num">02</span>The curve</h2>
+<p class="sub">Cumulative return in R, trade by trade, in the order they happened.</p>
+<figure><div class="fig"><svg viewBox="0 0 1080 300" style="width:100%;height:auto" role="img" aria-label="Cumulative return in R across the 65 trades of 2026, ending at +28.4 R"><line x1="46" y1="272.0" x2="1064" y2="272.0" stroke="var(--line)" stroke-width="1"/><text x="38" y="276.0" fill="var(--mut)" font-size="11" text-anchor="end">0 R</text><line x1="46" y1="226.5" x2="1064" y2="226.5" stroke="var(--line)" stroke-width="1"/><text x="38" y="230.5" fill="var(--mut)" font-size="11" text-anchor="end">5 R</text><line x1="46" y1="181.1" x2="1064" y2="181.1" stroke="var(--line)" stroke-width="1"/><text x="38" y="185.1" fill="var(--mut)" font-size="11" text-anchor="end">10 R</text><line x1="46" y1="135.6" x2="1064" y2="135.6" stroke="var(--line)" stroke-width="1"/><text x="38" y="139.6" fill="var(--mut)" font-size="11" text-anchor="end">15 R</text><line x1="46" y1="90.1" x2="1064" y2="90.1" stroke="var(--line)" stroke-width="1"/><text x="38" y="94.1" fill="var(--mut)" font-size="11" text-anchor="end">20 R</text><line x1="46" y1="44.7" x2="1064" y2="44.7" stroke="var(--line)" stroke-width="1"/><text x="38" y="48.7" fill="var(--mut)" font-size="11" text-anchor="end">25 R</text><line x1="46" y1="-0.8" x2="1064" y2="-0.8" stroke="var(--line)" stroke-width="1"/><text x="38" y="3.2" fill="var(--mut)" font-size="11" text-anchor="end">30 R</text><line x1="46.0" y1="14" x2="46.0" y2="272" stroke="var(--line)" stroke-dasharray="3 4"/><text x="46.0" y="288" fill="var(--mut)" font-size="10.5" text-anchor="middle">Jan</text><line x1="157.3" y1="14" x2="157.3" y2="272" stroke="var(--line)" stroke-dasharray="3 4"/><text x="157.3" y="288" fill="var(--mut)" font-size="10.5" text-anchor="middle">Feb</text><line x1="268.7" y1="14" x2="268.7" y2="272" stroke="var(--line)" stroke-dasharray="3 4"/><text x="268.7" y="288" fill="var(--mut)" font-size="10.5" text-anchor="middle">Mar</text><line x1="348.2" y1="14" x2="348.2" y2="272" stroke="var(--line)" stroke-dasharray="3 4"/><text x="348.2" y="288" fill="var(--mut)" font-size="10.5" text-anchor="middle">Apr</text><line x1="475.5" y1="14" x2="475.5" y2="272" stroke="var(--line)" stroke-dasharray="3 4"/><text x="475.5" y="288" fill="var(--mut)" font-size="10.5" text-anchor="middle">May</text><line x1="650.4" y1="14" x2="650.4" y2="272" stroke="var(--line)" stroke-dasharray="3 4"/><text x="650.4" y="288" fill="var(--mut)" font-size="10.5" text-anchor="middle">Jun</text><line x1="745.9" y1="14" x2="745.9" y2="272" stroke="var(--line)" stroke-dasharray="3 4"/><text x="745.9" y="288" fill="var(--mut)" font-size="10.5" text-anchor="middle">Jul</text><line x1="873.1" y1="14" x2="873.1" y2="272" stroke="var(--line)" stroke-dasharray="3 4"/><text x="873.1" y="288" fill="var(--mut)" font-size="10.5" text-anchor="middle">Aug</text><line x1="1032.2" y1="14" x2="1032.2" y2="272" stroke="var(--line)" stroke-dasharray="3 4"/><text x="1032.2" y="288" fill="var(--mut)" font-size="10.5" text-anchor="middle">Sep</text><polyline points="46.0,260.4 61.9,269.5 77.8,253.8 93.7,248.3 109.6,236.7 125.5,245.8 141.4,252.7 157.3,250.1 173.2,259.2 189.2,241.0 205.1,250.1 221.0,248.1 236.9,257.2 252.8,239.0 268.7,248.1 284.6,257.2 300.5,266.3 316.4,248.1 332.3,257.2 348.2,266.3 364.1,248.1 380.0,237.2 395.9,246.3 411.8,232.6 427.8,223.8 443.7,205.6 459.6,187.4 475.5,196.5 491.4,178.4 507.3,160.2 523.2,169.3 539.1,161.5 555.0,143.3 570.9,128.2 586.8,137.3 602.7,146.3 618.6,128.2 634.5,137.3 650.4,146.3 666.3,128.2 682.2,127.6 698.2,123.5 714.1,132.6 730.0,114.4 745.9,96.3 761.8,105.4 777.7,114.4 793.6,108.2 809.5,117.3 825.4,114.5 841.3,123.6 857.2,105.5 873.1,114.5 889.0,110.4 904.9,102.8 920.8,84.6 936.8,77.7 952.7,86.7 968.6,68.6 984.5,50.4 1000.4,59.5 1016.3,41.3 1032.2,50.4 1048.1,32.2 1064.0,14.0" fill="none" stroke="var(--acc)" stroke-width="2.2" stroke-linejoin="round"/><line x1="46" y1="272.0" x2="1064" y2="272.0" stroke="var(--mut)" stroke-width="1"/></svg></div>
+<figcaption>65 trades, 2026. R is multiples of what you risked, so the curve does not
+depend on account size.</figcaption></figure>
+</section>
+
+<section id="months">
+<h2><span class="num">03</span>Quarter, month, week</h2>
+<p class="sub">The test that matters for a small sample: is this one lucky stretch, or all of them?
+The last column is every trade in order &mdash; W won, L lost, a dot is a scratch.</p>
+
+<div class="scroll"><table>
+<caption>By quarter. Scratch = finished within 0.10 R of flat; not counted in the win rate.</caption>
+<thead><tr><th>Quarter</th><th>Days</th><th>Trades</th><th>Won</th><th>Lost</th><th>Scratch</th><th>Win rate</th><th>Per trade</th><th>Total</th><th>Account</th><th>Profit factor</th><th>Order</th></tr></thead><tbody><tr class=""><td><b>Q1</b></td><td>19</td><td>19</td><td>9</td><td>10</td><td>0</td><td>47%</td><td><span class="pos">+0.086 R</span></td><td><span class="pos">+1.6 R</span></td><td><span class="pos" data-pct="1.6278" data-dp="1">+4.1%</span></td><td>1.17</td><td class="seq">W-L-W-W-W-L-L-W-L-W-L-W-L-W-L-L-L-W-L</td></tr><tr class=""><td><b>Q2</b></td><td>25</td><td>25</td><td>15</td><td>9</td><td>1</td><td>62%</td><td><span class="pos">+0.628 R</span></td><td><span class="pos">+15.7 R</span></td><td><span class="pos" data-pct="15.6984" data-dp="1">+39.2%</span></td><td>2.74</td><td class="seq">L-W-W-L-W-W-W-W-L-W-W-L-W-W-W-L-L-W-L-L-W-.-W-L-W</td></tr><tr class=""><td><b>Q3</b></td><td>21</td><td>21</td><td>13</td><td>8</td><td>0</td><td>62%</td><td><span class="pos">+0.526 R</span></td><td><span class="pos">+11.0 R</span></td><td><span class="pos" data-pct="11.0462" data-dp="1">+27.6%</span></td><td>2.38</td><td class="seq">W-L-L-W-L-W-L-W-L-W-W-W-W-L-W-W-L-W-L-W-W</td></tr><tr class="hi"><td><b>2026</b></td><td>65</td><td>65</td><td>37</td><td>27</td><td>1</td><td>58%</td><td><span class="pos">+0.436 R</span></td><td><span class="pos">+28.4 R</span></td><td><span class="pos" data-pct="28.3724" data-dp="1">+70.9%</span></td><td>2.06</td><td class="seq">W-L-W-W-W-L-L-W-L-W-L-W-L-W-L-L-L-W-L-L-W-W-L-W-W-W-W-L-W-W-L-W-W-W-L-L-W-L-L-W-.-W-L-W-W-L-L-W-L-W-L-W-L-W-W-W-W-L-W-W-L-W-L-W-W</td></tbody></table></div>
+
+<div class="scroll"><table>
+<caption>By month.</caption>
+<thead><tr><th>Month</th><th>Days</th><th>Trades</th><th>Won</th><th>Lost</th><th>Scratch</th><th>Win rate</th><th>Per trade</th><th>Total</th><th>Account</th><th>Profit factor</th><th>Order</th></tr></thead><tbody><tr class=""><td><b>Jan</b></td><td>7</td><td>7</td><td>4</td><td>3</td><td>0</td><td>57%</td><td><span class="pos">+0.303 R</span></td><td><span class="pos">+2.1 R</span></td><td><span class="pos" data-pct="2.1188" data-dp="1">+5.3%</span></td><td>1.77</td><td class="seq">W-L-W-W-W-L-L</td></tr><tr class=""><td><b>Feb</b></td><td>7</td><td>7</td><td>4</td><td>3</td><td>0</td><td>57%</td><td><span class="pos">+0.216 R</span></td><td><span class="pos">+1.5 R</span></td><td><span class="pos" data-pct="1.5090" data-dp="1">+3.8%</span></td><td>1.50</td><td class="seq">W-L-W-L-W-L-W</td></tr><tr class="neg"><td><b>Mar</b></td><td>5</td><td>5</td><td>1</td><td>4</td><td>0</td><td>20%</td><td><span class="neg">-0.400 R</span></td><td><span class="neg">-2.0 R</span></td><td><span class="neg" data-pct="-2.0000" data-dp="1">-5.0%</span></td><td>0.50</td><td class="seq">L-L-L-W-L</td></tr><tr class=""><td><b>Apr</b></td><td>8</td><td>8</td><td>6</td><td>2</td><td>0</td><td>75%</td><td><span class="pos">+0.959 R</span></td><td><span class="pos">+7.7 R</span></td><td><span class="pos" data-pct="7.6707" data-dp="1">+19.2%</span></td><td>4.84</td><td class="seq">L-W-W-L-W-W-W-W</td></tr><tr class=""><td><b>May</b></td><td>11</td><td>11</td><td>6</td><td>5</td><td>0</td><td>55%</td><td><span class="pos">+0.502 R</span></td><td><span class="pos">+5.5 R</span></td><td><span class="pos" data-pct="5.5195" data-dp="1">+13.8%</span></td><td>2.10</td><td class="seq">L-W-W-L-W-W-W-L-L-W-L</td></tr><tr class=""><td><b>Jun</b></td><td>6</td><td>6</td><td>3</td><td>2</td><td>1</td><td>60%</td><td><span class="pos">+0.418 R</span></td><td><span class="pos">+2.5 R</span></td><td><span class="pos" data-pct="2.5082" data-dp="1">+6.3%</span></td><td>2.25</td><td class="seq">L-W-.-W-L-W</td></tr><tr class=""><td><b>Jul</b></td><td>8</td><td>8</td><td>4</td><td>4</td><td>0</td><td>50%</td><td><span class="pos">+0.124 R</span></td><td><span class="pos">+1.0 R</span></td><td><span class="pos" data-pct="0.9890" data-dp="1">+2.5%</span></td><td>1.25</td><td class="seq">W-L-L-W-L-W-L-W</td></tr><tr class=""><td><b>Aug</b></td><td>10</td><td>10</td><td>7</td><td>3</td><td>0</td><td>70%</td><td><span class="pos">+0.706 R</span></td><td><span class="pos">+7.1 R</span></td><td><span class="pos" data-pct="7.0572" data-dp="1">+17.6%</span></td><td>3.35</td><td class="seq">L-W-W-W-W-L-W-W-L-W</td></tr><tr class=""><td><b>Sep</b></td><td>3</td><td>3</td><td>2</td><td>1</td><td>0</td><td>67%</td><td><span class="pos">+1.000 R</span></td><td><span class="pos">+3.0 R</span></td><td><span class="pos" data-pct="3.0000" data-dp="1">+7.5%</span></td><td>4.00</td><td class="seq">L-W-W</td></tr></tbody></table></div>
+
+<div class="kpi" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+<div class="k"><div class="l">Best week</div><div class="v"><span class="pos">+5.0 R</span></div><div class="n">3 trades</div></div>
+<div class="k"><div class="l">Worst week</div><div class="v"><span class="neg">-3.0 R</span></div><div class="n">3 trades</div></div>
+<div class="k"><div class="l">Winning weeks</div><div class="v">20 / 31</div><div class="n">weeks with a trade</div></div>
+<div class="k"><div class="l">Best month deleted</div><div class="v">+0.363 R</div><div class="n">per trade, without Apr</div></div>
+</div>
+<p>Deleting the single best month still leaves <b>+0.363 R</b> per trade against
+<b>+0.436 R</b> with it, so no one month is carrying the result.</p>
+</section>
+
+<section id="exits">
+<h2><span class="num">04</span>How trades end</h2>
+<p class="sub">Median hold 799 minutes. Targets take a median of 733 minutes; stops land in 252.</p>
+<div class="scroll"><table>
+<thead><tr><th>Exit</th><th>Count</th><th>Share</th><th>Average</th><th>Total</th></tr></thead>
+<tbody><tr><td><b>stopped out</b></td><td>26</td><td>40%</td><td><span class="neg">-1.00 R</span></td><td><span class="neg">-26.0 R</span></td></tr><tr><td><b>hit the 2R target</b></td><td>20</td><td>31%</td><td><span class="pos">+2.00 R</span></td><td><span class="pos">+40.0 R</span></td></tr><tr><td><b>closed at the session end</b></td><td>19</td><td>29%</td><td><span class="pos">+0.76 R</span></td><td><span class="pos">+14.4 R</span></td></tr></tbody></table></div>
+<p>Average win <b>+1.49 R</b>, average loss <b>-0.99 R</b> — a real payoff of
+<b>1.50 : 1</b>, which is why 40.0% is the break-even win rate rather than 33%.</p>
+</section>
+
+<section id="honest">
+<h2><span class="num">05</span>What is weak about this</h2>
+<p class="sub">Everything below is a reason not to size this like a proven edge.</p>
+<div class="note"><div class="t">Small sample, and it was searched</div>
+<p><b>65 trades over nine months.</b> The configuration was picked from a grid of roughly a
+thousand. t = <b>2.69</b> — it clears the usual bar, but the usual bar assumes one test,
+not a thousand.</p></div>
+<div class="note"><div class="t">2026 only, and 2024–25 lose</div>
+<p>These same rules lose money on 2024 and 2025. That may be regime — gold's Asia range tripled
+into 2026 — or it may be that 2026 is the year the noise happened to line up.</p></div>
+<div class="note"><div class="t">The level itself may not matter</div>
+<p>A placebo test replaced yesterday's high and low with the high and low from <b>ten days
+ago</b>, and the search scored just as well. What is being paid for is waiting after an
+overshoot, not yesterday's orders specifically.</p></div>
+<div class="note"><div class="t">It is an overnight trade, and financing is not modelled</div>
+<p>Median hold <b>799 minutes</b>; the target takes a median of <b>733 minutes</b> to arrive and
+19 trades ran to the day’s close. Spread is charged at entry, but <b>swap and any rollover
+crossing are not</b>. A position carried that long on gold has a real financing cost this study
+does not subtract.</p></div>
+<div class="note"><div class="t">The 600-point skip was chosen after the fact</div>
+<p>It survives a constant-risk control (so it is not just arithmetic) and sits at the
+<b>98.3rd percentile</b> of dropping 17 trades at random — but seven thresholds were tried, and
+correcting for that leaves it merely suggestive. Treat it as risk control with a possible bonus.</p></div>
+<div class="good"><div class="t">What does hold up</div>
+<p>Entering the moment price touches the level loses badly. Waiting for the M5 close back inside
+is worth roughly <b>+0.27 R per trade</b>, and that part is stable across every cut tested.</p></div>
+</section>
+
+<section id="gal">
+<h2><span class="num">06</span>Every trade</h2>
+<p class="sub">All 65 of them. Shaded band = from the sweep to the entry candle.</p>
+<div class="filters">
+<div class="fgroup"><b>Result</b>
+<button class="chip win" data-f="outcome" data-v="win" aria-pressed="false">Wins</button>
+<button class="chip loss" data-f="outcome" data-v="loss" aria-pressed="false">Losses</button></div>
+<div class="fgroup"><b>Side</b>
+<button class="chip" data-f="dir" data-v="long" aria-pressed="false">Long</button>
+<button class="chip" data-f="dir" data-v="short" aria-pressed="false">Short</button></div>
+<div class="fgroup"><b>Month</b><button class="chip" data-f="month" data-v="Jan" aria-pressed="false">Jan</button><button class="chip" data-f="month" data-v="Feb" aria-pressed="false">Feb</button><button class="chip" data-f="month" data-v="Mar" aria-pressed="false">Mar</button><button class="chip" data-f="month" data-v="Apr" aria-pressed="false">Apr</button><button class="chip" data-f="month" data-v="May" aria-pressed="false">May</button><button class="chip" data-f="month" data-v="Jun" aria-pressed="false">Jun</button><button class="chip" data-f="month" data-v="Jul" aria-pressed="false">Jul</button><button class="chip" data-f="month" data-v="Aug" aria-pressed="false">Aug</button><button class="chip" data-f="month" data-v="Sep" aria-pressed="false">Sep</button></div>
+<div class="fcount"><b id="fc">65</b> of 65 shown · <button class="chip" id="clr">clear</button></div>
+</div>
+<div class="gal" id="gal"><a class="tc win" data-outcome="win" data-dir="short" data-month="Jan" href="trades-pdfade/2026-01-02_short_win_hi.png" data-r="+1.279"><img loading="lazy" src="trades-pdfade/2026-01-02_short_win_hi.png" alt="2026-01-02 short, +1.28 R"><span class="tm"><b>02 Jan</b> · short · <i>+1.28 R</i> · risk 3294 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Jan" href="trades-pdfade/2026-01-06_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-01-06_short_loss_hi.png" alt="2026-01-06 short, -1.00 R"><span class="tm"><b>06 Jan</b> · short · <i>-1.00 R</i> · risk 3821 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Jan" href="trades-pdfade/2026-01-08_long_win_lo.png" data-r="+1.724"><img loading="lazy" src="trades-pdfade/2026-01-08_long_win_lo.png" alt="2026-01-08 long, +1.72 R"><span class="tm"><b>08 Jan</b> · long · <i>+1.72 R</i> · risk 2884 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Jan" href="trades-pdfade/2026-01-14_short_win_hi.png" data-r="+0.604"><img loading="lazy" src="trades-pdfade/2026-01-14_short_win_hi.png" alt="2026-01-14 short, +0.60 R"><span class="tm"><b>14 Jan</b> · short · <i>+0.60 R</i> · risk 2196 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Jan" href="trades-pdfade/2026-01-15_long_win_lo.png" data-r="+1.270"><img loading="lazy" src="trades-pdfade/2026-01-15_long_win_lo.png" alt="2026-01-15 long, +1.27 R"><span class="tm"><b>15 Jan</b> · long · <i>+1.27 R</i> · risk 1780 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Jan" href="trades-pdfade/2026-01-20_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-01-20_short_loss_hi.png" alt="2026-01-20 short, -1.00 R"><span class="tm"><b>20 Jan</b> · short · <i>-1.00 R</i> · risk 1550 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Jan" href="trades-pdfade/2026-01-23_short_loss_hi.png" data-r="-0.758"><img loading="lazy" src="trades-pdfade/2026-01-23_short_loss_hi.png" alt="2026-01-23 short, -0.76 R"><span class="tm"><b>23 Jan</b> · short · <i>-0.76 R</i> · risk 5696 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Feb" href="trades-pdfade/2026-02-04_short_win_hi.png" data-r="+0.294"><img loading="lazy" src="trades-pdfade/2026-02-04_short_win_hi.png" alt="2026-02-04 short, +0.29 R"><span class="tm"><b>04 Feb</b> · short · <i>+0.29 R</i> · risk 9970 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Feb" href="trades-pdfade/2026-02-05_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-02-05_long_loss_lo.png" alt="2026-02-05 long, -1.00 R"><span class="tm"><b>05 Feb</b> · long · <i>-1.00 R</i> · risk 7979 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Feb" href="trades-pdfade/2026-02-06_long_win_lo.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-02-06_long_win_lo.png" alt="2026-02-06 long, +2.00 R"><span class="tm"><b>06 Feb</b> · long · <i>+2.00 R</i> · risk 9094 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Feb" href="trades-pdfade/2026-02-17_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-02-17_long_loss_lo.png" alt="2026-02-17 long, -1.00 R"><span class="tm"><b>17 Feb</b> · long · <i>-1.00 R</i> · risk 2489 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Feb" href="trades-pdfade/2026-02-19_short_win_hi.png" data-r="+0.215"><img loading="lazy" src="trades-pdfade/2026-02-19_short_win_hi.png" alt="2026-02-19 short, +0.21 R"><span class="tm"><b>19 Feb</b> · short · <i>+0.21 R</i> · risk 5223 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Feb" href="trades-pdfade/2026-02-20_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-02-20_short_loss_hi.png" alt="2026-02-20 short, -1.00 R"><span class="tm"><b>20 Feb</b> · short · <i>-1.00 R</i> · risk 2033 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Feb" href="trades-pdfade/2026-02-24_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-02-24_short_win_hi.png" alt="2026-02-24 short, +2.00 R"><span class="tm"><b>24 Feb</b> · short · <i>+2.00 R</i> · risk 4185 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Mar" href="trades-pdfade/2026-03-09_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-03-09_long_loss_lo.png" alt="2026-03-09 long, -1.00 R"><span class="tm"><b>09 Mar</b> · long · <i>-1.00 R</i> · risk 4172 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Mar" href="trades-pdfade/2026-03-10_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-03-10_short_loss_hi.png" alt="2026-03-10 short, -1.00 R"><span class="tm"><b>10 Mar</b> · short · <i>-1.00 R</i> · risk 5313 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Mar" href="trades-pdfade/2026-03-12_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-03-12_long_loss_lo.png" alt="2026-03-12 long, -1.00 R"><span class="tm"><b>12 Mar</b> · long · <i>-1.00 R</i> · risk 2994 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Mar" href="trades-pdfade/2026-03-17_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-03-17_short_win_hi.png" alt="2026-03-17 short, +2.00 R"><span class="tm"><b>17 Mar</b> · short · <i>+2.00 R</i> · risk 2357 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Mar" href="trades-pdfade/2026-03-26_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-03-26_long_loss_lo.png" alt="2026-03-26 long, -1.00 R"><span class="tm"><b>26 Mar</b> · long · <i>-1.00 R</i> · risk 4933 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Apr" href="trades-pdfade/2026-04-01_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-04-01_short_loss_hi.png" alt="2026-04-01 short, -1.00 R"><span class="tm"><b>01 Apr</b> · short · <i>-1.00 R</i> · risk 6801 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Apr" href="trades-pdfade/2026-04-02_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-04-02_short_win_hi.png" alt="2026-04-02 short, +2.00 R"><span class="tm"><b>02 Apr</b> · short · <i>+2.00 R</i> · risk 4359 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Apr" href="trades-pdfade/2026-04-09_long_win_lo.png" data-r="+1.200"><img loading="lazy" src="trades-pdfade/2026-04-09_long_win_lo.png" alt="2026-04-09 long, +1.20 R"><span class="tm"><b>09 Apr</b> · long · <i>+1.20 R</i> · risk 5338 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Apr" href="trades-pdfade/2026-04-13_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-04-13_long_loss_lo.png" alt="2026-04-13 long, -1.00 R"><span class="tm"><b>13 Apr</b> · long · <i>-1.00 R</i> · risk 2290 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Apr" href="trades-pdfade/2026-04-15_short_win_hi.png" data-r="+1.510"><img loading="lazy" src="trades-pdfade/2026-04-15_short_win_hi.png" alt="2026-04-15 short, +1.51 R"><span class="tm"><b>15 Apr</b> · short · <i>+1.51 R</i> · risk 3599 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Apr" href="trades-pdfade/2026-04-20_long_win_lo.png" data-r="+0.960"><img loading="lazy" src="trades-pdfade/2026-04-20_long_win_lo.png" alt="2026-04-20 long, +0.96 R"><span class="tm"><b>20 Apr</b> · long · <i>+0.96 R</i> · risk 4591 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Apr" href="trades-pdfade/2026-04-21_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-04-21_short_win_hi.png" alt="2026-04-21 short, +2.00 R"><span class="tm"><b>21 Apr</b> · short · <i>+2.00 R</i> · risk 3195 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Apr" href="trades-pdfade/2026-04-24_long_win_lo.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-04-24_long_win_lo.png" alt="2026-04-24 long, +2.00 R"><span class="tm"><b>24 Apr</b> · long · <i>+2.00 R</i> · risk 3155 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="May" href="trades-pdfade/2026-05-11_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-05-11_long_loss_lo.png" alt="2026-05-11 long, -1.00 R"><span class="tm"><b>11 May</b> · long · <i>-1.00 R</i> · risk 2372 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="May" href="trades-pdfade/2026-05-12_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-05-12_short_win_hi.png" alt="2026-05-12 short, +2.00 R"><span class="tm"><b>12 May</b> · short · <i>+2.00 R</i> · risk 3814 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="May" href="trades-pdfade/2026-05-14_long_win_lo.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-05-14_long_win_lo.png" alt="2026-05-14 long, +2.00 R"><span class="tm"><b>14 May</b> · long · <i>+2.00 R</i> · risk 2269 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="May" href="trades-pdfade/2026-05-15_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-05-15_long_loss_lo.png" alt="2026-05-15 long, -1.00 R"><span class="tm"><b>15 May</b> · long · <i>-1.00 R</i> · risk 3013 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="May" href="trades-pdfade/2026-05-18_long_win_lo.png" data-r="+0.855"><img loading="lazy" src="trades-pdfade/2026-05-18_long_win_lo.png" alt="2026-05-18 long, +0.85 R"><span class="tm"><b>18 May</b> · long · <i>+0.85 R</i> · risk 5540 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="May" href="trades-pdfade/2026-05-19_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-05-19_short_win_hi.png" alt="2026-05-19 short, +2.00 R"><span class="tm"><b>19 May</b> · short · <i>+2.00 R</i> · risk 3938 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="May" href="trades-pdfade/2026-05-20_long_win_lo.png" data-r="+1.665"><img loading="lazy" src="trades-pdfade/2026-05-20_long_win_lo.png" alt="2026-05-20 long, +1.66 R"><span class="tm"><b>20 May</b> · long · <i>+1.66 R</i> · risk 4466 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="May" href="trades-pdfade/2026-05-26_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-05-26_long_loss_lo.png" alt="2026-05-26 long, -1.00 R"><span class="tm"><b>26 May</b> · long · <i>-1.00 R</i> · risk 1172 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="May" href="trades-pdfade/2026-05-27_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-05-27_long_loss_lo.png" alt="2026-05-27 long, -1.00 R"><span class="tm"><b>27 May</b> · long · <i>-1.00 R</i> · risk 3372 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="May" href="trades-pdfade/2026-05-28_long_win_lo.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-05-28_long_win_lo.png" alt="2026-05-28 long, +2.00 R"><span class="tm"><b>28 May</b> · long · <i>+2.00 R</i> · risk 4344 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="May" href="trades-pdfade/2026-05-29_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-05-29_short_loss_hi.png" alt="2026-05-29 short, -1.00 R"><span class="tm"><b>29 May</b> · short · <i>-1.00 R</i> · risk 5339 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Jun" href="trades-pdfade/2026-06-03_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-06-03_long_loss_lo.png" alt="2026-06-03 long, -1.00 R"><span class="tm"><b>03 Jun</b> · long · <i>-1.00 R</i> · risk 2846 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Jun" href="trades-pdfade/2026-06-11_long_win_lo.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-06-11_long_win_lo.png" alt="2026-06-11 long, +2.00 R"><span class="tm"><b>11 Jun</b> · long · <i>+2.00 R</i> · risk 6337 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Jun" href="trades-pdfade/2026-06-12_short_win_hi.png" data-r="+0.065"><img loading="lazy" src="trades-pdfade/2026-06-12_short_win_hi.png" alt="2026-06-12 short, +0.07 R"><span class="tm"><b>12 Jun</b> · short · <i>+0.07 R</i> · risk 6548 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Jun" href="trades-pdfade/2026-06-22_short_win_hi.png" data-r="+0.443"><img loading="lazy" src="trades-pdfade/2026-06-22_short_win_hi.png" alt="2026-06-22 short, +0.44 R"><span class="tm"><b>22 Jun</b> · short · <i>+0.44 R</i> · risk 3366 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Jun" href="trades-pdfade/2026-06-23_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-06-23_long_loss_lo.png" alt="2026-06-23 long, -1.00 R"><span class="tm"><b>23 Jun</b> · long · <i>-1.00 R</i> · risk 3249 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Jun" href="trades-pdfade/2026-06-30_long_win_lo.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-06-30_long_win_lo.png" alt="2026-06-30 long, +2.00 R"><span class="tm"><b>30 Jun</b> · long · <i>+2.00 R</i> · risk 2824 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Jul" href="trades-pdfade/2026-07-06_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-07-06_short_win_hi.png" alt="2026-07-06 short, +2.00 R"><span class="tm"><b>06 Jul</b> · short · <i>+2.00 R</i> · risk 2530 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Jul" href="trades-pdfade/2026-07-07_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-07-07_long_loss_lo.png" alt="2026-07-07 long, -1.00 R"><span class="tm"><b>07 Jul</b> · long · <i>-1.00 R</i> · risk 2921 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Jul" href="trades-pdfade/2026-07-13_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-07-13_long_loss_lo.png" alt="2026-07-13 long, -1.00 R"><span class="tm"><b>13 Jul</b> · long · <i>-1.00 R</i> · risk 2146 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Jul" href="trades-pdfade/2026-07-20_short_win_hi.png" data-r="+0.692"><img loading="lazy" src="trades-pdfade/2026-07-20_short_win_hi.png" alt="2026-07-20 short, +0.69 R"><span class="tm"><b>20 Jul</b> · short · <i>+0.69 R</i> · risk 2185 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Jul" href="trades-pdfade/2026-07-21_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-07-21_short_loss_hi.png" alt="2026-07-21 short, -1.00 R"><span class="tm"><b>21 Jul</b> · short · <i>-1.00 R</i> · risk 2257 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Jul" href="trades-pdfade/2026-07-24_long_win_lo.png" data-r="+0.297"><img loading="lazy" src="trades-pdfade/2026-07-24_long_win_lo.png" alt="2026-07-24 long, +0.30 R"><span class="tm"><b>24 Jul</b> · long · <i>+0.30 R</i> · risk 3659 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="long" data-month="Jul" href="trades-pdfade/2026-07-28_long_loss_lo.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-07-28_long_loss_lo.png" alt="2026-07-28 long, -1.00 R"><span class="tm"><b>28 Jul</b> · long · <i>-1.00 R</i> · risk 1834 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Jul" href="trades-pdfade/2026-07-29_long_win_lo.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-07-29_long_win_lo.png" alt="2026-07-29 long, +2.00 R"><span class="tm"><b>29 Jul</b> · long · <i>+2.00 R</i> · risk 2708 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Aug" href="trades-pdfade/2026-08-05_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-08-05_short_loss_hi.png" alt="2026-08-05 short, -1.00 R"><span class="tm"><b>05 Aug</b> · short · <i>-1.00 R</i> · risk 2393 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Aug" href="trades-pdfade/2026-08-06_short_win_hi.png" data-r="+0.454"><img loading="lazy" src="trades-pdfade/2026-08-06_short_win_hi.png" alt="2026-08-06 short, +0.45 R"><span class="tm"><b>06 Aug</b> · short · <i>+0.45 R</i> · risk 6724 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Aug" href="trades-pdfade/2026-08-11_short_win_hi.png" data-r="+0.839"><img loading="lazy" src="trades-pdfade/2026-08-11_short_win_hi.png" alt="2026-08-11 short, +0.84 R"><span class="tm"><b>11 Aug</b> · short · <i>+0.84 R</i> · risk 2976 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Aug" href="trades-pdfade/2026-08-13_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-08-13_short_win_hi.png" alt="2026-08-13 short, +2.00 R"><span class="tm"><b>13 Aug</b> · short · <i>+2.00 R</i> · risk 2984 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Aug" href="trades-pdfade/2026-08-14_long_win_lo.png" data-r="+0.764"><img loading="lazy" src="trades-pdfade/2026-08-14_long_win_lo.png" alt="2026-08-14 long, +0.76 R"><span class="tm"><b>14 Aug</b> · long · <i>+0.76 R</i> · risk 3789 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Aug" href="trades-pdfade/2026-08-17_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-08-17_short_loss_hi.png" alt="2026-08-17 short, -1.00 R"><span class="tm"><b>17 Aug</b> · short · <i>-1.00 R</i> · risk 3014 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Aug" href="trades-pdfade/2026-08-18_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-08-18_short_win_hi.png" alt="2026-08-18 short, +2.00 R"><span class="tm"><b>18 Aug</b> · short · <i>+2.00 R</i> · risk 2382 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Aug" href="trades-pdfade/2026-08-19_long_win_lo.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-08-19_long_win_lo.png" alt="2026-08-19 long, +2.00 R"><span class="tm"><b>19 Aug</b> · long · <i>+2.00 R</i> · risk 3920 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Aug" href="trades-pdfade/2026-08-24_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-08-24_short_loss_hi.png" alt="2026-08-24 short, -1.00 R"><span class="tm"><b>24 Aug</b> · short · <i>-1.00 R</i> · risk 4369 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Aug" href="trades-pdfade/2026-08-25_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-08-25_short_win_hi.png" alt="2026-08-25 short, +2.00 R"><span class="tm"><b>25 Aug</b> · short · <i>+2.00 R</i> · risk 3202 pts</span></a><a class="tc loss" data-outcome="loss" data-dir="short" data-month="Sep" href="trades-pdfade/2026-09-03_short_loss_hi.png" data-r="-1.000"><img loading="lazy" src="trades-pdfade/2026-09-03_short_loss_hi.png" alt="2026-09-03 short, -1.00 R"><span class="tm"><b>03 Sep</b> · short · <i>-1.00 R</i> · risk 3999 pts</span></a><a class="tc win" data-outcome="win" data-dir="short" data-month="Sep" href="trades-pdfade/2026-09-08_short_win_hi.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-09-08_short_win_hi.png" alt="2026-09-08 short, +2.00 R"><span class="tm"><b>08 Sep</b> · short · <i>+2.00 R</i> · risk 1939 pts</span></a><a class="tc win" data-outcome="win" data-dir="long" data-month="Sep" href="trades-pdfade/2026-09-09_long_win_lo.png" data-r="+2.000"><img loading="lazy" src="trades-pdfade/2026-09-09_long_win_lo.png" alt="2026-09-09 long, +2.00 R"><span class="tm"><b>09 Sep</b> · long · <i>+2.00 R</i> · risk 3584 pts</span></a></div>
+<div class="legend">
+<span><i class="sw" style="background:#12694a"></i>up candle</span>
+<span><i class="sw" style="background:#a8352a"></i>down candle</span>
+<span>▲▼ entry · ✕ exit · dashed = entry, stop, target</span>
+</div>
+</section>
+
+<footer>
+<p><b>Previous-day level fade — gold.</b> Generated 10 September 2026 from 65 trades replayed over M1
+bars. Research only; the live strategy is the <a href="index.html">Asia opening range</a>.</p>
+</footer>
+</div>
+
+<div id="lb"><figure><img id="lbimg" alt=""><figcaption><b id="lbcap"></b><span id="lbn" class="lbn"></span></figcaption></figure>
+<button class="lbbtn" id="lbprev" aria-label="Previous">‹</button>
+<button class="lbbtn" id="lbnext" aria-label="Next">›</button>
+<button class="lbbtn" id="lbclose" aria-label="Close">×</button></div>
+
+<script>
+var cards=[].slice.call(document.querySelectorAll('.tc')),F={},i=0;
+function apply(){var n=0;cards.forEach(function(c){
+  var ok=Object.keys(F).every(function(k){return !F[k].length||F[k].indexOf(c.dataset[k])>=0});
+  c.hidden=!ok;if(ok)n++});document.getElementById('fc').textContent=n}
+document.querySelectorAll('.chip[data-f]').forEach(function(b){b.onclick=function(){
+  var k=b.dataset.f,v=b.dataset.v;F[k]=F[k]||[];var j=F[k].indexOf(v);
+  if(j<0){F[k].push(v);b.setAttribute('aria-pressed','true')}
+  else{F[k].splice(j,1);b.setAttribute('aria-pressed','false')}apply()}});
+document.getElementById('clr').onclick=function(){F={};
+  document.querySelectorAll('.chip[data-f]').forEach(function(b){b.setAttribute('aria-pressed','false')});apply()};
+var lb=document.getElementById('lb');
+function show(k){var vis=cards.filter(function(c){return !c.hidden});if(!vis.length)return;
+  i=(k+vis.length)%vis.length;var c=vis[i];
+  document.getElementById('lbimg').src=c.querySelector('img').src;
+  document.getElementById('lbcap').textContent=c.querySelector('.tm').textContent;
+  document.getElementById('lbn').textContent=(i+1)+' / '+vis.length;lb.classList.add('on')}
+cards.forEach(function(c){c.onclick=function(e){e.preventDefault();
+  show(cards.filter(function(x){return !x.hidden}).indexOf(c))}});
+document.getElementById('lbprev').onclick=function(){show(i-1)};
+document.getElementById('lbnext').onclick=function(){show(i+1)};
+document.getElementById('lbclose').onclick=function(){lb.classList.remove('on')};
+lb.onclick=function(e){if(e.target===lb)lb.classList.remove('on')};
+var ri=document.getElementById('risk'),rw=document.getElementById('riskwarn'),
+    MAXDD=3.2494,WRUN=3.0110;
+function risk(){var v=parseFloat(ri.value);if(!(v>0))return;
+  document.querySelectorAll('[data-pct]').forEach(function(el){
+    var r=parseFloat(el.dataset.pct),d=parseInt(el.dataset.dp||1,10);
+    el.textContent=(r>0?'+':'')+(r*v).toFixed(d)+'%'});
+  document.querySelectorAll('.chips button').forEach(function(b){
+    b.setAttribute('aria-pressed',parseFloat(b.dataset.r)===v?'true':'false')});
+  var m=[];
+  if(MAXDD*v>12)m.push('the worst drawdown on record costs <b>'+(MAXDD*v).toFixed(1)+'%</b>, past a 12% maximum loss');
+  if(WRUN*v>12)m.push('the worst losing run costs <b>'+(WRUN*v).toFixed(1)+'%</b>, past a 12% maximum loss');
+  if(v>3)m.push('a single full stop costs <b>'+v.toFixed(2)+'%</b>, breaching a 3% daily limit on its own');
+  rw.innerHTML=m.length?('At '+v.toFixed(2)+'% risk, '+m.join('; ')+'.'):'';
+  rw.hidden=!m.length}
+ri.oninput=risk;
+document.querySelectorAll('.chips button').forEach(function(b){
+  b.onclick=function(){ri.value=b.dataset.r;risk()}});
+risk();
+document.onkeydown=function(e){if(!lb.classList.contains('on'))return;
+  if(e.key==='Escape')lb.classList.remove('on');
+  if(e.key==='ArrowLeft')show(i-1);if(e.key==='ArrowRight')show(i+1)};
+</script>
+</body></html>
