@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Two edges in one book — gold, 2026</title>
+<style>
+:root{
+  --bg:#faf8f4; --panel:#fff; --panel2:#f5f2ec; --ink:#17150f; --ink2:#413c33;
+  --mut:#7d766c; --line:#e6e0d4; --acc:#8a6d3b; --acc2:#b08d4f;
+  --pos:#12694a; --posbg:#e8f2ec; --neg:#a8352a; --negbg:#faeae7;
+  --warn:#8a5a00; --warnbg:#fdf4e3;
+  --r:14px; --sh:0 1px 2px rgba(23,21,15,.05),0 8px 24px -12px rgba(23,21,15,.14);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 8px 28px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme=dark]{
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.62 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 110px}
+
+/* ---------- hero ---------- */
+header{padding:66px 0 30px}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:650;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--acc);
+  background:color-mix(in srgb,var(--acc) 11%,transparent);
+  padding:7px 14px;border-radius:100px;margin-bottom:22px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--pos);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--pos) 25%,transparent)}
+h1{font-size:clamp(2.3rem,5.2vw,3.5rem);line-height:1.03;margin:0 0 16px;
+  letter-spacing:-.032em;font-weight:680}
+h1 em{font-style:normal;color:var(--acc);}
+.lede{font-size:1.14rem;color:var(--ink2);max-width:60ch;margin:0}
+
+/* ---------- kpi ---------- */
+.kpi{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px;margin:36px 0 8px}
+/* ten cards divide evenly by 5 and by 2, so neither layout leaves a stranded
+   tile on its own row; 3 across would. */
+@media (max-width:1240px){.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1000px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px) {.kpi{grid-template-columns:1fr}}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;box-shadow:var(--sh);min-width:0}
+.k .l{font-size:10.5px;font-weight:640;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:9px}
+.k .v{font-size:clamp(1.45rem,2.4vw,1.8rem);font-weight:670;letter-spacing:-.03em;line-height:1}
+.k .n{font-size:12px;color:var(--mut);margin-top:7px;line-height:1.4}
+.k.big{background:linear-gradient(150deg,color-mix(in srgb,var(--pos) 13%,var(--panel)),var(--panel))}
+
+/* ---------- sections ---------- */
+section{margin-top:72px;scroll-margin-top:20px}
+h2{font-size:1.62rem;letter-spacing:-.022em;margin:0 0 8px;font-weight:670;display:flex;align-items:baseline;gap:13px}
+h2 .num{font-size:.72em;color:var(--acc);font-variant-numeric:tabular-nums;font-weight:640}
+.sub{color:var(--mut);margin:0 0 26px;max-width:66ch;font-size:1.02rem}
+h3{font-size:1.06rem;margin:34px 0 10px;font-weight:650}
+p{margin:0 0 15px;color:var(--ink2)}
+p strong,li strong{color:var(--ink);font-weight:640}
+a{color:var(--acc)}
+
+/* ---------- toc ---------- */
+nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:8px;margin:34px 0 0;box-shadow:var(--sh);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:4px}
+nav a{display:block;padding:10px 13px;border-radius:9px;text-decoration:none;
+  color:var(--ink2);font-size:13.5px;font-weight:520;transition:.14s}
+nav a:hover{background:var(--panel2);color:var(--ink)}
+nav a span{color:var(--acc);font-weight:640;margin-right:7px;font-variant-numeric:tabular-nums}
+
+/* ---------- cards / callouts ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:24px 26px;box-shadow:var(--sh);margin:22px 0}
+.note{border-left:3px solid var(--warn);background:var(--warnbg);border-radius:0 var(--r) var(--r) 0;
+  padding:18px 22px;margin:22px 0}
+.note .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);margin-bottom:9px}
+.note p:last-child,.card p:last-child{margin-bottom:0}
+.good{border-left:3px solid var(--pos);background:var(--posbg);border-radius:0 var(--r) var(--r) 0;padding:18px 22px;margin:22px 0}
+.good .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--pos);margin-bottom:9px}
+
+/* ---------- rules list ---------- */
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:22px 0}
+ol.steps li{counter-increment:s;position:relative;padding:15px 20px 15px 62px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:10px;box-shadow:var(--sh)}
+ol.steps li::before{content:counter(s);position:absolute;left:18px;top:14px;
+  width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--acc) 15%,transparent);
+  color:var(--acc);font-weight:680;font-size:14px;display:grid;place-items:center}
+ol.steps b{display:block;color:var(--ink);margin-bottom:2px}
+ol.steps span{color:var(--mut);font-size:14.5px}
+ul{margin:0 0 15px;padding-left:22px;color:var(--ink2)}
+li{margin-bottom:8px}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh);margin:20px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+caption{caption-side:top;text-align:left;padding:17px 20px 3px;color:var(--mut);font-size:12.5px}
+th{text-align:right;padding:13px 15px;font-size:10.5px;font-weight:660;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);white-space:nowrap;
+  background:var(--panel2)}
+th:first-child,td:first-child{text-align:left}
+td{padding:11px 15px;border-bottom:1px solid var(--line);text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink2)}
+td b{color:var(--ink)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--panel2)}
+tr.hi td{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+tr.q td{color:var(--mut);opacity:.62}
+tr.neg td:first-child{box-shadow:inset 3px 0 0 var(--neg)}
+tr.warn td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+.pos{color:var(--pos);font-weight:600} .neg{color:var(--neg);font-weight:600}
+.pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:640;letter-spacing:.02em}
+.pill.ok{background:var(--posbg);color:var(--pos)} .pill.no{background:var(--negbg);color:var(--neg)}
+
+/* ---------- figures ---------- */
+figure{margin:26px 0}
+figcaption{color:var(--mut);font-size:13px;margin-top:12px;max-width:70ch}
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px;box-shadow:var(--sh);color:var(--ink)}
+
+/* ---------- gallery filters ---------- */
+.filters{display:flex;flex-direction:column;gap:11px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;
+  box-shadow:var(--sh);margin:22px 0 0}
+.fgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fgroup>b{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);min-width:62px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--ink2);
+  font:inherit;font-size:12.5px;font-weight:550;padding:6px 13px;border-radius:100px;
+  cursor:pointer;transition:.13s;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--acc);color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--bg);font-weight:640}
+.chip.win[aria-pressed=true]{background:var(--pos);border-color:var(--pos)}
+.chip.loss[aria-pressed=true]{background:var(--neg);border-color:var(--neg)}
+.fcount{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums;
+  border-top:1px solid var(--line);padding-top:11px}
+.fcount b{color:var(--ink)}
+.gal .tc[hidden]{display:none}
+.noresult{color:var(--mut);font-size:14px;padding:26px 2px}
+
+/* ---------- lightbox ---------- */
+#lb{position:fixed;inset:0;z-index:99;display:none;background:rgba(8,7,6,.93);
+  backdrop-filter:blur(6px);padding:22px;align-items:center;justify-content:center}
+#lb.on{display:flex}
+#lb figure{margin:0;max-width:min(1300px,100%);max-height:100%;display:flex;
+  flex-direction:column;gap:12px}
+#lb img{max-width:100%;max-height:calc(100vh - 130px);object-fit:contain;
+  background:#fff;border-radius:12px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+#lb figcaption{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  color:#f3efe7;font-size:14px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+#lb figcaption b{color:#fff}
+#lb .lbwin{color:#4fbe8b;font-weight:660} #lb .lbloss{color:#e0806f;font-weight:660}
+#lb .lbn{color:#948c80;font-size:12.5px;letter-spacing:.04em}
+.lbbtn{position:fixed;top:50%;transform:translateY(-50%);width:46px;height:46px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;
+  border-radius:50%;font-size:20px;line-height:1;cursor:pointer;display:grid;
+  place-items:center;transition:.14s}
+.lbbtn:hover{background:rgba(255,255,255,.2)}
+#lbprev{left:14px} #lbnext{right:14px}
+#lbclose{position:fixed;top:14px;right:14px;transform:none}
+@media (max-width:620px){.lbbtn{top:auto;bottom:14px;transform:none}
+  #lbprev{left:calc(50% - 58px)} #lbnext{left:calc(50% + 12px);right:auto}
+  #lbclose{top:14px;right:14px;bottom:auto}}
+
+/* ---------- gallery ---------- */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:22px}
+.tc{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;overflow:hidden;box-shadow:var(--sh);transition:.16s}
+.tc:hover{transform:translateY(-2px);border-color:var(--acc)}
+.tc img{width:100%;display:block;background:#fff}
+.tc .tm{display:block;padding:11px 14px;font-size:12.5px;color:var(--mut);
+  border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.tc .tm b{color:var(--ink)}
+.tc.win .tm i{color:var(--pos);font-style:normal;font-weight:660}
+.tc.loss .tm i{color:var(--neg);font-style:normal;font-weight:660}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0 0;font-size:13px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:11px;height:11px;border-radius:3px}
+
+footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+@media(max-width:640px){
+  header{padding-top:44px}
+  .k .v{font-size:1.55rem}
+  section{margin-top:56px}
+}
+.seq{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em;letter-spacing:.03em;white-space:nowrap}
+.riskbar{display:grid;grid-template-columns:auto auto 1fr;gap:10px 14px;align-items:center;
+  margin:0 0 18px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.riskbar label{font-size:13px;font-weight:640;letter-spacing:.01em}
+.riskin{display:flex;align-items:center;gap:6px}
+.riskin input{width:5.6rem;font:inherit;font-weight:700;font-size:19px;padding:6px 9px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;text-align:right}
+.riskin input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.riskin span{font-size:15px;color:var(--mut);font-weight:640}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:12.5px;padding:5px 11px;border:1px solid var(--line);
+  border-radius:999px;background:transparent;color:var(--mut);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:640}
+.risknote{grid-column:1/-1;margin:2px 0 0;font-size:12.5px;line-height:1.6;color:var(--mut)}
+.riskwarn{margin:0 0 18px;padding:12px 16px;border-radius:12px;font-size:13.5px;line-height:1.6;
+  border:1px solid var(--neg);background:color-mix(in srgb,var(--neg) 9%,transparent)}
+.riskwarn b{color:var(--neg)}
+.mclegend{display:flex;flex-wrap:wrap;gap:18px;margin:0 0 10px;font-size:12.5px;color:var(--mut)}
+.mclegend span{display:inline-flex;align-items:center;gap:7px}
+.mclegend .sw{width:15px;height:2.5px;border-radius:2px;background:currentColor}
+.mclegend .sw.pos{color:var(--pos)}
+.mclegend .sw.neg{color:var(--neg)}
+.kpi.mcstats{grid-template-columns:repeat(4,minmax(0,1fr));margin:20px 0 0}
+@media (max-width:700px){.kpi.mcstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--mut)}
+::-webkit-scrollbar-corner{background:transparent}
+tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:640}
+@media (max-width:640px){.riskbar{grid-template-columns:1fr auto}.chips{grid-column:1/-1}}
+.vtog{display:inline-flex;margin:18px 0 0;border:1px solid var(--line);border-radius:2px;
+  overflow:hidden;font:500 12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+.vtog a,.vtog span{padding:9px 15px;text-decoration:none;display:block;letter-spacing:.02em}
+.vtog span{background:var(--acc);color:#fff}
+.vtog a{color:var(--ink);background:transparent}
+.vtog a:hover{background:var(--line)}
+.vtog .lbl{background:transparent;color:var(--mut);border-right:1px solid var(--line);
+  font-weight:400;cursor:default}
+.twofig{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin:16px 0 0}
+.twofig figure{margin:0}
+</style></head><body><div class="wrap">
+
+<header>
+<div class="eyebrow"><span class="dot"></span>research &middot; both strategies together</div>
+<h1>Two edges, <em>one account</em></h1>
+<p class="lede">The Asia opening range and the previous-day level fade, traded side by side on gold
+through 2026. Data only &mdash; the rules for each live on their own pages:
+<a href="index.html">opening range</a> and <a href="pdfade.html">previous-day fade</a>.</p>
+
+<div class="riskbar">
+<label for="risk">Risk per trade</label>
+<div class="riskin"><input id="risk" type="number" min="0.25" max="3" step="0.25" value="1.5"><span>%</span></div>
+<div class="chips">
+<button data-r="1" aria-pressed="false">1%</button>
+<button data-r="1.5" aria-pressed="true">1.5%</button>
+<button data-r="2" aria-pressed="false">2%</button>
+<button data-r="2.5" aria-pressed="false">2.5%</button></div>
+<p class="risknote">Applied to <b>each</b> trade, so a day that fires both strategies puts twice
+this at risk. The worst real day was <b>-1.52 R</b> and the worst real losing run
+<b>6.62 R</b>, which is why the default here is lower than either strategy's own page.</p>
+</div>
+<div id="riskwarn" class="riskwarn" hidden></div>
+
+<div class="kpi">
+<div class="k big"><div class="l">Total</div><div class="v"><span class="pos">+71.5 R</span></div><div class="n"><span data-pct="71.5298">+107.3</span>% of the account</div></div>
+<div class="k"><div class="l">Per trade</div><div class="v"><span class="pos">+0.511 R</span></div><div class="n">&plusmn; 0.120 standard error</div></div>
+<div class="k"><div class="l">Trades</div><div class="v">140</div><div class="n">75 range &middot; 65 fade</div></div>
+<div class="k"><div class="l">Win rate</div><div class="v">54.0%</div><div class="n">needs 34.6%</div></div>
+<div class="k"><div class="l">Worst dip</div><div class="v">6.6 R</div><div class="n"><span data-pct="-6.6159">-9.9</span>% of the account</div></div>
+<div class="k"><div class="l">t statistic</div><div class="v">4.26</div><div class="n">3.53 and 2.47 apart</div></div>
+</div>
+
+<nav>
+<a href="#side"><span>01</span>Side by side</a>
+<a href="#curve"><span>02</span>The curves</a>
+<a href="#div"><span>03</span>Do they overlap?</a>
+<a href="#risk"><span>04</span>Worst days and runs</a>
+<a href="#periods"><span>05</span>Quarter, month, week</a>
+</nav>
+</header>
+
+<section id="side">
+<h2><span class="num">01</span>Side by side</h2>
+<div class="scroll"><table>
+<caption>Each strategy alone, then the two merged in the order the trades happened.
+BE is a scratch, inside 0.10 R, counted in neither column.</caption>
+<thead><tr><th>Book</th><th>Trades</th><th>W / L / BE</th><th>Win rate</th><th>Needs</th>
+<th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Worst dip</th><th>Account</th><th>t</th></tr></thead>
+<tbody><tr><td><b>Opening range, alone</b></td><td>75</td><td>39 / 36 / 0</td><td>52.0%</td><td>31.1%</td><td class="pos">2.40</td><td class="pos">+0.582</td><td class="pos"><b>+43.6 R</b></td><td>6.2 R</td><td class="pos"><b><span data-pct="43.6170">+65.4</span>%</b></td><td>+3.53</td></tr><tr><td><b>Previous-day fade, alone</b></td><td>65</td><td>36 / 28 / 1</td><td>56.2%</td><td>39.1%</td><td class="pos">2.01</td><td class="pos">+0.429</td><td class="pos"><b>+27.9 R</b></td><td>3.0 R</td><td class="pos"><b><span data-pct="27.9128">+41.9</span>%</b></td><td>+2.47</td></tr><tr class="hi"><td><b>Both together</b></td><td>140</td><td>75 / 64 / 1</td><td>54.0%</td><td>34.6%</td><td class="pos">2.22</td><td class="pos">+0.511</td><td class="pos"><b>+71.5 R</b></td><td>6.6 R</td><td class="pos"><b><span data-pct="71.5298">+107.3</span>%</b></td><td>+4.26</td></tr></tbody></table></div>
+<div class="good"><div class="t">The drawdowns do not add up</div>
+<p>Separately the two worst dips are <b>6.2 R</b> and <b>3.0 R</b>, which would be
+<b>9.2 R</b> if they arrived together. The combined book's worst dip is
+<b>6.6 R</b> &mdash; barely more than the opening range suffers on its own, for
+<b>64% more return</b>. That is the whole case for running both.</p></div>
+</section>
+
+<section id="curve">
+<h2><span class="num">02</span>The curves</h2>
+<div class="mclegend">
+<span><i class="sw" style="background:var(--acc)"></i>both together</span>
+<span><i class="sw" style="background:var(--mut)"></i>opening range alone</span>
+<span><i class="sw" style="background:var(--acc2)"></i>previous-day fade alone</span>
+</div>
+<figure><div class="fig"><svg viewBox="0 0 1080 320" style="width:100%;height:auto" role="img" aria-label="Cumulative return in R for the two strategies separately and combined, 2026"><line x1="48" y1="290.0" x2="1064" y2="290.0" stroke="var(--line)"/><text x="40" y="294.0" fill="var(--mut)" font-size="11" text-anchor="end">0 R</text><line x1="48" y1="253.3" x2="1064" y2="253.3" stroke="var(--line)"/><text x="40" y="257.3" fill="var(--mut)" font-size="11" text-anchor="end">10 R</text><line x1="48" y1="216.6" x2="1064" y2="216.6" stroke="var(--line)"/><text x="40" y="220.6" fill="var(--mut)" font-size="11" text-anchor="end">20 R</text><line x1="48" y1="179.9" x2="1064" y2="179.9" stroke="var(--line)"/><text x="40" y="183.9" fill="var(--mut)" font-size="11" text-anchor="end">30 R</text><line x1="48" y1="143.2" x2="1064" y2="143.2" stroke="var(--line)"/><text x="40" y="147.2" fill="var(--mut)" font-size="11" text-anchor="end">40 R</text><line x1="48" y1="106.5" x2="1064" y2="106.5" stroke="var(--line)"/><text x="40" y="110.5" fill="var(--mut)" font-size="11" text-anchor="end">50 R</text><line x1="48" y1="69.8" x2="1064" y2="69.8" stroke="var(--line)"/><text x="40" y="73.8" fill="var(--mut)" font-size="11" text-anchor="end">60 R</text><line x1="48" y1="33.1" x2="1064" y2="33.1" stroke="var(--line)"/><text x="40" y="37.1" fill="var(--mut)" font-size="11" text-anchor="end">70 R</text><line x1="48" y1="-3.6" x2="1064" y2="-3.6" stroke="var(--line)"/><text x="40" y="0.4" fill="var(--mut)" font-size="11" text-anchor="end">80 R</text><line x1="44.0" y1="14" x2="44.0" y2="290" stroke="var(--line)" stroke-dasharray="3 4"/><text x="44.0" y="306" fill="var(--mut)" font-size="10.5" text-anchor="middle">Jan</text><line x1="169.4" y1="14" x2="169.4" y2="290" stroke="var(--line)" stroke-dasharray="3 4"/><text x="169.4" y="306" fill="var(--mut)" font-size="10.5" text-anchor="middle">Feb</text><line x1="282.8" y1="14" x2="282.8" y2="290" stroke="var(--line)" stroke-dasharray="3 4"/><text x="282.8" y="306" fill="var(--mut)" font-size="10.5" text-anchor="middle">Mar</text><line x1="408.3" y1="14" x2="408.3" y2="290" stroke="var(--line)" stroke-dasharray="3 4"/><text x="408.3" y="306" fill="var(--mut)" font-size="10.5" text-anchor="middle">Apr</text><line x1="529.7" y1="14" x2="529.7" y2="290" stroke="var(--line)" stroke-dasharray="3 4"/><text x="529.7" y="306" fill="var(--mut)" font-size="10.5" text-anchor="middle">May</text><line x1="655.2" y1="14" x2="655.2" y2="290" stroke="var(--line)" stroke-dasharray="3 4"/><text x="655.2" y="306" fill="var(--mut)" font-size="10.5" text-anchor="middle">Jun</text><line x1="776.6" y1="14" x2="776.6" y2="290" stroke="var(--line)" stroke-dasharray="3 4"/><text x="776.6" y="306" fill="var(--mut)" font-size="10.5" text-anchor="middle">Jul</text><line x1="902.1" y1="14" x2="902.1" y2="290" stroke="var(--line)" stroke-dasharray="3 4"/><text x="902.1" y="306" fill="var(--mut)" font-size="10.5" text-anchor="middle">Aug</text><line x1="1027.6" y1="14" x2="1027.6" y2="290" stroke="var(--line)" stroke-dasharray="3 4"/><text x="1027.6" y="306" fill="var(--mut)" font-size="10.5" text-anchor="middle">Sep</text><polyline points="60.1,282.5 88.5,275.1 92.5,267.7 96.6,262.9 116.8,266.6 124.9,259.3 173.5,263.0 177.5,265.0 181.6,257.7 209.9,261.5 234.2,253.4 238.2,246.1 258.5,249.8 262.5,253.5 270.6,246.2 286.8,248.1 290.9,250.3 299.0,252.2 323.3,247.8 327.3,240.4 347.5,242.3 371.8,235.0 375.9,227.6 379.9,220.3 384.0,219.8 404.2,211.0 408.3,203.4 412.3,207.2 428.5,211.0 436.6,203.7 456.8,196.4 460.9,198.3 464.9,202.0 485.2,194.0 497.3,197.7 513.5,190.2 570.2,192.1 574.2,195.8 582.3,197.7 598.5,190.3 602.5,183.0 606.6,175.5 610.6,179.4 630.9,176.9 659.2,178.8 667.3,180.6 691.6,184.6 695.6,177.2 711.8,179.3 719.9,183.0 724.0,175.7 740.2,168.1 752.3,160.5 768.5,164.3 780.7,168.0 809.0,172.0 853.5,164.4 857.6,156.9 861.6,149.5 885.9,142.2 894.0,134.8 910.2,127.4 942.6,129.4 946.6,122.1 950.7,114.7 966.9,107.4 974.9,111.1 979.0,114.8 1003.3,107.5 1007.3,111.3 1023.5,115.0 1027.6,118.7 1031.6,122.4 1051.9,126.2 1064.0,129.9" fill="none" stroke="var(--mut)" stroke-width="1.6" stroke-linejoin="round" stroke-dasharray="5 4"/><polyline points="48.0,285.3 64.2,289.0 72.3,282.7 96.6,280.4 100.6,275.8 120.9,279.4 133.0,282.2 181.6,281.1 185.6,284.8 189.7,276.9 234.2,280.5 242.3,279.8 246.3,283.4 262.5,274.3 315.2,277.9 319.2,281.6 327.3,285.3 347.5,276.1 384.0,279.8 408.3,283.4 412.3,274.3 440.6,269.8 456.8,273.5 464.9,268.0 485.2,264.5 489.2,255.3 501.4,250.6 570.2,254.2 574.2,245.1 582.3,248.7 586.4,252.4 598.5,249.3 602.5,240.1 606.6,234.0 630.9,237.6 634.9,241.3 639.0,232.1 643.0,235.8 663.3,239.5 695.6,231.2 699.7,231.0 740.2,229.3 744.2,233.0 772.6,231.7 796.8,222.5 800.9,226.2 825.2,229.8 853.5,227.3 857.6,231.0 869.7,229.9 885.9,233.5 889.9,224.4 918.3,228.0 922.3,226.4 942.6,223.3 950.7,214.1 954.7,211.3 966.9,215.0 970.9,205.8 974.9,196.6 995.2,200.3 999.2,198.5 1035.7,202.1 1055.9,193.0 1060.0,187.6" fill="none" stroke="var(--acc2)" stroke-width="1.6" stroke-linejoin="round" stroke-dasharray="5 4"/><polyline points="48.0,285.3 60.1,277.8 64.2,281.5 72.3,275.2 88.5,267.8 92.5,260.3 96.6,258.1 96.6,253.3 100.6,248.6 116.8,252.4 120.9,256.1 124.9,248.8 133.0,251.5 173.5,255.3 177.5,257.3 181.6,256.2 181.6,248.8 185.6,252.5 189.7,244.6 209.9,248.4 234.2,252.0 234.2,243.9 238.2,236.6 242.3,235.8 246.3,239.5 258.5,243.2 262.5,234.1 262.5,237.8 270.6,230.5 286.8,232.3 290.9,234.6 299.0,236.5 315.2,240.1 319.2,243.8 323.3,239.4 327.3,243.0 327.3,235.7 347.5,226.5 347.5,228.4 371.8,221.1 375.9,213.7 379.9,206.4 384.0,210.0 384.0,209.6 404.2,200.7 408.3,204.4 408.3,196.9 412.3,187.7 412.3,191.4 428.5,195.3 436.6,187.9 440.6,183.5 456.8,187.2 456.8,179.9 460.9,181.8 464.9,176.3 464.9,180.0 485.2,176.5 485.2,168.4 489.2,159.3 497.3,163.0 501.4,158.2 513.5,150.8 570.2,154.5 570.2,156.4 574.2,147.2 574.2,150.9 582.3,154.6 582.3,156.5 586.4,160.1 598.5,157.0 598.5,149.6 602.5,140.4 602.5,133.1 606.6,127.0 606.6,119.5 610.6,123.4 630.9,127.1 630.9,124.5 634.9,128.2 639.0,119.0 643.0,122.7 659.2,124.6 663.3,128.2 667.3,130.1 691.6,134.1 695.6,125.8 695.6,118.4 699.7,118.2 711.8,120.2 719.9,124.0 724.0,116.6 740.2,115.0 740.2,107.5 744.2,111.1 752.3,103.5 768.5,107.3 772.6,105.9 780.7,109.6 796.8,100.5 800.9,104.1 809.0,108.2 825.2,111.8 853.5,109.3 853.5,101.7 857.6,105.3 857.6,97.9 861.6,90.5 869.7,89.4 885.9,93.1 885.9,85.7 889.9,76.6 894.0,69.1 910.2,61.8 918.3,65.5 922.3,63.8 942.6,60.7 942.6,62.7 946.6,55.3 950.7,46.2 950.7,38.8 954.7,36.0 966.9,39.7 966.9,32.3 970.9,23.2 974.9,14.0 974.9,17.7 979.0,21.5 995.2,25.1 999.2,23.3 1003.3,15.9 1007.3,19.7 1023.5,23.5 1027.6,27.2 1031.6,30.9 1035.7,34.5 1051.9,38.3 1055.9,29.1 1060.0,23.7 1064.0,27.5" fill="none" stroke="var(--acc)" stroke-width="2.4" stroke-linejoin="round"/></svg></div>
+<figcaption>Cumulative R against the calendar, so the flat stretches are real time rather than
+trades. R is size-independent, so none of this depends on the account.</figcaption></figure>
+</section>
+
+<section id="div">
+<h2><span class="num">03</span>Do they overlap?</h2>
+<div class="kpi" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+<div class="k"><div class="l">Days traded</div><div class="v">112</div><div class="n">at least one trade</div></div>
+<div class="k"><div class="l">Both on one day</div><div class="v">28</div><div class="n">25% of traded days</div></div>
+<div class="k"><div class="l">Both lost</div><div class="v">2</div><div class="n">of those 28 days</div></div>
+<div class="k"><div class="l">Same-day correlation</div><div class="v">-0.35</div><div class="n">n = 28</div></div>
+</div>
+<p>On the 28 days both strategies fired, their results are <b>negatively correlated at
+-0.35</b> &mdash; when one lost the other tended to win. Both lost on the same day
+<b>2 times</b> in the year. One is a breakout and the other fades a failed breakout, so
+that they do not fail together is structural rather than lucky, but 28 days is a small
+sample to measure a correlation on.</p>
+</section>
+
+<section id="risk">
+<h2><span class="num">04</span>Worst days and runs</h2>
+<p class="sub">Both figures below are real sequences out of 2026, not rebuilt from an average
+loss &mdash; averaging understates a run and calls a limit safe that is not.</p>
+<div class="scroll"><table>
+<caption>The eight worst days. A day that fires both strategies risks twice the per-trade figure.</caption>
+<thead><tr><th>Day</th><th>Trades</th><th>Combined</th><th>Account</th></tr></thead>
+<tbody><tr><td><b>11 May</b></td><td>fade -1.00, orb -0.52</td><td class="neg"><b>-1.52 R</b></td><td class="neg"><b><span data-pct="-1.5190">-2.3</span>%</b></td></tr><tr><td><b>14 May</b></td><td>fade -1.00, orb -0.51</td><td class="neg"><b>-1.51 R</b></td><td class="neg"><b><span data-pct="-1.5110">-2.3</span>%</b></td></tr><tr><td><b>09 Jul</b></td><td>orb -1.09</td><td class="neg"><b>-1.09 R</b></td><td class="neg"><b><span data-pct="-1.0940">-1.6</span>%</b></td></tr><tr><td><b>10 Jun</b></td><td>orb -1.08</td><td class="neg"><b>-1.08 R</b></td><td class="neg"><b><span data-pct="-1.0760">-1.6</span>%</b></td></tr><tr><td><b>21 May</b></td><td>orb -1.07</td><td class="neg"><b>-1.07 R</b></td><td class="neg"><b><span data-pct="-1.0750">-1.6</span>%</b></td></tr><tr><td><b>06 Apr</b></td><td>orb -1.05</td><td class="neg"><b>-1.05 R</b></td><td class="neg"><b><span data-pct="-1.0520">-1.6</span>%</b></td></tr><tr><td><b>11 Feb</b></td><td>orb -1.03</td><td class="neg"><b>-1.03 R</b></td><td class="neg"><b><span data-pct="-1.0340">-1.6</span>%</b></td></tr><tr><td><b>10 Sep</b></td><td>orb -1.03</td><td class="neg"><b>-1.03 R</b></td><td class="neg"><b><span data-pct="-1.0340">-1.6</span>%</b></td></tr></tbody></table></div>
+<div class="scroll"><table>
+<caption>The worst consecutive sequence of each length, across the merged book.</caption>
+<thead><tr><th>Length</th><th>Worst real run</th><th>Account</th></tr></thead>
+<tbody><tr><td><b>1 in a row</b></td><td class="neg"><b>1.09 R</b></td><td class="neg"><b><span data-pct="-1.0940">-1.6</span>%</b></td></tr><tr><td><b>2 in a row</b></td><td class="neg"><b>2.09 R</b></td><td class="neg"><b><span data-pct="-2.0940">-3.1</span>%</b></td></tr><tr><td><b>3 in a row</b></td><td class="neg"><b>3.09 R</b></td><td class="neg"><b><span data-pct="-3.0940">-4.6</span>%</b></td></tr><tr><td><b>4 in a row</b></td><td class="neg"><b>4.07 R</b></td><td class="neg"><b><span data-pct="-4.0700">-6.1</span>%</b></td></tr><tr><td><b>5 in a row</b></td><td class="neg"><b>5.07 R</b></td><td class="neg"><b><span data-pct="-5.0700">-7.6</span>%</b></td></tr><tr><td><b>6 in a row</b></td><td class="neg"><b>6.09 R</b></td><td class="neg"><b><span data-pct="-6.0910">-9.1</span>%</b></td></tr><tr><td><b>8 in a row</b></td><td class="neg"><b>3.59 R</b></td><td class="neg"><b><span data-pct="-3.5889">-5.4</span>%</b></td></tr></tbody></table></div>
+<div class="note"><div class="t">What the limits allow</div>
+<p>A 12% maximum loss is reached by the worst run at <b>1.81%</b> risk per trade and by
+the worst drawdown at <b>1.81%</b>. A 3% daily limit is breached by the worst day at
+<b>1.97%</b>. The binding constraint is the <b>day</b>, because two strategies can lose
+on it, and that is what caps this book below either strategy traded alone.</p></div>
+<div class="kpi" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+<div class="k"><div class="l">Winning runs</div><div class="v">35</div><div class="n">longest 6 trades</div></div>
+<div class="k"><div class="l">Runs clearing 12%</div><div class="v">3</div><div class="n">at the risk selected</div></div>
+<div class="k"><div class="l">Worst losing run</div><div class="v">6.62 R</div><div class="n"><span data-pct="-6.6159">-9.9</span>% of the account</div></div>
+</div>
+</section>
+
+<section id="periods">
+<h2><span class="num">05</span>Quarter, month, week</h2>
+<p class="sub">The merged book only. The order column is every trade as it happened, both
+strategies interleaved: W won, L lost, a dot is a scratch.</p>
+<div class="scroll"><table><caption>By quarter.</caption><thead><tr><th>Quarter</th><th>Trades</th><th>W / L / BE</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Account</th></tr></thead><tbody><tr><td><b>Q1</b></td><td>45</td><td>25 / 20 / 0</td><td>55.6%</td><td class="pos">2.39</td><td class="pos">+0.541</td><td class="pos"><b>+24.3 R</b></td><td class="pos"><b><span data-pct="24.3304">+36.5</span>%</b></td></tr><tr><td><b>Q2</b></td><td>53</td><td>27 / 25 / 1</td><td>51.9%</td><td class="pos">2.15</td><td class="pos">+0.487</td><td class="pos"><b>+25.8 R</b></td><td class="pos"><b><span data-pct="25.8308">+38.7</span>%</b></td></tr><tr><td><b>Q3</b></td><td>42</td><td>23 / 19 / 0</td><td>54.8%</td><td class="pos">2.14</td><td class="pos">+0.509</td><td class="pos"><b>+21.4 R</b></td><td class="pos"><b><span data-pct="21.3685">+32.1</span>%</b></td></tr><tr class="hi"><td><b>2026</b></td><td>140</td><td>75 / 64 / 1</td><td>54.0%</td><td class="pos">2.22</td><td class="pos">+0.511</td><td class="pos"><b>+71.5 R</b></td><td class="pos"><b><span data-pct="71.5298">+107.3</span>%</b></td></tr></tbody></table></div>
+<div class="scroll"><table><caption>By month.</caption><thead><tr><th>Period</th><th>Trades</th><th>W / L / BE</th><th>Order</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Account</th></tr></thead><tbody><tr><td><b>Jan</b></td><td>13</td><td>9 / 4 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>69.2%</td><td class="pos">3.77</td><td class="pos">+0.806</td><td class="pos"><b>+10.5 R</b></td><td class="pos"><b><span data-pct="10.4798">+15.7</span>%</b></td></tr><tr><td><b>Feb</b></td><td>16</td><td>8 / 8 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>50.0%</td><td class="pos">1.75</td><td class="pos">+0.359</td><td class="pos"><b>+5.7 R</b></td><td class="pos"><b><span data-pct="5.7416">+8.6</span>%</b></td></tr><tr><td><b>Mar</b></td><td>16</td><td>8 / 8 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>50.0%</td><td class="pos">2.32</td><td class="pos">+0.507</td><td class="pos"><b>+8.1 R</b></td><td class="pos"><b><span data-pct="8.1090">+12.2</span>%</b></td></tr><tr><td><b>Apr</b></td><td>18</td><td>11 / 7 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>61.1%</td><td class="pos">3.05</td><td class="pos">+0.756</td><td class="pos"><b>+13.6 R</b></td><td class="pos"><b><span data-pct="13.6035">+20.4</span>%</b></td></tr><tr><td><b>May</b></td><td>19</td><td>9 / 10 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>47.4%</td><td class="pos">1.84</td><td class="pos">+0.403</td><td class="pos"><b>+7.7 R</b></td><td class="pos"><b><span data-pct="7.6625">+11.5</span>%</b></td></tr><tr><td><b>Jun</b></td><td>16</td><td>7 / 8 / 1</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="">.</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>46.7%</td><td class="pos">1.68</td><td class="pos">+0.285</td><td class="pos"><b>+4.6 R</b></td><td class="pos"><b><span data-pct="4.5647">+6.8</span>%</b></td></tr><tr><td><b>Jul</b></td><td>15</td><td>9 / 6 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>60.0%</td><td class="pos">2.64</td><td class="pos">+0.669</td><td class="pos"><b>+10.0 R</b></td><td class="pos"><b><span data-pct="10.0330">+15.0</span>%</b></td></tr><tr><td><b>Aug</b></td><td>20</td><td>12 / 8 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>60.0%</td><td class="pos">2.63</td><td class="pos">+0.622</td><td class="pos"><b>+12.4 R</b></td><td class="pos"><b><span data-pct="12.4423">+18.7</span>%</b></td></tr><tr><td><b>Sep</b></td><td>7</td><td>2 / 5 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>28.6%</td><td class="neg">0.78</td><td class="neg">-0.158</td><td class="neg"><b>-1.1 R</b></td><td class="neg"><b><span data-pct="-1.1068">-1.7</span>%</b></td></tr></tbody></table></div>
+<div class="scroll"><table><caption>Every week that traded.</caption><thead><tr><th>Period</th><th>Trades</th><th>W / L / BE</th><th>Order</th><th>Win rate</th><th>Profit factor</th><th>EV per trade</th><th>Total R</th><th>Account</th></tr></thead><tbody><tr><td><b>29 Dec&nbsp;&ndash;&nbsp;02 Jan</b></td><td>1</td><td>1 / 0 / 0</td><td><span class="seq"><b class="pos">W</b></span></td><td>100.0%</td><td>&ndash;</td><td class="pos">+1.279</td><td class="pos"><b>+1.3 R</b></td><td class="pos"><b><span data-pct="1.2791">+1.9</span>%</b></td></tr><tr><td><b>05 Jan&nbsp;&ndash;&nbsp;09 Jan</b></td><td>3</td><td>2 / 1 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>66.7%</td><td class="pos">3.76</td><td class="pos">+0.920</td><td class="pos"><b>+2.8 R</b></td><td class="pos"><b><span data-pct="2.7609">+4.1</span>%</b></td></tr><tr><td><b>12 Jan&nbsp;&ndash;&nbsp;16 Jan</b></td><td>5</td><td>5 / 0 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>100.0%</td><td>&ndash;</td><td class="pos">+1.447</td><td class="pos"><b>+7.2 R</b></td><td class="pos"><b><span data-pct="7.2352">+10.9</span>%</b></td></tr><tr><td><b>19 Jan&nbsp;&ndash;&nbsp;23 Jan</b></td><td>4</td><td>1 / 3 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>25.0%</td><td class="neg">0.71</td><td class="neg">-0.199</td><td class="neg"><b>-0.8 R</b></td><td class="neg"><b><span data-pct="-0.7953">-1.2</span>%</b></td></tr><tr><td><b>02 Feb&nbsp;&ndash;&nbsp;06 Feb</b></td><td>6</td><td>3 / 3 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>50.0%</td><td class="pos">1.74</td><td class="pos">+0.317</td><td class="pos"><b>+1.9 R</b></td><td class="pos"><b><span data-pct="1.8996">+2.8</span>%</b></td></tr><tr><td><b>09 Feb&nbsp;&ndash;&nbsp;13 Feb</b></td><td>1</td><td>0 / 1 / 0</td><td><span class="seq"><b class="neg">L</b></span></td><td>0.0%</td><td class="neg">0.00</td><td class="neg">-1.034</td><td class="neg"><b>-1.0 R</b></td><td class="neg"><b><span data-pct="-1.0340">-1.6</span>%</b></td></tr><tr><td><b>16 Feb&nbsp;&ndash;&nbsp;20 Feb</b></td><td>5</td><td>3 / 2 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>60.0%</td><td class="pos">2.21</td><td class="pos">+0.483</td><td class="pos"><b>+2.4 R</b></td><td class="pos"><b><span data-pct="2.4160">+3.6</span>%</b></td></tr><tr><td><b>23 Feb&nbsp;&ndash;&nbsp;27 Feb</b></td><td>4</td><td>2 / 2 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>50.0%</td><td class="pos">2.21</td><td class="pos">+0.615</td><td class="pos"><b>+2.5 R</b></td><td class="pos"><b><span data-pct="2.4600">+3.7</span>%</b></td></tr><tr><td><b>02 Mar&nbsp;&ndash;&nbsp;06 Mar</b></td><td>3</td><td>0 / 3 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0.0%</td><td class="neg">0.00</td><td class="neg">-0.544</td><td class="neg"><b>-1.6 R</b></td><td class="neg"><b><span data-pct="-1.6310">-2.4</span>%</b></td></tr><tr><td><b>09 Mar&nbsp;&ndash;&nbsp;13 Mar</b></td><td>5</td><td>2 / 3 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>40.0%</td><td class="pos">1.07</td><td class="pos">+0.042</td><td class="pos"><b>+0.2 R</b></td><td class="pos"><b><span data-pct="0.2100">+0.3</span>%</b></td></tr><tr><td><b>16 Mar&nbsp;&ndash;&nbsp;20 Mar</b></td><td>2</td><td>1 / 1 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b></span></td><td>50.0%</td><td class="pos">4.81</td><td class="pos">+0.990</td><td class="pos"><b>+2.0 R</b></td><td class="pos"><b><span data-pct="1.9800">+3.0</span>%</b></td></tr><tr><td><b>23 Mar&nbsp;&ndash;&nbsp;27 Mar</b></td><td>5</td><td>4 / 1 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>80.0%</td><td class="pos">6.13</td><td class="pos">+1.027</td><td class="pos"><b>+5.1 R</b></td><td class="pos"><b><span data-pct="5.1340">+7.7</span>%</b></td></tr><tr><td><b>30 Mar&nbsp;&ndash;&nbsp;03 Apr</b></td><td>5</td><td>3 / 2 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>60.0%</td><td class="pos">3.46</td><td class="pos">+0.990</td><td class="pos"><b>+5.0 R</b></td><td class="pos"><b><span data-pct="4.9520">+7.4</span>%</b></td></tr><tr><td><b>06 Apr&nbsp;&ndash;&nbsp;10 Apr</b></td><td>3</td><td>2 / 1 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>66.7%</td><td class="pos">3.04</td><td class="pos">+0.716</td><td class="pos"><b>+2.1 R</b></td><td class="pos"><b><span data-pct="2.1473">+3.2</span>%</b></td></tr><tr><td><b>13 Apr&nbsp;&ndash;&nbsp;17 Apr</b></td><td>5</td><td>2 / 3 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>40.0%</td><td class="pos">1.38</td><td class="pos">+0.192</td><td class="pos"><b>+1.0 R</b></td><td class="pos"><b><span data-pct="0.9590">+1.4</span>%</b></td></tr><tr><td><b>20 Apr&nbsp;&ndash;&nbsp;24 Apr</b></td><td>5</td><td>4 / 1 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>80.0%</td><td class="pos">6.91</td><td class="pos">+1.187</td><td class="pos"><b>+5.9 R</b></td><td class="pos"><b><span data-pct="5.9352">+8.9</span>%</b></td></tr><tr><td><b>27 Apr&nbsp;&ndash;&nbsp;01 May</b></td><td>1</td><td>1 / 0 / 0</td><td><span class="seq"><b class="pos">W</b></span></td><td>100.0%</td><td>&ndash;</td><td class="pos">+2.026</td><td class="pos"><b>+2.0 R</b></td><td class="pos"><b><span data-pct="2.0260">+3.0</span>%</b></td></tr><tr><td><b>11 May&nbsp;&ndash;&nbsp;15 May</b></td><td>7</td><td>1 / 6 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>14.3%</td><td class="neg">0.50</td><td class="neg">-0.363</td><td class="neg"><b>-2.5 R</b></td><td class="neg"><b><span data-pct="-2.5400">-3.8</span>%</b></td></tr><tr><td><b>18 May&nbsp;&ndash;&nbsp;22 May</b></td><td>7</td><td>6 / 1 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>85.7%</td><td class="pos">10.31</td><td class="pos">+1.429</td><td class="pos"><b>+10.0 R</b></td><td class="pos"><b><span data-pct="10.0045">+15.0</span>%</b></td></tr><tr><td><b>25 May&nbsp;&ndash;&nbsp;29 May</b></td><td>5</td><td>2 / 3 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>40.0%</td><td class="pos">1.07</td><td class="pos">+0.040</td><td class="pos"><b>+0.2 R</b></td><td class="pos"><b><span data-pct="0.1980">+0.3</span>%</b></td></tr><tr><td><b>01 Jun&nbsp;&ndash;&nbsp;05 Jun</b></td><td>3</td><td>0 / 3 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0.0%</td><td class="neg">0.00</td><td class="neg">-0.676</td><td class="neg"><b>-2.0 R</b></td><td class="neg"><b><span data-pct="-2.0280">-3.0</span>%</b></td></tr><tr><td><b>08 Jun&nbsp;&ndash;&nbsp;12 Jun</b></td><td>4</td><td>2 / 1 / 1</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="">.</b></span></td><td>66.7%</td><td class="pos">4.02</td><td class="pos">+0.813</td><td class="pos"><b>+3.3 R</b></td><td class="pos"><b><span data-pct="3.2536">+4.9</span>%</b></td></tr><tr><td><b>15 Jun&nbsp;&ndash;&nbsp;19 Jun</b></td><td>3</td><td>1 / 2 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>33.3%</td><td class="pos">1.27</td><td class="pos">+0.141</td><td class="pos"><b>+0.4 R</b></td><td class="pos"><b><span data-pct="0.4230">+0.6</span>%</b></td></tr><tr><td><b>22 Jun&nbsp;&ndash;&nbsp;26 Jun</b></td><td>4</td><td>3 / 1 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>75.0%</td><td class="pos">4.57</td><td class="pos">+0.893</td><td class="pos"><b>+3.6 R</b></td><td class="pos"><b><span data-pct="3.5739">+5.4</span>%</b></td></tr><tr><td><b>29 Jun&nbsp;&ndash;&nbsp;03 Jul</b></td><td>3</td><td>1 / 2 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>33.3%</td><td class="neg">0.18</td><td class="neg">-0.556</td><td class="neg"><b>-1.7 R</b></td><td class="neg"><b><span data-pct="-1.6688">-2.5</span>%</b></td></tr><tr><td><b>06 Jul&nbsp;&ndash;&nbsp;10 Jul</b></td><td>3</td><td>1 / 2 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>33.3%</td><td class="pos">1.19</td><td class="pos">+0.135</td><td class="pos"><b>+0.4 R</b></td><td class="pos"><b><span data-pct="0.4060">+0.6</span>%</b></td></tr><tr><td><b>13 Jul&nbsp;&ndash;&nbsp;17 Jul</b></td><td>1</td><td>0 / 1 / 0</td><td><span class="seq"><b class="neg">L</b></span></td><td>0.0%</td><td class="neg">0.00</td><td class="neg">-1.000</td><td class="neg"><b>-1.0 R</b></td><td class="neg"><b><span data-pct="-1.0000">-1.5</span>%</b></td></tr><tr><td><b>20 Jul&nbsp;&ndash;&nbsp;24 Jul</b></td><td>6</td><td>5 / 1 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>83.3%</td><td class="pos">7.11</td><td class="pos">+1.018</td><td class="pos"><b>+6.1 R</b></td><td class="pos"><b><span data-pct="6.1100">+9.2</span>%</b></td></tr><tr><td><b>27 Jul&nbsp;&ndash;&nbsp;31 Jul</b></td><td>4</td><td>3 / 1 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>75.0%</td><td class="pos">6.53</td><td class="pos">+1.382</td><td class="pos"><b>+5.5 R</b></td><td class="pos"><b><span data-pct="5.5280">+8.3</span>%</b></td></tr><tr><td><b>03 Aug&nbsp;&ndash;&nbsp;07 Aug</b></td><td>3</td><td>2 / 1 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b></span></td><td>66.7%</td><td class="pos">2.45</td><td class="pos">+0.483</td><td class="pos"><b>+1.4 R</b></td><td class="pos"><b><span data-pct="1.4490">+2.2</span>%</b></td></tr><tr><td><b>10 Aug&nbsp;&ndash;&nbsp;14 Aug</b></td><td>6</td><td>5 / 1 / 0</td><td><span class="seq"><b class="pos">W</b>-<b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b></span></td><td>83.3%</td><td class="pos">15.10</td><td class="pos">+1.262</td><td class="pos"><b>+7.6 R</b></td><td class="pos"><b><span data-pct="7.5712">+11.4</span>%</b></td></tr><tr><td><b>17 Aug&nbsp;&ndash;&nbsp;21 Aug</b></td><td>6</td><td>3 / 3 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>50.0%</td><td class="pos">2.30</td><td class="pos">+0.660</td><td class="pos"><b>+4.0 R</b></td><td class="pos"><b><span data-pct="3.9620">+5.9</span>%</b></td></tr><tr><td><b>24 Aug&nbsp;&ndash;&nbsp;28 Aug</b></td><td>4</td><td>2 / 2 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>50.0%</td><td class="pos">1.24</td><td class="pos">+0.121</td><td class="pos"><b>+0.5 R</b></td><td class="pos"><b><span data-pct="0.4821">+0.7</span>%</b></td></tr><tr><td><b>31 Aug&nbsp;&ndash;&nbsp;04 Sep</b></td><td>4</td><td>0 / 4 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b>-<b class="neg">L</b></span></td><td>0.0%</td><td class="neg">0.00</td><td class="neg">-1.010</td><td class="neg"><b>-4.0 R</b></td><td class="neg"><b><span data-pct="-4.0390">-6.1</span>%</b></td></tr><tr><td><b>07 Sep&nbsp;&ndash;&nbsp;11 Sep</b></td><td>4</td><td>2 / 2 / 0</td><td><span class="seq"><b class="neg">L</b>-<b class="pos">W</b>-<b class="pos">W</b>-<b class="neg">L</b></span></td><td>50.0%</td><td class="pos">1.93</td><td class="pos">+0.478</td><td class="pos"><b>+1.9 R</b></td><td class="pos"><b><span data-pct="1.9102">+2.9</span>%</b></td></tr></tbody></table></div>
+</section>
+
+<footer><p><b>Two edges, one account.</b> Generated 10 September 2026 from 140 trades &mdash; 75 from the
+<a href="index.html">opening range</a> and 65 from the <a href="pdfade.html">previous-day
+fade</a>, merged in date order. Both are 2026 only. Neither page's caveats are repeated here; read
+them there.</p></footer>
+</div>
+
+<script>
+var ri=document.getElementById('risk'),rw=document.getElementById('riskwarn'),
+    DD=6.6159,WRUN=6.6159,WDAY=1.5190;
+function risk(){var v=parseFloat(ri.value);if(!(v>0))return;
+  document.querySelectorAll('[data-pct]').forEach(function(el){
+    var r=parseFloat(el.dataset.pct);
+    el.textContent=(r>0?'+':'')+(r*v).toFixed(1)});
+  document.querySelectorAll('.chips button').forEach(function(b){
+    b.setAttribute('aria-pressed',parseFloat(b.dataset.r)===v?'true':'false')});
+  var m=[];
+  if(WDAY*v>3)m.push('the worst day costs <b>'+(WDAY*v).toFixed(1)+'%</b>, past a 3% daily limit');
+  if(WRUN*v>12)m.push('the worst losing run costs <b>'+(WRUN*v).toFixed(1)+'%</b>, past a 12% maximum loss');
+  if(DD*v>12)m.push('the worst drawdown costs <b>'+(DD*v).toFixed(1)+'%</b>, past a 12% maximum loss');
+  rw.innerHTML=m.length?('At '+v.toFixed(2)+'% per trade, '+m.join('; ')+'.'):'';
+  rw.hidden=!m.length}
+ri.oninput=risk;
+document.querySelectorAll('.chips button').forEach(function(b){
+  b.onclick=function(){ri.value=b.dataset.r;risk()}});
+risk();
+</script></body></html>
