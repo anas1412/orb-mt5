@@ -190,7 +190,7 @@ python3 update_data_md.py
 cd ..
 
 say "7/9  audit"
-( cd research && python3 check_charts.py ) || die "the audit failed. Nothing published. Fix the disagreement above and re-run."
+( cd research && python3 check_charts.py && python3 check_pages.py ) || die "the audit failed. Nothing published. Fix the disagreement above and re-run."
 
 say "8/9  refresh the shipped data files"
 cp -f "$D/bars_$SYMBOL.csv"  "research/bars_${SYMBOL}_2024_2026.csv"

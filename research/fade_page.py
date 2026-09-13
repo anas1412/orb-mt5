@@ -405,6 +405,12 @@ def combined(sets, outfile, h1, lede, current=None):
         line("Average RR", "%.2f", lambda s: s["avgrr"]),
         line("Per trade", "%+.3f R", lambda s: s["ev"]),
         line("Total", "%+.1f R", lambda s: s["total"]),
+        # the same row again as a percentage, so the table does not leave the
+        # reader to multiply
+        ("<tr><td><b>Total, % of the account</b></td>" +
+         "".join('<td%s>%s</td>' % (' class="hi"' if x["total"] == max(
+             y["total"] for y in S[:-1]) else "", pct(x["total"], 1)) for x in S) +
+         "</tr>"),
         line("Profit factor", "%.2f", lambda s: s["pf"]),
         line("Worst drawdown", "%.1f R", lambda s: s["dd"], min),
         line("Worst losing run", "%d", lambda s: s["worst"], min),

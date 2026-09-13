@@ -126,17 +126,20 @@ def half_rows():
     for label,key,pill,verdict in spec:
         q=hv[key]
         out.append('<tr class="%s"><td><b>%s</b></td><td>%d</td><td>%d</td><td>%.1f%%</td>'
-                   '%s<td class="%s">%+.3f</td><td class="%s">%+.1f R</td><td class="%s">%+.1f%%</td>'
+                   '%s<td class="%s">%+.3f</td><td class="%s">%+.1f R</td>'
+                   '<td class="%s"><span data-pct="%.4f">%+.1f</span>%%</td>'
                    '<td><span class="pill %s">%s</span></td></tr>'
                    %("hi" if key=="same" else "q", label, q['n'], q['wins'], q['wr'], pfc(q['pf']),
                      "pos" if q['ev']>0 else "neg", q['ev'],
                      "pos" if q['total']>0 else "neg", q['total'],
-                     "pos" if q['total']>0 else "neg", q['total']*RISK, pill, verdict))
+                     "pos" if q['total']>0 else "neg", q['total'], q['total']*RISK,
+                     pill, verdict))
     a=hv['all']
     out.append('<tr><td><b>Every break, no filter</b></td><td>%d</td><td>%d</td><td>%.1f%%</td>'
                '%s<td class="pos">%+.3f</td><td class="pos">%+.1f R</td>'
-               '<td class="pos">%+.1f%%</td><td></td></tr>'
-               %(a['n'],a['wins'],a['wr'],pfc(a['pf']),a['ev'],a['total'],a['total']*RISK))
+               '<td class="pos"><span data-pct="%.4f">%+.1f</span>%%</td><td></td></tr>'
+               %(a['n'],a['wins'],a['wr'],pfc(a['pf']),a['ev'],a['total'],
+                 a['total'],a['total']*RISK))
     return "".join(out)
 
 def gallery():
