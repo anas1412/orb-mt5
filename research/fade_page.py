@@ -14,12 +14,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, "lib"))
 
+import page          # the shared head, nav, risk selector and shell
+
 BE = 0.05            # inside +-0.05 R is a scratch, neither win nor loss
 RISK_PCT = 2.5       # what the page renders at; the selector rescales it
 MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-CSS = re.search(r"<style>(.*?)</style>",
-                open(os.path.join(HERE, "template.html")).read(), re.S).group(1)
 
 
 # ---------------------------------------------------------------- data ----
@@ -182,52 +182,9 @@ def exit_rows(T, spec):
                    for k, v in sorted(kinds.items(), key=lambda z: -len(z[1])))
 
 
-RISKBAR = """<div class="riskbar">
-<label for="risk">Risk per trade</label>
-<div class="riskin"><input id="risk" type="range" min="0.25" max="2.5" step="0.25" value="2.5">
-<output id="riskv">2.5%</output></div>
-<p class="risknote">Every percentage on this page follows this number. R multiples do not move.</p>
-</div>"""
-
-JS = """
-var RISK=%(risk)g;
-function paint(){
-  document.querySelectorAll('[data-pct]').forEach(function(e){
-    var r=parseFloat(e.dataset.pct), f=e.dataset.fmt, v=r*RISK;
-    if(f==='int') e.textContent=Math.round(v)+'%%';
-    else if(f==='signint') e.textContent='  '+(v>=0?'+':'')+Math.round(v)+'%%';
-    else e.textContent=(v>=0?'+':'')+v.toFixed(1);
-  });
-}
-var sl=document.getElementById('risk');
-if(sl){sl.addEventListener('input',function(){RISK=parseFloat(sl.value);
-  document.getElementById('riskv').textContent=RISK.toFixed(2).replace(/0$/,'')+'%%';paint();});}
-paint();
-var F={outcome:null,dir:null,month:null};
-function filter(){
-  var n=0;
-  document.querySelectorAll('.tc').forEach(function(c){
-    var ok=(!F.outcome||c.dataset.outcome===F.outcome)&&
-           (!F.dir||c.dataset.dir===F.dir)&&(!F.month||c.dataset.month===F.month);
-    c.hidden=!ok; if(ok)n++;
-  });
-  var fc=document.getElementById('fcount'); if(fc)fc.textContent=n+(n===1?' trade':' trades');
-  var nr=document.getElementById('noresult'); if(nr)nr.hidden=n>0;
-}
-document.querySelectorAll('.chip').forEach(function(b){
-  b.addEventListener('click',function(){
-    var k=b.dataset.f,v=b.dataset.v,on=F[k]===v;
-    document.querySelectorAll('.chip[data-f="'+k+'"]').forEach(function(o){
-      o.setAttribute('aria-pressed','false');});
-    F[k]=on?null:v; if(!on)b.setAttribute('aria-pressed','true');
-    filter();
-  });
-});
-filter();
-"""
 
 
-def report(name, page, nav):
+def report(name, pagefile):
     d = load_fade(name)
     spec = d["spec"]; T = d["trades"]; S = stats(T)
     web = "trades-" + spec["name"]
@@ -334,7 +291,7 @@ over this same year, so the exact figures are optimistic even where the shape of
         sub=spec["sub"], title=spec["title"], symbol=spec["symbol"],
         daystxt=spec["daystxt"], windowtxt=spec["windowtxt"], why=spec["why"],
         rangetxt=rangetxt, rangetxt_c=rangetxt[0].upper() + rangetxt[1:],
-        riskbar=RISKBAR, n=S["n"], elig=elig, permo=S["n"] / (elig / 21.7),
+        riskbar=page.riskbar(RISK_PCT), n=S["n"], elig=elig, permo=S["n"] / (elig / 21.7),
         wr=S["wr"], wins=S["wins"], losses=S["losses"], be=S["be"],
         ev=S["ev"], evc="pos" if S["ev"] > 0 else "neg", evpct=pct(S["ev"], 2),
         total=S["total"], totc="pos" if S["total"] > 0 else "neg", totpct=pct(S["total"]),
@@ -347,45 +304,15 @@ over this same year, so the exact figures are optimistic even where the shape of
         slpct="%g%%" % (spec["sl"] * 100), tppct="%g%%" % (spec["tp"] * 100),
         spread="%g-point" % spec["spread"],
     )
-    html = shell(spec["title"] + " — " + spec["sub"], nav, body % vals)
-    open(os.path.join(REPO, page), "w").write(html)
-    print("wrote %s  (%d trades, %+.1f R)" % (page, S["n"], S["total"]))
+    html = page.shell(spec["title"] + " — " + spec["sub"], pagefile, body % vals,
+                      risk=RISK_PCT)
+    open(os.path.join(REPO, pagefile), "w").write(html)
+    print("wrote %s  (%d trades, %+.1f R)" % (pagefile, S["n"], S["total"]))
     return T, S
 
 
-def shell(title, nav, body):
-    return ("""<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>%s</title>
-<style>%s
-.tc img{height:auto}
-nav.top{display:flex;gap:6px;flex-wrap:wrap;padding:18px 0 0}
-nav.top a{font-size:13px;font-weight:620;padding:7px 13px;border-radius:100px;
-  border:1px solid var(--line);color:var(--mut);text-decoration:none}
-nav.top a[aria-current=page]{background:var(--acc);border-color:var(--acc);color:var(--bg)}
-nav.top a:hover{color:var(--ink)}
-nav.top a[aria-current=page]:hover{color:var(--bg)}
-table.cmp td.hi{font-weight:700}
-</style>
-</head><body><div class="wrap">
-%s
-%s
-<footer><p>Generated from the runs — no figure on this page is typed by hand.
-Not financial advice.</p></footer>
-</div>
-<script>%s</script>
-</body></html>
-""" % (title, CSS, nav, body, JS % dict(risk=RISK_PCT)))
 
 
-def navbar(cur):
-    items = (("index.html", "ORB Asia"), ("pdfade.html", "Gold PD fade"),
-             ("nqfade.html", "NQ range fade"), ("edges.html", "All three"))
-    return '<nav class="top">' + "".join(
-        '<a href="%s"%s>%s</a>' % (h, ' aria-current="page"' if h == cur else "", n)
-        for h, n in items) + "</nav>"
 
 
 # ------------------------------------------------------------ combined ----
@@ -529,7 +456,7 @@ breach a 3%% daily limit long before the drawdown figure does.</li>
 </ul>
 </section>
 """
-    vals = dict(riskbar=RISKBAR, cols=cols,
+    vals = dict(riskbar=page.riskbar(RISK_PCT), cols=cols,
                 cols2="".join("<th>%s</th>" % s[0] for s in sets),
                 rows=rows, mrows=mrows, cor=cor, drows=drows,
                 n=AS["n"], permo=AS["n"] / max(AS["nmonths"], 1), wr=AS["wr"],
@@ -538,17 +465,18 @@ breach a 3%% daily limit long before the drawdown figure does.</li>
                 dd=AS["dd"], ddpct=pct(-AS["dd"]), worst=AS["worst"],
                 risk=RISK_PCT, curve=curve_svg(AS["curve"]),
                 worstday=worstday, worstpct=pct(worstday, 2))
-    html = shell("All three edges — 2026", navbar("edges.html"), body % vals)
-    open(os.path.join(REPO, "edges.html"), "w").write(html)
-    print("wrote edges.html  (%d trades pooled, %+.1f R)" % (AS["n"], AS["total"]))
+    html = page.shell("Three edges — 2026", "index.html", body % vals,
+                      risk=RISK_PCT, gallery=False)
+    open(os.path.join(REPO, "index.html"), "w").write(html)
+    print("wrote index.html  (%d trades pooled, %+.1f R)" % (AS["n"], AS["total"]))
 
 
 if __name__ == "__main__":
-    gT, gS = report("gold", "pdfade.html", navbar("pdfade.html"))
-    nT, nS = report("nq", "nqfade.html", navbar("nqfade.html"))
+    gT, gS = report("gold", "pdfade.html")
+    nT, nS = report("nq", "nqfade.html")
     orb = load_orb()
     oS = stats(orb["trades"])
     print("ORB: %d trades, %+.1f R" % (oS["n"], oS["total"]))
-    combined([("ORB Asia", "index.html", orb["trades"], oS),
+    combined([("ORB Asia", "orb.html", orb["trades"], oS),
               ("Gold PD fade", "pdfade.html", gT, gS),
               ("NQ range fade", "nqfade.html", nT, nS)])

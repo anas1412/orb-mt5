@@ -9,6 +9,7 @@ import rules_svg, halves_svg
 from curve import curve_svg
 import json, os, re, datetime as dt
 import ctx
+import page
 import spec as S
 d=json.load(open(ctx.DATA_JSON))
 idx=json.load(open(ctx.INDEX_JSON))
@@ -528,6 +529,7 @@ html=(tpl
  .replace("{{STOPSECTION}}", stop_section())
  .replace("{{HALVESSECTION}}", halves_section())
  .replace("{{NAV}}", nav_links())
+ .replace("{{SITENAV}}", page.navbar(os.path.basename(ctx.REPORT_PAGES)))
  .replace("{{TOGGLE}}", toggle())
  .replace("{{RANGESECTION}}", range_section())
  .replace("{{SKIPREASON}}", "the half-of-the-range rule or the entry window"

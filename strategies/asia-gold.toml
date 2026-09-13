@@ -38,7 +38,7 @@ to   = "today"
 
 [report]
 benchmark = "fundingpips-1step-flex"   # fundingpips-1step-flex | fundingpips-2step | ftmo-2step | none
-output    = "index.html"               # the GitHub Pages landing page
+output    = "orb.html"                 # index.html is the three-edge landing page
 # The published wording. Without these the report falls back to a generated
 # headline built from the session clock, which is correct but not the name
 # this study is known by.

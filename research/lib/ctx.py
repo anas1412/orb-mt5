@@ -167,7 +167,10 @@ if DEFAULT:
     CSV_ALL      = os.path.join(D, "live_cp0.00.csv")
     TRADES_DIR   = os.path.join(REPO, "trades")
     TRADES_WEB   = "trades"
-    REPORT_PAGES = os.path.join(REPO, "index.html")      # the GitHub Pages landing page
+    # The default spec names its own page like any other. index.html is the
+    # landing page and belongs to whatever is published there, which is no
+    # longer this report.
+    REPORT_PAGES = os.path.join(REPO, SPEC["report"]["output"] or "orb.html")
     REPORT_LOCAL = None
 else:
     OUT_DIR      = os.path.join(RESEARCH, "out", NAME)
