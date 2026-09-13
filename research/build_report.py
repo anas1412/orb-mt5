@@ -418,10 +418,13 @@ def range_section():
 
     rows = "".join(
         '<tr><th scope="row">%s</th><td class="num">%.3f&#8211;%.3f%%</td><td class="num">%d</td>'
-        '<td class="num">%.1f%%</td><td class="num %s">%+.3f R</td><td class="num %s">%+.1f R</td></tr>'
+        '<td class="num">%.1f%%</td><td class="num %s">%+.3f R</td><td class="num %s">%+.1f R</td>'
+        '<td class="num %s"><span data-pct="%.4f">%+.1f</span>%%</td></tr>'
         % (b["label"], b["lo"], b["hi"], b["n"], b["wr"],
            "pos" if b["ev"] > 0 else "neg", b["ev"],
-           "pos" if b["total"] > 0 else "neg", b["total"]) for b in B)
+           "pos" if b["total"] > 0 else "neg", b["total"],
+           "pos" if b["total"] > 0 else "neg", b["total"], ctx.RISK * b["total"])
+        for b in B)
     onoff = ('<p class="sub">Filter <b>on</b> at %g%%: %d of %d sessions traded, '
              '%+.3f R a trade instead of %+.3f, %.1f%% won instead of %.1f%%.</p>'
              % (rf["pct"], rf["n_kept"], rf["n_all"], rf["ev_kept"], rf["ev_all"],
@@ -442,7 +445,8 @@ def range_section():
             '<caption>Range width against result, all %d sessions on file</caption>'
             '<thead><tr><th>Group</th><th class="num">Range width</th><th class="num">Sessions</th>'
             '<th class="num">Win rate</th><th class="num">EV per trade</th>'
-            '<th class="num">Total R</th></tr></thead><tbody>%s</tbody></table></div>\n'
+            '<th class="num">Total R</th><th class="num">Total %%</th>'
+            '</tr></thead><tbody>%s</tbody></table></div>\n'
             '</section>' % (rf["n_all"], rows))
 
 def toggle():
