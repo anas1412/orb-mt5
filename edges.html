@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>All three edges — 2026</title>
+<style>
+:root{
+  --bg:#faf8f4; --panel:#fff; --panel2:#f5f2ec; --ink:#17150f; --ink2:#413c33;
+  --mut:#7d766c; --line:#e6e0d4; --acc:#8a6d3b; --acc2:#b08d4f;
+  --pos:#12694a; --posbg:#e8f2ec; --neg:#a8352a; --negbg:#faeae7;
+  --warn:#8a5a00; --warnbg:#fdf4e3;
+  --r:14px; --sh:0 1px 2px rgba(23,21,15,.05),0 8px 24px -12px rgba(23,21,15,.14);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 8px 28px -14px rgba(0,0,0,.7);
+}}
+:root[data-theme=dark]{
+  --bg:#100f0d; --panel:#191713; --panel2:#211e19; --ink:#f3efe7; --ink2:#cdc6ba;
+  --mut:#948c80; --line:#2b2722; --acc:#c9a86a; --acc2:#dcc08a;
+  --pos:#4fbe8b; --posbg:#12251c; --neg:#e0806f; --negbg:#2a1714;
+  --warn:#d9ab52; --warnbg:#241d10;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.62 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 110px}
+
+/* ---------- hero ---------- */
+header{padding:66px 0 30px}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:650;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--acc);
+  background:color-mix(in srgb,var(--acc) 11%,transparent);
+  padding:7px 14px;border-radius:100px;margin-bottom:22px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--pos);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--pos) 25%,transparent)}
+h1{font-size:clamp(2.3rem,5.2vw,3.5rem);line-height:1.03;margin:0 0 16px;
+  letter-spacing:-.032em;font-weight:680}
+h1 em{font-style:normal;color:var(--acc);}
+.lede{font-size:1.14rem;color:var(--ink2);max-width:60ch;margin:0}
+
+/* ---------- kpi ---------- */
+.kpi{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:13px;margin:36px 0 8px}
+/* ten cards divide evenly by 5 and by 2, so neither layout leaves a stranded
+   tile on its own row; 3 across would. */
+@media (max-width:1240px){.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1000px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px) {.kpi{grid-template-columns:1fr}}
+.k{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px;box-shadow:var(--sh);min-width:0}
+.k .l{font-size:10.5px;font-weight:640;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:9px}
+.k .v{font-size:clamp(1.45rem,2.4vw,1.8rem);font-weight:670;letter-spacing:-.03em;line-height:1}
+.k .n{font-size:12px;color:var(--mut);margin-top:7px;line-height:1.4}
+.k.big{background:linear-gradient(150deg,color-mix(in srgb,var(--pos) 13%,var(--panel)),var(--panel))}
+
+/* ---------- sections ---------- */
+section{margin-top:72px;scroll-margin-top:20px}
+h2{font-size:1.62rem;letter-spacing:-.022em;margin:0 0 8px;font-weight:670;display:flex;align-items:baseline;gap:13px}
+h2 .num{font-size:.72em;color:var(--acc);font-variant-numeric:tabular-nums;font-weight:640}
+.sub{color:var(--mut);margin:0 0 26px;max-width:66ch;font-size:1.02rem}
+h3{font-size:1.06rem;margin:34px 0 10px;font-weight:650}
+p{margin:0 0 15px;color:var(--ink2)}
+p strong,li strong{color:var(--ink);font-weight:640}
+a{color:var(--acc)}
+
+/* ---------- toc ---------- */
+nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:8px;margin:34px 0 0;box-shadow:var(--sh);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:4px}
+nav a{display:block;padding:10px 13px;border-radius:9px;text-decoration:none;
+  color:var(--ink2);font-size:13.5px;font-weight:520;transition:.14s}
+nav a:hover{background:var(--panel2);color:var(--ink)}
+nav a span{color:var(--acc);font-weight:640;margin-right:7px;font-variant-numeric:tabular-nums}
+
+/* ---------- cards / callouts ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:24px 26px;box-shadow:var(--sh);margin:22px 0}
+.note{border-left:3px solid var(--warn);background:var(--warnbg);border-radius:0 var(--r) var(--r) 0;
+  padding:18px 22px;margin:22px 0}
+.note .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);margin-bottom:9px}
+.note p:last-child,.card p:last-child{margin-bottom:0}
+.good{border-left:3px solid var(--pos);background:var(--posbg);border-radius:0 var(--r) var(--r) 0;padding:18px 22px;margin:22px 0}
+.good .t{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;color:var(--pos);margin-bottom:9px}
+
+/* ---------- rules list ---------- */
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:22px 0}
+ol.steps li{counter-increment:s;position:relative;padding:15px 20px 15px 62px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:10px;box-shadow:var(--sh)}
+ol.steps li::before{content:counter(s);position:absolute;left:18px;top:14px;
+  width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--acc) 15%,transparent);
+  color:var(--acc);font-weight:680;font-size:14px;display:grid;place-items:center}
+ol.steps b{display:block;color:var(--ink);margin-bottom:2px}
+ol.steps span{color:var(--mut);font-size:14.5px}
+ul{margin:0 0 15px;padding-left:22px;color:var(--ink2)}
+li{margin-bottom:8px}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh);margin:20px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+caption{caption-side:top;text-align:left;padding:17px 20px 3px;color:var(--mut);font-size:12.5px}
+th{text-align:right;padding:13px 15px;font-size:10.5px;font-weight:660;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);white-space:nowrap;
+  background:var(--panel2)}
+th:first-child,td:first-child{text-align:left}
+td{padding:11px 15px;border-bottom:1px solid var(--line);text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink2)}
+td b{color:var(--ink)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--panel2)}
+tr.hi td{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+tr.q td{color:var(--mut);opacity:.62}
+tr.neg td:first-child{box-shadow:inset 3px 0 0 var(--neg)}
+tr.warn td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+.pos{color:var(--pos);font-weight:600} .neg{color:var(--neg);font-weight:600}
+.pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:640;letter-spacing:.02em}
+.pill.ok{background:var(--posbg);color:var(--pos)} .pill.no{background:var(--negbg);color:var(--neg)}
+
+/* ---------- figures ---------- */
+figure{margin:26px 0}
+figcaption{color:var(--mut);font-size:13px;margin-top:12px;max-width:70ch}
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px;box-shadow:var(--sh);color:var(--ink)}
+
+/* ---------- gallery filters ---------- */
+.filters{display:flex;flex-direction:column;gap:11px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;
+  box-shadow:var(--sh);margin:22px 0 0}
+.fgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fgroup>b{font-size:10.5px;font-weight:660;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mut);min-width:62px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--ink2);
+  font:inherit;font-size:12.5px;font-weight:550;padding:6px 13px;border-radius:100px;
+  cursor:pointer;transition:.13s;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--acc);color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:var(--bg);font-weight:640}
+.chip.win[aria-pressed=true]{background:var(--pos);border-color:var(--pos)}
+.chip.loss[aria-pressed=true]{background:var(--neg);border-color:var(--neg)}
+.fcount{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums;
+  border-top:1px solid var(--line);padding-top:11px}
+.fcount b{color:var(--ink)}
+.gal .tc[hidden]{display:none}
+.noresult{color:var(--mut);font-size:14px;padding:26px 2px}
+
+/* ---------- lightbox ---------- */
+#lb{position:fixed;inset:0;z-index:99;display:none;background:rgba(8,7,6,.93);
+  backdrop-filter:blur(6px);padding:22px;align-items:center;justify-content:center}
+#lb.on{display:flex}
+#lb figure{margin:0;max-width:min(1300px,100%);max-height:100%;display:flex;
+  flex-direction:column;gap:12px}
+#lb img{max-width:100%;max-height:calc(100vh - 130px);object-fit:contain;
+  background:#fff;border-radius:12px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+#lb figcaption{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  color:#f3efe7;font-size:14px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+#lb figcaption b{color:#fff}
+#lb .lbwin{color:#4fbe8b;font-weight:660} #lb .lbloss{color:#e0806f;font-weight:660}
+#lb .lbn{color:#948c80;font-size:12.5px;letter-spacing:.04em}
+.lbbtn{position:fixed;top:50%;transform:translateY(-50%);width:46px;height:46px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;
+  border-radius:50%;font-size:20px;line-height:1;cursor:pointer;display:grid;
+  place-items:center;transition:.14s}
+.lbbtn:hover{background:rgba(255,255,255,.2)}
+#lbprev{left:14px} #lbnext{right:14px}
+#lbclose{position:fixed;top:14px;right:14px;transform:none}
+@media (max-width:620px){.lbbtn{top:auto;bottom:14px;transform:none}
+  #lbprev{left:calc(50% - 58px)} #lbnext{left:calc(50% + 12px);right:auto}
+  #lbclose{top:14px;right:14px;bottom:auto}}
+
+/* ---------- gallery ---------- */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:22px}
+.tc{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;overflow:hidden;box-shadow:var(--sh);transition:.16s}
+.tc:hover{transform:translateY(-2px);border-color:var(--acc)}
+.tc img{width:100%;display:block;background:#fff}
+.tc .tm{display:block;padding:11px 14px;font-size:12.5px;color:var(--mut);
+  border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.tc .tm b{color:var(--ink)}
+.tc.win .tm i{color:var(--pos);font-style:normal;font-weight:660}
+.tc.loss .tm i{color:var(--neg);font-style:normal;font-weight:660}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0 0;font-size:13px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:11px;height:11px;border-radius:3px}
+
+footer{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+@media(max-width:640px){
+  header{padding-top:44px}
+  .k .v{font-size:1.55rem}
+  section{margin-top:56px}
+}
+.seq{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em;letter-spacing:.03em;white-space:nowrap}
+.riskbar{display:grid;grid-template-columns:auto auto 1fr;gap:10px 14px;align-items:center;
+  margin:0 0 18px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.riskbar label{font-size:13px;font-weight:640;letter-spacing:.01em}
+.riskin{display:flex;align-items:center;gap:6px}
+.riskin input{width:5.6rem;font:inherit;font-weight:700;font-size:19px;padding:6px 9px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;text-align:right}
+.riskin input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.riskin span{font-size:15px;color:var(--mut);font-weight:640}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:12.5px;padding:5px 11px;border:1px solid var(--line);
+  border-radius:999px;background:transparent;color:var(--mut);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:640}
+.risknote{grid-column:1/-1;margin:2px 0 0;font-size:12.5px;line-height:1.6;color:var(--mut)}
+.riskwarn{margin:0 0 18px;padding:12px 16px;border-radius:12px;font-size:13.5px;line-height:1.6;
+  border:1px solid var(--neg);background:color-mix(in srgb,var(--neg) 9%,transparent)}
+.riskwarn b{color:var(--neg)}
+.mclegend{display:flex;flex-wrap:wrap;gap:18px;margin:0 0 10px;font-size:12.5px;color:var(--mut)}
+.mclegend span{display:inline-flex;align-items:center;gap:7px}
+.mclegend .sw{width:15px;height:2.5px;border-radius:2px;background:currentColor}
+.mclegend .sw.pos{color:var(--pos)}
+.mclegend .sw.neg{color:var(--neg)}
+.kpi.mcstats{grid-template-columns:repeat(4,minmax(0,1fr));margin:20px 0 0}
+@media (max-width:700px){.kpi.mcstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--mut)}
+::-webkit-scrollbar-corner{background:transparent}
+tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:640}
+@media (max-width:640px){.riskbar{grid-template-columns:1fr auto}.chips{grid-column:1/-1}}
+.vtog{display:inline-flex;margin:18px 0 0;border:1px solid var(--line);border-radius:2px;
+  overflow:hidden;font:500 12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+.vtog a,.vtog span{padding:9px 15px;text-decoration:none;display:block;letter-spacing:.02em}
+.vtog span{background:var(--acc);color:#fff}
+.vtog a{color:var(--ink);background:transparent}
+.vtog a:hover{background:var(--line)}
+.vtog .lbl{background:transparent;color:var(--mut);border-right:1px solid var(--line);
+  font-weight:400;cursor:default}
+.twofig{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin:16px 0 0}
+.twofig figure{margin:0}
+
+.tc img{height:auto}
+nav.top{display:flex;gap:6px;flex-wrap:wrap;padding:18px 0 0}
+nav.top a{font-size:13px;font-weight:620;padding:7px 13px;border-radius:100px;
+  border:1px solid var(--line);color:var(--mut);text-decoration:none}
+nav.top a[aria-current=page]{background:var(--acc);border-color:var(--acc);color:var(--bg)}
+nav.top a:hover{color:var(--ink)}
+nav.top a[aria-current=page]:hover{color:var(--bg)}
+table.cmp td.hi{font-weight:700}
+</style>
+</head><body><div class="wrap">
+<nav class="top"><a href="index.html">ORB Asia</a><a href="pdfade.html">Gold PD fade</a><a href="nqfade.html">NQ range fade</a><a href="edges.html" aria-current="page">All three</a></nav>
+
+<header>
+<div class="eyebrow"><span class="dot"></span>three edges · 2026</div>
+<h1>All three, side by side</h1>
+<p class="lede">One opening-range breakout and two range fades, on gold and the Nasdaq, in three
+different sessions. Same year, same risk, one trade a day each. This page pools them.</p>
+<div class="riskbar">
+<label for="risk">Risk per trade</label>
+<div class="riskin"><input id="risk" type="range" min="0.25" max="2.5" step="0.25" value="2.5">
+<output id="riskv">2.5%</output></div>
+<p class="risknote">Every percentage on this page follows this number. R multiples do not move.</p>
+</div>
+</header>
+
+<section id="side">
+<h2><span class="num">01</span>The three</h2>
+<div class="scroll"><table class="cmp">
+<tr><th></th><th>ORB Asia</th><th>Gold PD fade</th><th>NQ range fade</th><th>All three</th></tr>
+<tr><td><b>Trades</b></td><td>75</td><td>66</td><td class="hi">117</td><td>258</td></tr><tr><td><b>Win rate</b></td><td>52.0%</td><td>44.6%</td><td class="hi">61.7%</td><td>54.5%</td></tr><tr><td><b>Median RR</b></td><td>2.00</td><td class="hi">2.41</td><td>1.24</td><td>1.92</td></tr><tr><td><b>Average RR</b></td><td>2.00</td><td class="hi">2.28</td><td>1.16</td><td>1.69</td></tr><tr><td><b>Per trade</b></td><td class="hi">+0.582 R</td><td>+0.160 R</td><td>+0.246 R</td><td>+0.322 R</td></tr><tr><td><b>Total</b></td><td class="hi">+43.6 R</td><td>+10.6 R</td><td>+28.8 R</td><td>+83.0 R</td></tr><tr><td><b>Profit factor</b></td><td class="hi">2.40</td><td>1.30</td><td>1.75</td><td>1.79</td></tr><tr><td><b>Worst drawdown</b></td><td class="hi">6.2 R</td><td>9.7 R</td><td>7.8 R</td><td>10.6 R</td></tr><tr><td><b>Worst losing run</b></td><td>6</td><td>10</td><td class="hi">4</td><td>7</td></tr><tr><td><b>Best winning run</b></td><td>6</td><td>7</td><td class="hi">10</td><td>9</td></tr><tr><td><b>t-statistic</b></td><td class="hi">+3.51</td><td>+0.91</td><td>+2.70</td><td>+4.11</td></tr>
+</table></div>
+<p class="note">Bold marks the best of the three on each line. The last column is every trade pooled
+in date order, one unit of risk each.</p>
+</section>
+
+<section id="pooled">
+<h2><span class="num">02</span>Pooled</h2>
+<div class="kpi">
+<div class="card"><div class="l">Trades</div><div class="v">258</div><div class="t">28.7 a month</div></div>
+<div class="card"><div class="l">Win rate</div><div class="v">54.5%</div><div class="t">139 W · 116 L</div></div>
+<div class="card"><div class="l">Per trade</div><div class="v pos">+0.322 R</div><div class="t"><span data-pct="0.3217">+0.80</span>% of the account</div></div>
+<div class="card"><div class="l">Total</div><div class="v pos">+83.0 R</div><div class="t"><span data-pct="82.9870">+207.5</span>% at 2.5% risk</div></div>
+<div class="card"><div class="l">Worst drawdown</div><div class="v neg">10.6 R</div><div class="t"><span data-pct="-10.6441">-26.6</span>% at 2.5% risk</div></div>
+<div class="card"><div class="l">Worst losing run</div><div class="v neg">7</div><div class="t">across all three</div></div>
+</div>
+<figure><div class="fig"><svg viewBox="0 0 1080 300" width="100%" role="img"><title>Cumulative return</title><desc>Cumulative return, ending at +207% at 2.5% risk.</desc><defs><linearGradient id="eq" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--pos)" stop-opacity=".28"/><stop offset="100%" stop-color="var(--pos)" stop-opacity="0"/></linearGradient></defs><polygon points="46.0,251.5 46.0,254.0 49.8,249.2 53.5,244.0 57.3,246.6 61.1,249.1 64.9,251.6 68.6,251.4 72.4,253.9 76.2,252.5 80.0,247.5 83.7,250.0 87.5,244.9 91.3,241.6 95.1,238.3 98.8,237.8 102.6,235.0 106.4,231.7 110.2,228.0 113.9,230.6 117.7,226.4 121.5,228.9 125.3,223.9 129.0,219.0 132.8,221.5 136.6,222.6 140.4,225.1 144.1,225.4 147.9,228.0 151.7,229.3 155.5,231.9 159.2,226.8 163.0,229.4 166.8,231.9 170.6,231.6 174.3,234.1 178.1,236.6 181.9,236.3 185.6,234.8 189.4,237.4 193.2,233.4 197.0,230.7 200.7,225.2 204.5,227.7 208.3,225.1 212.1,220.1 215.8,220.1 219.6,218.7 223.4,221.2 227.2,217.9 230.9,220.5 234.7,216.4 238.5,219.0 242.3,215.9 246.0,215.0 249.8,210.0 253.6,205.8 257.4,208.3 261.1,209.5 264.9,212.1 268.7,213.6 272.5,210.0 276.2,211.3 280.0,207.7 283.8,207.7 287.6,210.2 291.3,212.3 295.1,208.5 298.9,205.5 302.7,200.5 306.4,195.7 310.2,198.2 314.0,193.7 317.8,196.2 321.5,197.5 325.3,189.0 329.1,188.5 332.8,185.6 336.6,188.1 340.4,183.0 344.2,178.0 347.9,174.7 351.7,169.7 355.5,169.4 359.3,171.9 363.0,174.4 366.8,176.9 370.6,176.2 374.4,170.1 378.1,169.5 381.9,172.1 385.7,166.9 389.5,169.4 393.2,172.0 397.0,165.3 400.8,165.6 404.6,168.2 408.3,167.6 412.1,165.4 415.9,160.4 419.7,157.6 423.4,155.2 427.2,154.6 431.0,149.6 434.8,152.1 438.5,153.4 442.3,156.0 446.1,158.5 449.9,152.1 453.6,154.6 457.4,152.7 461.2,153.2 464.9,147.6 468.7,146.6 472.5,140.0 476.3,137.2 480.0,139.7 483.8,137.6 487.6,135.5 491.4,129.1 495.1,124.0 498.9,126.5 502.7,129.1 506.5,128.0 510.2,125.6 514.0,123.5 517.8,121.5 521.6,122.8 525.3,120.9 529.1,123.5 532.9,118.4 536.7,120.9 540.4,122.2 544.2,120.6 548.0,123.1 551.8,125.7 555.5,124.0 559.3,118.9 563.1,116.1 566.9,111.1 570.6,102.3 574.4,97.5 578.2,92.3 582.0,90.4 585.7,93.1 589.5,95.6 593.3,92.2 597.1,89.3 600.8,87.6 604.6,90.1 608.4,92.6 612.1,93.0 615.9,95.6 619.7,94.8 623.5,96.5 627.2,94.6 631.0,97.1 634.8,98.4 638.6,100.9 642.3,103.5 646.1,104.8 649.9,103.9 653.7,102.3 657.4,98.1 661.2,100.8 665.0,95.8 668.8,91.1 672.5,87.5 676.3,84.9 680.1,82.5 683.9,83.9 687.6,81.4 691.4,84.0 695.2,79.0 699.0,79.0 702.7,77.3 706.5,72.1 710.3,70.0 714.1,72.5 717.8,73.5 721.6,76.0 725.4,70.8 729.2,73.4 732.9,70.8 736.7,62.8 740.5,65.3 744.2,67.9 748.0,70.4 751.8,70.1 755.6,72.6 759.3,75.2 763.1,77.7 766.9,80.4 770.7,83.0 774.4,80.8 778.2,83.3 782.0,79.8 785.8,82.3 789.5,79.1 793.3,73.9 797.1,71.4 800.9,66.2 804.6,68.8 808.4,71.3 812.2,66.2 816.0,68.8 819.7,71.3 823.5,73.8 827.3,76.3 831.1,71.3 834.8,73.8 838.6,69.8 842.4,65.2 846.2,60.1 849.9,59.2 853.7,54.2 857.5,53.7 861.3,53.2 865.0,51.6 868.8,47.3 872.6,48.7 876.4,42.8 880.1,41.9 883.9,36.9 887.7,31.8 891.4,26.7 895.2,29.3 899.0,27.8 902.8,22.8 906.5,20.0 910.3,22.5 914.1,25.0 917.9,27.6 921.6,26.1 925.4,28.6 929.2,27.5 933.0,30.1 936.7,32.6 940.5,33.2 944.3,35.8 948.1,30.7 951.8,33.3 955.6,30.0 959.4,29.0 963.2,31.5 966.9,34.1 970.7,34.3 974.5,36.8 978.3,39.4 982.0,41.9 985.8,44.4 989.6,41.7 993.4,44.2 997.1,46.8 1000.9,44.8 1004.7,38.9 1008.5,41.5 1012.2,40.2 1016.0,42.7 1016.0,251.5" fill="url(#eq)" opacity=".5"/><polyline points="46.0,254.0 49.8,249.2 53.5,244.0 57.3,246.6 61.1,249.1 64.9,251.6 68.6,251.4 72.4,253.9 76.2,252.5 80.0,247.5 83.7,250.0 87.5,244.9 91.3,241.6 95.1,238.3 98.8,237.8 102.6,235.0 106.4,231.7 110.2,228.0 113.9,230.6 117.7,226.4 121.5,228.9 125.3,223.9 129.0,219.0 132.8,221.5 136.6,222.6 140.4,225.1 144.1,225.4 147.9,228.0 151.7,229.3 155.5,231.9 159.2,226.8 163.0,229.4 166.8,231.9 170.6,231.6 174.3,234.1 178.1,236.6 181.9,236.3 185.6,234.8 189.4,237.4 193.2,233.4 197.0,230.7 200.7,225.2 204.5,227.7 208.3,225.1 212.1,220.1 215.8,220.1 219.6,218.7 223.4,221.2 227.2,217.9 230.9,220.5 234.7,216.4 238.5,219.0 242.3,215.9 246.0,215.0 249.8,210.0 253.6,205.8 257.4,208.3 261.1,209.5 264.9,212.1 268.7,213.6 272.5,210.0 276.2,211.3 280.0,207.7 283.8,207.7 287.6,210.2 291.3,212.3 295.1,208.5 298.9,205.5 302.7,200.5 306.4,195.7 310.2,198.2 314.0,193.7 317.8,196.2 321.5,197.5 325.3,189.0 329.1,188.5 332.8,185.6 336.6,188.1 340.4,183.0 344.2,178.0 347.9,174.7 351.7,169.7 355.5,169.4 359.3,171.9 363.0,174.4 366.8,176.9 370.6,176.2 374.4,170.1 378.1,169.5 381.9,172.1 385.7,166.9 389.5,169.4 393.2,172.0 397.0,165.3 400.8,165.6 404.6,168.2 408.3,167.6 412.1,165.4 415.9,160.4 419.7,157.6 423.4,155.2 427.2,154.6 431.0,149.6 434.8,152.1 438.5,153.4 442.3,156.0 446.1,158.5 449.9,152.1 453.6,154.6 457.4,152.7 461.2,153.2 464.9,147.6 468.7,146.6 472.5,140.0 476.3,137.2 480.0,139.7 483.8,137.6 487.6,135.5 491.4,129.1 495.1,124.0 498.9,126.5 502.7,129.1 506.5,128.0 510.2,125.6 514.0,123.5 517.8,121.5 521.6,122.8 525.3,120.9 529.1,123.5 532.9,118.4 536.7,120.9 540.4,122.2 544.2,120.6 548.0,123.1 551.8,125.7 555.5,124.0 559.3,118.9 563.1,116.1 566.9,111.1 570.6,102.3 574.4,97.5 578.2,92.3 582.0,90.4 585.7,93.1 589.5,95.6 593.3,92.2 597.1,89.3 600.8,87.6 604.6,90.1 608.4,92.6 612.1,93.0 615.9,95.6 619.7,94.8 623.5,96.5 627.2,94.6 631.0,97.1 634.8,98.4 638.6,100.9 642.3,103.5 646.1,104.8 649.9,103.9 653.7,102.3 657.4,98.1 661.2,100.8 665.0,95.8 668.8,91.1 672.5,87.5 676.3,84.9 680.1,82.5 683.9,83.9 687.6,81.4 691.4,84.0 695.2,79.0 699.0,79.0 702.7,77.3 706.5,72.1 710.3,70.0 714.1,72.5 717.8,73.5 721.6,76.0 725.4,70.8 729.2,73.4 732.9,70.8 736.7,62.8 740.5,65.3 744.2,67.9 748.0,70.4 751.8,70.1 755.6,72.6 759.3,75.2 763.1,77.7 766.9,80.4 770.7,83.0 774.4,80.8 778.2,83.3 782.0,79.8 785.8,82.3 789.5,79.1 793.3,73.9 797.1,71.4 800.9,66.2 804.6,68.8 808.4,71.3 812.2,66.2 816.0,68.8 819.7,71.3 823.5,73.8 827.3,76.3 831.1,71.3 834.8,73.8 838.6,69.8 842.4,65.2 846.2,60.1 849.9,59.2 853.7,54.2 857.5,53.7 861.3,53.2 865.0,51.6 868.8,47.3 872.6,48.7 876.4,42.8 880.1,41.9 883.9,36.9 887.7,31.8 891.4,26.7 895.2,29.3 899.0,27.8 902.8,22.8 906.5,20.0 910.3,22.5 914.1,25.0 917.9,27.6 921.6,26.1 925.4,28.6 929.2,27.5 933.0,30.1 936.7,32.6 940.5,33.2 944.3,35.8 948.1,30.7 951.8,33.3 955.6,30.0 959.4,29.0 963.2,31.5 966.9,34.1 970.7,34.3 974.5,36.8 978.3,39.4 982.0,41.9 985.8,44.4 989.6,41.7 993.4,44.2 997.1,46.8 1000.9,44.8 1004.7,38.9 1008.5,41.5 1012.2,40.2 1016.0,42.7" fill="none" stroke="var(--pos)" stroke-width="2.4" stroke-linejoin="round"/><line x1="46" y1="251.5" x2="1016" y2="251.5" stroke="currentColor" stroke-opacity=".25"/><line x1="46" y1="251.5" x2="1016" y2="251.5" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="251.5" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="0.0000" data-fmt="int">0%</text><line x1="46" y1="226.3" x2="1016" y2="226.3" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="226.3" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="10.0000" data-fmt="int">25%</text><line x1="46" y1="201.1" x2="1016" y2="201.1" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="201.1" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="20.0000" data-fmt="int">50%</text><line x1="46" y1="176.0" x2="1016" y2="176.0" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="176.0" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="30.0000" data-fmt="int">75%</text><line x1="46" y1="150.8" x2="1016" y2="150.8" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="150.8" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="40.0000" data-fmt="int">100%</text><line x1="46" y1="125.7" x2="1016" y2="125.7" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="125.7" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="50.0000" data-fmt="int">125%</text><line x1="46" y1="100.5" x2="1016" y2="100.5" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="100.5" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="60.0000" data-fmt="int">150%</text><line x1="46" y1="75.4" x2="1016" y2="75.4" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="75.4" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="70.0000" data-fmt="int">175%</text><line x1="46" y1="50.2" x2="1016" y2="50.2" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="50.2" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="80.0000" data-fmt="int">200%</text><line x1="46" y1="25.1" x2="1016" y2="25.1" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="25.1" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="90.0000" data-fmt="int">225%</text><circle cx="1016.0" cy="42.7" r="4" fill="var(--pos)"/><text x="1023.0" y="42.7" font-size="13" font-weight="700" fill="var(--pos)" dy="4" data-pct="82.9870" data-fmt="signint">  +207%</text></svg></div>
+<figcaption>All 258 trades in date order, one unit of risk each.</figcaption></figure>
+</section>
+
+<section id="months">
+<h2><span class="num">03</span>Month by month</h2>
+<div class="scroll"><table>
+<tr><th>Month</th><th>ORB Asia</th><th>Gold PD fade</th><th>NQ range fade</th><th>Total</th></tr>
+<tr><td><b>Jan</b></td><td><span class="pos">+8.36 R</span></td><td><span class="neg">-3.65 R</span></td><td><span class="pos">+5.64 R</span></td><td><span class="pos">+10.35 R</span></td></tr><tr><td><b>Feb</b></td><td><span class="pos">+3.57 R</span></td><td><span class="neg">-4.81 R</span></td><td><span class="pos">+8.06 R</span></td><td><span class="pos">+6.82 R</span></td></tr><tr><td><b>Mar</b></td><td><span class="pos">+9.61 R</span></td><td><span class="pos">+3.65 R</span></td><td><span class="pos">+1.14 R</span></td><td><span class="pos">+14.40 R</span></td></tr><tr><td><b>Apr</b></td><td><span class="pos">+5.65 R</span></td><td><span class="pos">+11.11 R</span></td><td><span class="pos">+1.71 R</span></td><td><span class="pos">+18.47 R</span></td></tr><tr><td><b>May</b></td><td><span class="pos">+3.64 R</span></td><td><span class="pos">+2.04 R</span></td><td><span class="pos">+6.63 R</span></td><td><span class="pos">+12.31 R</span></td></tr><tr><td><b>Jun</b></td><td><span class="pos">+3.43 R</span></td><td><span class="pos">+3.02 R</span></td><td><span class="pos">+5.19 R</span></td><td><span class="pos">+11.64 R</span></td></tr><tr><td><b>Jul</b></td><td><span class="pos">+8.04 R</span></td><td><span class="neg">-0.80 R</span></td><td><span class="neg">-4.82 R</span></td><td><span class="pos">+2.42 R</span></td></tr><tr><td><b>Aug</b></td><td><span class="pos">+5.38 R</span></td><td><span class="pos">+1.16 R</span></td><td><span class="pos">+4.47 R</span></td><td><span class="pos">+11.01 R</span></td></tr><tr><td><b>Sep</b></td><td><span class="neg">-4.07 R</span></td><td><span class="neg">-1.15 R</span></td><td><span class="pos">+0.78 R</span></td><td><span class="neg">-4.44 R</span></td></tr><tr><td><b>Total</b></td><td><span class="pos">+43.6 R</span></td><td><span class="pos">+10.6 R</span></td><td><span class="pos">+28.8 R</span></td><td><span class="pos">+83.0 R</span></td></tr>
+</table></div>
+</section>
+
+<section id="corr">
+<h2><span class="num">04</span>Do they move together?</h2>
+<p class="sub">Correlation of monthly R. Near zero means a bad month in one says nothing about the others.</p>
+<div class="scroll"><table>
+<tr><th>Pair</th><th>Correlation</th></tr>
+<tr><td><b>ORB Asia</b> vs <b>Gold PD fade</b></td><td>+0.14</td></tr><tr><td><b>ORB Asia</b> vs <b>NQ range fade</b></td><td>-0.15</td></tr><tr><td><b>Gold PD fade</b> vs <b>NQ range fade</b></td><td>-0.22</td></tr>
+</table></div>
+</section>
+
+<section id="load">
+<h2><span class="num">05</span>Trades on the same day</h2>
+<p class="sub">All three can fire on one day, and a prop firm's daily loss limit counts the day, not the trade.</p>
+<div class="scroll"><table>
+<tr><th>Trades in a day</th><th>How often</th></tr>
+<tr><td><b>1</b></td><td>71 days</td></tr><tr><td><b>2</b></td><td>68 days</td></tr><tr><td><b>3</b></td><td>17 days</td></tr>
+</table></div>
+<p class="note">The worst single day across all three was <b>-2.09 R</b> — <span data-pct="-2.0940">-5.24</span>% at
+2.5% risk. A 3% daily limit is breached by two full losses at 2.5% risk, so position size has
+to be set for the number of strategies running, not for one of them.</p>
+</section>
+
+<section id="limits">
+<h2><span class="num">06</span>What this does not show</h2>
+<ul>
+<li><b>2026 only, for all three.</b> No out-of-sample test stands behind any of these numbers.</li>
+<li><b>The ORB is real-tick Strategy Tester output; the two fades are bar replays</b> with an assumed
+spread. They are not measured to the same standard and the fades will read slightly optimistic.</li>
+<li><b>The fade parameters were chosen on this data.</b> Both stop and target levels came out of
+sweeps over this same year.</li>
+<li><b>Pooling assumes equal risk on every trade</b> and ignores that three simultaneous losses
+breach a 3% daily limit long before the drawdown figure does.</li>
+</ul>
+</section>
+
+<footer><p>Generated from the runs — no figure on this page is typed by hand.
+Not financial advice.</p></footer>
+</div>
+<script>
+var RISK=2.5;
+function paint(){
+  document.querySelectorAll('[data-pct]').forEach(function(e){
+    var r=parseFloat(e.dataset.pct), f=e.dataset.fmt, v=r*RISK;
+    if(f==='int') e.textContent=Math.round(v)+'%';
+    else if(f==='signint') e.textContent='  '+(v>=0?'+':'')+Math.round(v)+'%';
+    else e.textContent=(v>=0?'+':'')+v.toFixed(1);
+  });
+}
+var sl=document.getElementById('risk');
+if(sl){sl.addEventListener('input',function(){RISK=parseFloat(sl.value);
+  document.getElementById('riskv').textContent=RISK.toFixed(2).replace(/0$/,'')+'%';paint();});}
+paint();
+var F={outcome:null,dir:null,month:null};
+function filter(){
+  var n=0;
+  document.querySelectorAll('.tc').forEach(function(c){
+    var ok=(!F.outcome||c.dataset.outcome===F.outcome)&&
+           (!F.dir||c.dataset.dir===F.dir)&&(!F.month||c.dataset.month===F.month);
+    c.hidden=!ok; if(ok)n++;
+  });
+  var fc=document.getElementById('fcount'); if(fc)fc.textContent=n+(n===1?' trade':' trades');
+  var nr=document.getElementById('noresult'); if(nr)nr.hidden=n>0;
+}
+document.querySelectorAll('.chip').forEach(function(b){
+  b.addEventListener('click',function(){
+    var k=b.dataset.f,v=b.dataset.v,on=F[k]===v;
+    document.querySelectorAll('.chip[data-f="'+k+'"]').forEach(function(o){
+      o.setAttribute('aria-pressed','false');});
+    F[k]=on?null:v; if(!on)b.setAttribute('aria-pressed','true');
+    filter();
+  });
+});
+filter();
+</script>
+</body></html>

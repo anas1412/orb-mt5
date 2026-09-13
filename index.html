@@ -234,14 +234,22 @@ tr.sel td{background:color-mix(in srgb,var(--acc) 13%,transparent);font-weight:6
   font-weight:400;cursor:default}
 .twofig{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin:16px 0 0}
 .twofig figure{margin:0}
+
+nav.top{display:flex;gap:6px;flex-wrap:wrap;padding:18px 0 0}
+nav.top a{font-size:13px;font-weight:620;padding:7px 13px;border-radius:100px;
+  border:1px solid var(--line);color:var(--mut);text-decoration:none}
+nav.top a[aria-current=page]{background:var(--acc);border-color:var(--acc);color:var(--bg)}
+nav.top a:hover{color:var(--ink)}
+nav.top a[aria-current=page]:hover{color:var(--bg)}
 </style></head><body>
 <div class="wrap">
+<nav class="top"><a href="index.html" aria-current="page">ORB Asia</a><a href="pdfade.html">Gold PD fade</a><a href="nqfade.html">NQ range fade</a><a href="edges.html">All three</a></nav>
 
 <header>
   <div class="eyebrow"><span class="dot"></span> FundingPips 1 Step Flex &middot; +12% target &middot; 12% max loss &middot; 3% daily</div>
   <h1>The Asia Opening Range<br><em>on Gold</em></h1>
   <p class="lede">One trade a day, Monday to Thursday, decided in the fifteen minutes after midnight UTC. This is the complete rule set, why each rule is there, and every trade it produced in 2026.</p>
-<div class="vtog"><span class="lbl">Range filter</span><span>On, 0.14%</span><a href="asia-nofilter.html">Off</a></div>
+<div class="vtog"><span class="lbl">Range filter</span><span>On, 0.14%</span></div>
 
   <div class="riskbar">
     <label for="riskin">Risk per trade</label>
