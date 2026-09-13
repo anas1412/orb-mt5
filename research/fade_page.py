@@ -276,7 +276,7 @@ price is there. Those are neither wins by design nor failures — they are the r
 <section id="limits">
 <h2><span class="num">06</span>What this does not show</h2>
 <ul>
-<li><b>2026 only.</b> %(n)d trades on %(elig)d eligible days. There is no out-of-sample test behind these numbers.</li>
+<li><b>2026 only.</b> %(n)d trades on %(elig)d eligible days.%(oos)s</li>
 <li><b>Bar replay, not the Strategy Tester.</b> Entries and exits are walked over M1 bars with a fixed
 %(spread)s spread and commission taken off the R. A short's stop is checked against the ask.</li>
 <li><b>Intrabar order is unknown.</b> An M1 bar does not say whether its high or low came first,
@@ -302,6 +302,8 @@ over this same year, so the exact figures are optimistic even where the shape of
         slfib="−%.2f" % spec["sl"], tpfib="%.2f" % spec["tp"],
         slpct="%g%%" % (spec["sl"] * 100), tppct="%g%%" % (spec["tp"] * 100),
         spread="%g-point" % spec["spread"],
+        oos=(" " + spec["oos"]) if spec.get("oos")
+            else " There is no out-of-sample test behind these numbers.",
     )
     html = page.shell(spec["title"] + " — " + spec["sub"], pagefile, body % vals,
                       risk=RISK_PCT)

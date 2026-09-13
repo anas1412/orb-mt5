@@ -50,7 +50,7 @@ You take that close and trade against the sweep. US100.cash, Monday, Tuesday, Th
 <tr><td><b>The target</b></td><td>The <b>0.50 fib</b> — 50% of the range back inside. Reward:risk therefore varies; median 1.24.</td></tr>
 <tr><td><b>The stop move</b></td><td><b>None.</b> Moving it to breakeven or to −0.5R was measured on both strategies and lost money every way it was tried.</td></tr>
 <tr><td><b>The exit</b></td><td>Stop, target, or the close of the window — whichever comes first</td></tr>
-<tr><td><b>Days</b></td><td>Monday, Tuesday, Thursday and Friday. Wednesday is excluded — the only losing day of the week, negative in six months of nine.</td></tr>
+<tr><td><b>Days</b></td><td>Monday, Tuesday, Thursday and Friday. Wednesday is excluded — the only losing day of the week, negative in six months of nine, and in all three years tested.</td></tr>
 </table>
 </section>
 
@@ -93,7 +93,7 @@ price is there. Those are neither wins by design nor failures — they are the r
 <section id="limits">
 <h2><span class="num">06</span>What this does not show</h2>
 <ul>
-<li><b>2026 only.</b> 117 trades on 143 eligible days. There is no out-of-sample test behind these numbers.</li>
+<li><b>2026 only.</b> 117 trades on 143 eligible days. Tested on 2024 and 2025 as well, which these parameters were not chosen on: positive in both (+0.047 and +0.053 R a trade against +0.246 here), 24 of 33 months green across the three years, and Wednesday negative in every one. The out-of-sample expectancy is <b>+0.050 R</b>, a fifth of what this page shows, and the worst losing run is <b>9</b> rather than 4. Take the 2026 figures below as the best case, not the expectation.</li>
 <li><b>Bar replay, not the Strategy Tester.</b> Entries and exits are walked over M1 bars with a fixed
 1.5-point spread and commission taken off the R. A short's stop is checked against the ask.</li>
 <li><b>Intrabar order is unknown.</b> An M1 bar does not say whether its high or low came first,
@@ -105,6 +105,13 @@ over this same year, so the exact figures are optimistic even where the shape of
 
 <footer><p>Generated from the run — no figure on this page is typed by hand. 2026 only, and the limits each page states are the ones that matter. Not financial advice.</p></footer>
 </div>
+<div id="lb" role="dialog" aria-modal="true" aria-label="Trade chart">
+<button class="lbbtn" id="lbclose" aria-label="Close">&#10005;</button>
+<button class="lbbtn" id="lbprev" aria-label="Previous trade">&#8249;</button>
+<button class="lbbtn" id="lbnext" aria-label="Next trade">&#8250;</button>
+<figure><img id="lbimg" alt=""><figcaption>
+  <span id="lbcap"></span><span class="lbn" id="lbnum"></span>
+</figcaption></figure></div>
 <script>
 var RISK=2.5;
 function paint(){
@@ -143,5 +150,41 @@ document.querySelectorAll('.chip').forEach(function(b){
   });
 });
 filter();
+
+(function(){
+  var lb=document.getElementById('lb');
+  if(!lb) return;
+  var img=document.getElementById('lbimg'), cap=document.getElementById('lbcap'),
+      num=document.getElementById('lbnum'), i=0;
+  function shown(){
+    return [].slice.call(document.querySelectorAll('.gal .tc')).filter(function(c){
+      return !c.hidden; });
+  }
+  function show(n){
+    var vis=shown(); if(!vis.length) return;
+    i=(n+vis.length)%vis.length;
+    var c=vis[i];
+    img.src=c.getAttribute('href');
+    img.alt=c.querySelector('img').alt;
+    cap.innerHTML=c.querySelector('.tm').innerHTML
+      .replace(/<i>/g,'<i class="'+(c.classList.contains('win')?'lbwin':'lbloss')+'">');
+    num.textContent=(i+1)+' / '+vis.length+'   ← → to move, Esc to close';
+  }
+  function open(n){ show(n); lb.classList.add('on'); document.body.style.overflow='hidden'; }
+  function close(){ lb.classList.remove('on'); document.body.style.overflow=''; img.src=''; }
+  document.querySelectorAll('.gal .tc').forEach(function(c){
+    c.addEventListener('click',function(e){ e.preventDefault(); open(shown().indexOf(c)); });
+  });
+  document.getElementById('lbclose').onclick=close;
+  document.getElementById('lbprev').onclick=function(e){ e.stopPropagation(); show(i-1); };
+  document.getElementById('lbnext').onclick=function(e){ e.stopPropagation(); show(i+1); };
+  lb.addEventListener('click',function(e){ if(e.target===lb) close(); });
+  document.addEventListener('keydown',function(e){
+    if(!lb.classList.contains('on')) return;
+    if(e.key==='Escape') close();
+    else if(e.key==='ArrowLeft') show(i-1);
+    else if(e.key==='ArrowRight') show(i+1);
+  });
+})();
 </script>
 </body></html>

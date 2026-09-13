@@ -61,7 +61,16 @@ SPECS = {
         # Wednesday was the only losing day of the week, negative in six months
         # of nine. Every other day removed makes the result worse.
         why="Wednesday is excluded — the only losing day of the week, "
-            "negative in six months of nine.",
+            "negative in six months of nine, and in all three years tested.",
+        # Measured after the fact on 2024-25 bars, which the parameters were not
+        # chosen on. The edge survives; it is about half this size.
+        oos="Tested on 2024 and 2025 as well, which these parameters were not "
+            "chosen on: positive in both (+0.047 and +0.053 R a trade against "
+            "+0.246 here), 24 of 33 months green across the three years, and "
+            "Wednesday negative in every one. The out-of-sample expectancy is "
+            "<b>+0.050 R</b>, a fifth of what this page shows, and the worst "
+            "losing run is <b>9</b> rather than 4. Take the 2026 figures below "
+            "as the best case, not the expectation.",
     ),
 }
 

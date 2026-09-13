@@ -90,6 +90,57 @@ document.querySelectorAll('.chip').forEach(function(b){
 filter();
 """
 
+# The lightbox, identical to the one template.html carries for the ORB report.
+# Markup lives outside .wrap because it is fixed-position and full-screen.
+LIGHTBOX = """<div id="lb" role="dialog" aria-modal="true" aria-label="Trade chart">
+<button class="lbbtn" id="lbclose" aria-label="Close">&#10005;</button>
+<button class="lbbtn" id="lbprev" aria-label="Previous trade">&#8249;</button>
+<button class="lbbtn" id="lbnext" aria-label="Next trade">&#8250;</button>
+<figure><img id="lbimg" alt=""><figcaption>
+  <span id="lbcap"></span><span class="lbn" id="lbnum"></span>
+</figcaption></figure></div>"""
+
+# Steps through the cards the filters have left visible, so arrowing never lands
+# on a hidden trade.
+LIGHTBOX_JS = """
+(function(){
+  var lb=document.getElementById('lb');
+  if(!lb) return;
+  var img=document.getElementById('lbimg'), cap=document.getElementById('lbcap'),
+      num=document.getElementById('lbnum'), i=0;
+  function shown(){
+    return [].slice.call(document.querySelectorAll('.gal .tc')).filter(function(c){
+      return !c.hidden; });
+  }
+  function show(n){
+    var vis=shown(); if(!vis.length) return;
+    i=(n+vis.length)%vis.length;
+    var c=vis[i];
+    img.src=c.getAttribute('href');
+    img.alt=c.querySelector('img').alt;
+    cap.innerHTML=c.querySelector('.tm').innerHTML
+      .replace(/<i>/g,'<i class="'+(c.classList.contains('win')?'lbwin':'lbloss')+'">');
+    num.textContent=(i+1)+' / '+vis.length+'   \u2190 \u2192 to move, Esc to close';
+  }
+  function open(n){ show(n); lb.classList.add('on'); document.body.style.overflow='hidden'; }
+  function close(){ lb.classList.remove('on'); document.body.style.overflow=''; img.src=''; }
+  document.querySelectorAll('.gal .tc').forEach(function(c){
+    c.addEventListener('click',function(e){ e.preventDefault(); open(shown().indexOf(c)); });
+  });
+  document.getElementById('lbclose').onclick=close;
+  document.getElementById('lbprev').onclick=function(e){ e.stopPropagation(); show(i-1); };
+  document.getElementById('lbnext').onclick=function(e){ e.stopPropagation(); show(i+1); };
+  lb.addEventListener('click',function(e){ if(e.target===lb) close(); });
+  document.addEventListener('keydown',function(e){
+    if(!lb.classList.contains('on')) return;
+    if(e.key==='Escape') close();
+    else if(e.key==='ArrowLeft') show(i-1);
+    else if(e.key==='ArrowRight') show(i+1);
+  });
+})();
+"""
+
+
 FOOTER = ('<footer><p>Generated from the run — no figure on this page is typed by hand. '
           '2026 only, and the limits each page states are the ones that matter. '
           'Not financial advice.</p></footer>')
@@ -97,7 +148,7 @@ FOOTER = ('<footer><p>Generated from the run — no figure on this page is typed
 
 def shell(title, current, body, risk=2.5, gallery=True):
     """A complete document: shared head, shared nav, the page's body, shared JS."""
-    js = RISK_JS % dict(risk=risk) + (GALLERY_JS if gallery else "")
+    js = RISK_JS % dict(risk=risk) + (GALLERY_JS + LIGHTBOX_JS if gallery else "")
     return """<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -109,6 +160,8 @@ def shell(title, current, body, risk=2.5, gallery=True):
 %s
 %s
 </div>
+%s
 <script>%s</script>
 </body></html>
-""" % (title, STYLESHEET, navbar(current), body, FOOTER, js)
+""" % (title, STYLESHEET, navbar(current), body, FOOTER,
+       LIGHTBOX if gallery else "", js)

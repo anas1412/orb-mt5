@@ -105,6 +105,13 @@ over this same year, so the exact figures are optimistic even where the shape of
 
 <footer><p>Generated from the run — no figure on this page is typed by hand. 2026 only, and the limits each page states are the ones that matter. Not financial advice.</p></footer>
 </div>
+<div id="lb" role="dialog" aria-modal="true" aria-label="Trade chart">
+<button class="lbbtn" id="lbclose" aria-label="Close">&#10005;</button>
+<button class="lbbtn" id="lbprev" aria-label="Previous trade">&#8249;</button>
+<button class="lbbtn" id="lbnext" aria-label="Next trade">&#8250;</button>
+<figure><img id="lbimg" alt=""><figcaption>
+  <span id="lbcap"></span><span class="lbn" id="lbnum"></span>
+</figcaption></figure></div>
 <script>
 var RISK=2.5;
 function paint(){
@@ -143,5 +150,41 @@ document.querySelectorAll('.chip').forEach(function(b){
   });
 });
 filter();
+
+(function(){
+  var lb=document.getElementById('lb');
+  if(!lb) return;
+  var img=document.getElementById('lbimg'), cap=document.getElementById('lbcap'),
+      num=document.getElementById('lbnum'), i=0;
+  function shown(){
+    return [].slice.call(document.querySelectorAll('.gal .tc')).filter(function(c){
+      return !c.hidden; });
+  }
+  function show(n){
+    var vis=shown(); if(!vis.length) return;
+    i=(n+vis.length)%vis.length;
+    var c=vis[i];
+    img.src=c.getAttribute('href');
+    img.alt=c.querySelector('img').alt;
+    cap.innerHTML=c.querySelector('.tm').innerHTML
+      .replace(/<i>/g,'<i class="'+(c.classList.contains('win')?'lbwin':'lbloss')+'">');
+    num.textContent=(i+1)+' / '+vis.length+'   ← → to move, Esc to close';
+  }
+  function open(n){ show(n); lb.classList.add('on'); document.body.style.overflow='hidden'; }
+  function close(){ lb.classList.remove('on'); document.body.style.overflow=''; img.src=''; }
+  document.querySelectorAll('.gal .tc').forEach(function(c){
+    c.addEventListener('click',function(e){ e.preventDefault(); open(shown().indexOf(c)); });
+  });
+  document.getElementById('lbclose').onclick=close;
+  document.getElementById('lbprev').onclick=function(e){ e.stopPropagation(); show(i-1); };
+  document.getElementById('lbnext').onclick=function(e){ e.stopPropagation(); show(i+1); };
+  lb.addEventListener('click',function(e){ if(e.target===lb) close(); });
+  document.addEventListener('keydown',function(e){
+    if(!lb.classList.contains('on')) return;
+    if(e.key==='Escape') close();
+    else if(e.key==='ArrowLeft') show(i-1);
+    else if(e.key==='ArrowRight') show(i+1);
+  });
+})();
 </script>
 </body></html>
