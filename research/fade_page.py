@@ -239,9 +239,9 @@ def report(name, pagefile):
     # minute. Printing it as the range's end reads as though the range
     # included the bar the first signal candle is built from.
     rangetxt = ("yesterday's high and low" if d["rangesrc"] == "prevday"
-                else "the high and low of %02d:%02d–%02d:%02d UTC"
+                else "the high and low of every M5 candle from %02d:%02d to %02d:%02d UTC"
                      % (d["rangesrc"][0] // 60, d["rangesrc"][0] % 60,
-                        (d["rangesrc"][1] - 1) // 60, (d["rangesrc"][1] - 1) % 60))
+                        (d["rangesrc"][1] - 5) // 60, (d["rangesrc"][1] - 5) % 60))
     body = """
 <header>
 <h1>%(title)s</h1>
@@ -273,7 +273,7 @@ You take that close and trade against the sweep. %(symbol)s, %(daystxt)s, entrie
 <p class="sub">Draw one fib on the range before the session. Everything else reads off it.</p>
 <table>
 <tr><th>Step</th><th></th></tr>
-<tr><td><b>The range</b></td><td>%(rangetxt_c)s — everything up to but <b>not including</b> the minute the session opens on</td></tr>
+<tr><td><b>The range</b></td><td>%(rangetxt_c)s.%(rangenote)s</td></tr>
 <tr><td><b>Draw the fib</b></td><td>Anchor 0 on the level you are fading, 1 on the other side. Longs: drag low→high. Shorts: high→low.</td></tr>
 <tr><td><b>The sweep</b></td><td>Price trades beyond the level during %(windowtxt)s</td></tr>
 <tr><td><b>The entry</b></td><td>An <b>M5 candle closes back inside</b> the level. Enter at that close, at market. One trade a day — the first signal only.</td></tr>
@@ -353,6 +353,13 @@ over this same year, so the exact figures are optimistic even where the shape of
         slfib="−%.2f" % spec["sl"], tpfib="%.2f" % spec["tp"],
         slpct="%g%%" % (spec["sl"] * 100), tppct="%g%%" % (spec["tp"] * 100),
         spread="%g-point" % spec["spread"],
+        # only an intraday range has an edge worth spelling out; yesterday's
+        # whole session has none
+        rangenote=("" if d["rangesrc"] == "prevday" else
+                   " The last one opens at %02d:%02d and closes as the session begins;"
+                   " the %02d:%02d candle is the first that can signal."
+                   % ((d["rangesrc"][1] - 5) // 60, (d["rangesrc"][1] - 5) % 60,
+                      d["rangesrc"][1] // 60, d["rangesrc"][1] % 60)),
         entrysection=entry_section(d.get("entrycmp"), "05"),
         ntrades="06" if d.get("entrycmp") else "05",
         nlimits="07" if d.get("entrycmp") else "06",
