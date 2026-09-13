@@ -70,13 +70,16 @@ p strong,li strong{color:var(--ink);font-weight:640}
 a{color:var(--acc)}
 
 /* ---------- toc ---------- */
-nav{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+/* The in-page section index. Scoped to .toc: an unscoped `nav` also matched
+   the site bar below, which then inherited this panel background, border and
+   shadow and rendered as a broken-looking slab. */
+nav.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
   padding:8px;margin:34px 0 0;box-shadow:var(--sh);
   display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:4px}
-nav a{display:block;padding:10px 13px;border-radius:9px;text-decoration:none;
+nav.toc a{display:block;padding:10px 13px;border-radius:9px;text-decoration:none;
   color:var(--ink2);font-size:13.5px;font-weight:520;transition:.14s}
-nav a:hover{background:var(--panel2);color:var(--ink)}
-nav a span{color:var(--acc);font-weight:640;margin-right:7px;font-variant-numeric:tabular-nums}
+nav.toc a:hover{background:var(--panel2);color:var(--ink)}
+nav.toc a span{color:var(--acc);font-weight:640;margin-right:7px;font-variant-numeric:tabular-nums}
 
 /* ---------- cards / callouts ---------- */
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
@@ -248,9 +251,12 @@ table.cmp td.hi{font-weight:700}
 
 /* The four published pages link to each other from here. Distinct from the
    in-page section nav, which is {{NAV}} in template.html. */
-nav.site{display:flex;gap:6px;flex-wrap:wrap;padding:18px 0 0}
-nav.site a{font-size:13px;font-weight:620;padding:7px 13px;border-radius:100px;
-  border:1px solid var(--line);color:var(--mut);text-decoration:none}
-nav.site a[aria-current=page]{background:var(--acc);border-color:var(--acc);color:var(--bg)}
-nav.site a:hover{color:var(--ink)}
-nav.site a[aria-current=page]:hover{color:var(--bg)}
+nav.site{display:flex;gap:4px;margin:26px 0 0;padding:5px;width:max-content;max-width:100%;
+  background:var(--panel);border:1px solid var(--line);border-radius:100px;
+  box-shadow:var(--sh);overflow-x:auto;scrollbar-width:none}
+nav.site::-webkit-scrollbar{display:none}
+nav.site a{flex:0 0 auto;padding:9px 18px;border-radius:100px;text-decoration:none;
+  white-space:nowrap;font-size:13.5px;font-weight:600;color:var(--mut);transition:.14s}
+nav.site a:hover{background:var(--panel2);color:var(--ink)}
+nav.site a[aria-current=page]{background:var(--acc);color:var(--bg)}
+nav.site a[aria-current=page]:hover{background:var(--acc);color:var(--bg)}

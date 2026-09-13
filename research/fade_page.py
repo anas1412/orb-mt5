@@ -196,7 +196,6 @@ def report(name, pagefile):
                         d["rangesrc"][1] // 60, d["rangesrc"][1] % 60))
     body = """
 <header>
-<div class="eyebrow"><span class="dot"></span>research · %(sub)s</div>
 <h1>%(title)s</h1>
 <p class="lede">Price sweeps %(rangetxt)s, fails to hold, and an M5 candle closes back inside.
 You take that close and trade against the sweep. %(symbol)s, %(daystxt)s, entries in
@@ -383,7 +382,6 @@ def combined(sets):
 
     body = """
 <header>
-<div class="eyebrow"><span class="dot"></span>three edges · 2026</div>
 <h1>All three, side by side</h1>
 <p class="lede">One opening-range breakout and two range fades, on gold and the Nasdaq, in three
 different sessions. Same year, same risk, one trade a day each. This page pools them.</p>
