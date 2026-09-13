@@ -25,6 +25,10 @@ import page
 import fade_page as FP
 
 RISK = 2.0          # percent of the starting balance, per trade
+# FP.pct() renders its number server-side at FP's own default risk. This page
+# runs at a different one, and a reader with JavaScript off gets whatever the
+# HTML says -- so point FP at this page's risk before anything is rendered.
+FP.RISK_PCT = RISK
 TARGET = 12.0       # percent, the profit target
 DAILY = 5.0         # percent, the daily loss limit
 MAXLOSS = 10.0      # percent, static, from the starting balance
@@ -168,6 +172,36 @@ def equity_dd(book):
     return worst, hi_d, lo_d, floor, floor_d
 
 
+
+def seq_cell(trades, risk):
+    """Every trade in order, as its percentage of the account.
+
+    Colour is the sign and never moves; the number carries data-pct so the risk
+    selector rescales it with everything else. The NQ trades are underlined so
+    a run of red can be read back to the strategy that produced it."""
+    if not trades:
+        return "&ndash;"
+    out = []
+    for name, r, d in trades:
+        cls = "pos" if r > BE else "neg" if r < -BE else "be"
+        out.append('<b class="%s%s" data-pct="%.4f" title="%s · %s · %+.2f R">%+.1f</b>'
+                   % (cls, " nq" if name == "NQ" else "", r,
+                      d.strftime("%d %b"), name, r, risk * r))
+    return '<div class="seqp">%s</div>' % "".join(out)
+
+
+def weeks(book):
+    """Monday-anchored weeks, with the trades each produced in order."""
+    by = defaultdict(list)
+    for d, v in book:
+        if not v:
+            continue
+        wk = d - dt.timedelta(days=d.weekday())
+        for name, r in v:
+            by[wk].append((name, r, d))
+    return sorted(by.items())
+
+
 # ----------------------------------------------------------- the page -----
 def hist_svg(book, risk, target, daily, maxloss, paths=4000, seed=11,
              w=1080, h=300, pad=46):
@@ -239,20 +273,22 @@ def build():
 
     # --- what the real year did, month and quarter -------------------------
     mo = defaultdict(lambda: defaultdict(float)); cnt = defaultdict(int)
+    mseq = defaultdict(list)
     for d, v in active:
         m = d.strftime("%b")
         for name, r in v:
             mo[m][name] += r
             cnt[m] += 1
+            mseq[m].append((name, r, d))
     mrows = ""
     for m in FP.MONTHS:
         if m not in mo:
             continue
         o, n = mo[m]["ORB"], mo[m]["NQ"]
         mrows += ('<tr><td><b>%s</b></td><td>%d</td><td>%s</td><td>%s</td><td>%s</td>'
-                  '<td>%s</td></tr>'
+                  '<td>%s</td><td>%s</td></tr>'
                   % (m, cnt[m], FP.sgn(o, 2), FP.sgn(n, 2), FP.sgn(o + n, 2),
-                     FP.pct(o + n, 1)))
+                     FP.pct(o + n, 1), seq_cell(mseq[m], RISK)))
     qrows = ""
     for q, ms in QUARTERS.items():
         have = [m for m in ms if m in mo]
@@ -263,6 +299,14 @@ def build():
                   '<td>%s</td><td>%s</td><td>%s</td></tr>'
                   % (q, "–".join(have), sum(cnt[m] for m in have),
                      FP.sgn(o, 2), FP.sgn(n, 2), FP.sgn(o + n, 2), FP.pct(o + n, 1)))
+
+    wrows = ""
+    for wk, tr in weeks(book):
+        tot = sum(r for _, r, _ in tr)
+        w = len([1 for _, r, _ in tr if r > BE]); l = len([1 for _, r, _ in tr if r < -BE])
+        wrows += ('<tr><td><b>%s</b></td><td>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>'
+                  % (wk.strftime("%d %b"), len(tr),
+                     "%d&ndash;%d" % (w, l), FP.sgn(tot, 2), seq_cell(tr, RISK)))
 
     # --- worst sequences ---------------------------------------------------
     srows = ""; orbworst = 0.0
@@ -316,7 +360,8 @@ def build():
         dd50=mc["dd"]["p50"] , dd90=mc["dd"]["p90"],
         hist=hist_svg(book, RISK, TARGET, DAILY, MAXLOSS),
         killrows=killrows, swrows=swrows, mlrows=mlrows,
-        mrows=mrows, qrows=qrows, srows=srows,
+        mrows=mrows, qrows=qrows, srows=srows, wrows=wrows,
+        nweeks=len(weeks(book)),
         ndays=len(active), d1=loads.get(1, 0), d2=loads.get(2, 0),
         ntrades=len(orbT) + len(nqT),
         worstday=worstday, worstdaypct=FP.pct(worstday, 2),
@@ -409,14 +454,34 @@ run after +8%% is survivable. That is what the pass rate is really measuring.</p
 
 <section id="months">
 <h2><span class="num">04</span>Month by month</h2>
+<p class="sub">Every trade in the order it happened, as its percentage of the account.</p>
 <div class="scroll"><table>
-<tr><th>Month</th><th>Trades</th><th>ORB</th><th>NQ</th><th>Total</th><th>At %(risk)g%%</th></tr>
+<tr><th>Month</th><th>Trades</th><th>ORB</th><th>NQ</th><th>Total</th><th>At %(risk)g%%</th>
+<th>Sequence, %% of the account</th></tr>
 %(mrows)s
+</table></div>
+<div class="seqlegend">
+<span><b class="pos">+4.0</b> a winning trade</span>
+<span><b class="neg">-2.0</b> a losing trade</span>
+<span><b class="be">+0.0</b> a scratch</span>
+<span><b class="pos nq">+2.5</b> underlined = the NQ fade</span>
+<span>hover a chip for the date and its R</span>
+</div>
+</section>
+
+<section id="weeks">
+<h2><span class="num">05</span>Week by week</h2>
+<p class="sub">%(nweeks)d weeks. This is the resolution a losing run is actually felt at — an
+attempt lasts about two of these.</p>
+<div class="scroll"><table>
+<tr><th>Week of</th><th>Trades</th><th>W&ndash;L</th><th>Total</th>
+<th>Sequence, %% of the account</th></tr>
+%(wrows)s
 </table></div>
 </section>
 
 <section id="quarters">
-<h2><span class="num">05</span>By quarter</h2>
+<h2><span class="num">06</span>By quarter</h2>
 <p class="sub">A quarter is roughly one attempt's length, so this is the closest thing in the
 real data to "would that attempt have passed".</p>
 <div class="scroll"><table>
@@ -426,7 +491,7 @@ real data to "would that attempt have passed".</p>
 </section>
 
 <section id="sweep">
-<h2><span class="num">06</span>If you change the risk, or the firm</h2>
+<h2><span class="num">07</span>If you change the risk, or the firm</h2>
 <div class="scroll"><table>
 <tr><th>Risk per trade</th><th>Pass rate</th><th>Trades</th><th>Days</th><th>Died on the daily limit</th><th>Died on the maximum loss</th></tr>
 %(swrows)s
@@ -439,7 +504,7 @@ real data to "would that attempt have passed".</p>
 </section>
 
 <section id="limits">
-<h2><span class="num">07</span>What this does not show</h2>
+<h2><span class="num">08</span>What this does not show</h2>
 <ul>
 <li><b>2026 only.</b> Every path is resampled from the same %(ndays)d days. A simulation cannot
 invent a market the data never contained, so the pass rate is what these two strategies would do

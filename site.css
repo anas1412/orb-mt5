@@ -260,3 +260,19 @@ nav.site a{flex:0 0 auto;padding:9px 18px;border-radius:100px;text-decoration:no
 nav.site a:hover{background:var(--panel2);color:var(--ink)}
 nav.site a[aria-current=page]{background:var(--acc);color:var(--bg)}
 nav.site a[aria-current=page]:hover{background:var(--acc);color:var(--bg)}
+
+/* ---------- trade sequence, as percentages ---------- */
+/* One chip per trade in the order they happened, so a streak is visible as a
+   block of colour. The number follows the risk selector like every other
+   percentage on the page; only the colour is fixed, by the sign. */
+.seqp{display:flex;flex-wrap:wrap;gap:3px;font-variant-numeric:tabular-nums;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;min-width:240px}
+.seqp b{font-size:11px;font-weight:660;padding:2px 5px;border-radius:5px;white-space:nowrap}
+.seqp b.pos{color:var(--pos);background:var(--posbg)}
+.seqp b.neg{color:var(--neg);background:var(--negbg)}
+.seqp b.be{color:var(--mut);background:var(--panel2)}
+.seqp b.nq{box-shadow:inset 0 -2px 0 color-mix(in srgb,currentColor 45%,transparent)}
+.seqlegend{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:14px 0 0;
+  font-size:12.5px;color:var(--mut)}
+.seqlegend b{font-size:11px;font-weight:660;padding:2px 5px;border-radius:5px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
