@@ -20,6 +20,7 @@ PAGES = (
     ("orb.html",    "ORB Asia"),
     ("pdfade.html", "Gold PD fade"),
     ("nqfade.html", "NQ range fade"),
+    ("account.html", "5 / 10 account"),
 )
 
 
