@@ -33,6 +33,10 @@ TARGET = 12.0       # percent, the profit target
 DAILY = 5.0         # percent, the daily loss limit
 MAXLOSS = 10.0      # percent, static, from the starting balance
 HORIZON = 400       # trading days before an attempt is abandoned
+# The risks the page offers. A pass rate cannot be interpolated -- it comes
+# out of a barrier walk -- so the selector only offers risks that were
+# actually simulated, and every simulated figure is looked up, never scaled.
+RISKS = (1.0, 1.5, 2.0, 2.5, 3.0)
 PATHS = 40000
 BE = 0.05
 
@@ -265,11 +269,31 @@ def build():
     active = [(d, v) for d, v in book if v]
     loads = Counter(len(v) for _, v in active)
 
-    mc = simulate(book)
-    sweep = [(r, mc if abs(r - RISK) < 1e-9 else simulate(book, risk=r, paths=15000))
-             for r in (1.0, 1.5, 2.0, 2.5, 3.0)]
+    worstday_R = min(sum(r for _, r in v) for _, v in active)
+    sims = {r: simulate(book, risk=r) for r in RISKS}
+    mc = sims[RISK]
+    sweep = [(r, sims[r]) for r in RISKS]
     mlsweep = [(m, mc if abs(m - MAXLOSS) < 1e-9 else simulate(book, maxloss=m, paths=15000))
                for m in (6.0, 8.0, 10.0, 12.0)]
+    # one histogram per risk; the page shows the one the selector picks
+    hists = "".join('<div class="mch" data-risk="%g"%s>%s</div>'
+                    % (r, "" if abs(r - RISK) < 1e-9 else " hidden",
+                       hist_svg(book, r, TARGET, DAILY, MAXLOSS))
+                    for r in RISKS)
+    lookup = {("%g" % r): dict(
+        rate="%.1f" % s_["rate"],
+        t50=s_["trades"]["p50"], t25=s_["trades"]["p25"], t75=s_["trades"]["p75"],
+        d50=s_["days"]["p50"], d25=s_["days"]["p25"], d75=s_["days"]["p75"],
+        d10=s_["days"]["p10"], d90=s_["days"]["p90"],
+        dd50="%.1f" % s_["dd"]["p50"], dd90="%.1f" % s_["dd"]["p90"],
+        worstday="%.1f" % (r * worstday_R),
+        daily="%.1f" % s_["killed"].get("daily limit", 0.0),
+        maxloss="%.1f" % s_["killed"].get("maximum loss", 0.0),
+        timeout="%.1f" % s_["killed"].get("ran out of time", 0.0),
+        room="%.1f" % (DAILY - 2 * r),
+        two="%.1f" % (2 * r),
+        safe=("yes" if 2 * r < DAILY else "no"))
+        for r, s_ in sims.items()}
 
     # --- what the real year did, month and quarter -------------------------
     mo = defaultdict(lambda: defaultdict(float)); cnt = defaultdict(int)
@@ -332,12 +356,10 @@ def build():
                  FP.pct(sum(x[1] for x in dworst), 1)))
     ddR, pk, tr, floor, floor_d = equity_dd(book)
 
-    worstday = min(sum(r for _, r in v) for _, v in active)
+    worstday = worstday_R = min(sum(r for _, r in v) for _, v in active)
     twoday = [(d, sum(r for _, r in v)) for d, v in active if len(v) > 1]
     worst2 = min(twoday, key=lambda x: x[1]) if twoday else (None, 0)
 
-    killrows = "".join('<tr><td><b>%s</b></td><td>%.1f%%</td></tr>' % (k, v)
-                       for k, v in sorted(mc["killed"].items(), key=lambda z: -z[1]))
     swrows = "".join(
         '<tr%s><td><b>%.1f%%</b></td><td>%.1f%%</td><td>%d</td><td>%d</td><td>%.1f%%</td>'
         '<td>%.1f%%</td></tr>'
@@ -358,8 +380,16 @@ def build():
         d50=mc["days"]["p50"], d10=mc["days"]["p10"], d25=mc["days"]["p25"],
         d75=mc["days"]["p75"], d90=mc["days"]["p90"],
         dd50=mc["dd"]["p50"] , dd90=mc["dd"]["p90"],
-        hist=hist_svg(book, RISK, TARGET, DAILY, MAXLOSS),
-        killrows=killrows, swrows=swrows, mlrows=mlrows,
+        hists=hists, mcjson=json.dumps(lookup, separators=(",", ":")),
+        riskchips="".join(
+            '<button class="chip" data-v="%g" aria-pressed="%s">%g%%</button>'
+            % (r, "true" if abs(r - RISK) < 1e-9 else "false", r) for r in RISKS),
+        kmax="%.1f" % mc["killed"].get("maximum loss", 0.0),
+        kdaily="%.1f" % mc["killed"].get("daily limit", 0.0),
+        ktime="%.1f" % mc["killed"].get("ran out of time", 0.0),
+        horizon=HORIZON,
+        worstdaypct2="%.1f" % (RISK * worstday),
+        swrows=swrows, mlrows=mlrows,
         mrows=mrows, qrows=qrows, srows=srows, wrows=wrows,
         nweeks=len(weeks(book)),
         ndays=len(active), d1=loads.get(1, 0), d2=loads.get(2, 0),
@@ -392,24 +422,33 @@ TEMPLATE = """
 <header>
 <h1>Passing a 5 / 10 account</h1>
 <p class="lede">A different rule set to the one the other pages model: <b>%(daily)g%% daily</b>,
-<b>%(maxloss)g%% maximum loss</b>, <b>+%(target)g%% target</b>, at <b>%(risk)g%% a trade</b>.
-Two strategies, one in the Asia session and one in New York, so at most two trades a day —
-%(risk2)g%% if both lose, with %(headroom)g%% of headroom against the daily limit. Everything
-below is resampled from the %(ndays)d days those two really produced in 2026.</p>
+<b>%(maxloss)g%% maximum loss</b>, <b>+%(target)g%% target</b>. Two strategies, one in the Asia
+session and one in New York, so at most <b>two trades a day</b> — which is what decides how much
+you can risk on each. Everything below is resampled from the %(ndays)d days those two really
+produced in 2026, at the risk you pick here.</p>
+
+<div class="riskbar">
+  <label>Risk per trade</label>
+  <div class="chips" id="riskchips">%(riskchips)s</div>
+  <p class="risknote">Percentages follow this. <b>So do the simulated figures</b> — each risk
+  was walked separately, because a pass rate cannot be scaled from another one. Only the risks
+  below were simulated, which is why this is a set of buttons and not a slider.</p>
+</div>
+<div id="riskwarn" class="riskwarn" hidden></div>
 </header>
 
 <section id="result">
 <h2><span class="num">01</span>Does it pass, and how fast</h2>
 <p class="sub">%(paths)d attempts, resampling whole days so the daily limit applies to the day.</p>
 <div class="kpi">
-<div class="card"><div class="l">Pass rate</div><div class="v pos">%(rate).1f%%</div><div class="t">of %(paths)d attempts</div></div>
-<div class="card"><div class="l">Trades to pass</div><div class="v">%(t50)d</div><div class="t">middle half %(t25)d–%(t75)d</div></div>
-<div class="card"><div class="l">Days to pass</div><div class="v">%(d50)d</div><div class="t">middle half %(d25)d–%(d75)d</div></div>
-<div class="card"><div class="l">Fastest tenth</div><div class="v">%(d10)d days</div><div class="t">slowest tenth %(d90)d+</div></div>
-<div class="card"><div class="l">Drawdown on the way</div><div class="v neg">%(dd50).1f%%</div><div class="t">nine in ten under %(dd90).1f%%</div></div>
-<div class="card"><div class="l">Worst single day</div><div class="v neg">%(worstday)+.2f R</div><div class="t">%(worstdaypct)s — inside the %(daily)g%% limit</div></div>
+<div class="card"><div class="l">Pass rate</div><div class="v pos"><span data-mc="rate">%(rate).1f</span>%%</div><div class="t">of %(paths)d attempts</div></div>
+<div class="card"><div class="l">Trades to pass</div><div class="v" data-mc="t50">%(t50)d</div><div class="t">middle half <span data-mc="t25">%(t25)d</span>–<span data-mc="t75">%(t75)d</span></div></div>
+<div class="card"><div class="l">Days to pass</div><div class="v" data-mc="d50">%(d50)d</div><div class="t">middle half <span data-mc="d25">%(d25)d</span>–<span data-mc="d75">%(d75)d</span></div></div>
+<div class="card"><div class="l">Fastest tenth</div><div class="v"><span data-mc="d10">%(d10)d</span> days</div><div class="t">slowest tenth <span data-mc="d90">%(d90)d</span>+</div></div>
+<div class="card"><div class="l">Drawdown on the way</div><div class="v neg"><span data-mc="dd50">%(dd50).1f</span>%%</div><div class="t">nine in ten under <span data-mc="dd90">%(dd90).1f</span>%%</div></div>
+<div class="card"><div class="l">Worst single day</div><div class="v neg">%(worstday)+.2f R</div><div class="t"><span data-mc="worstday">%(worstdaypct2)s</span>%% — the %(daily)g%% limit</div></div>
 </div>
-<figure><div class="fig">%(hist)s</div>
+<figure><div class="fig">%(hists)s</div>
 <figcaption>How long an attempt takes. The tail matters more than the median: half of all
 passes land in the middle band, but the slowest tenth take %(d90)d days or more.</figcaption></figure>
 </section>
@@ -418,12 +457,11 @@ passes land in the middle band, but the slowest tenth take %(d90)d days or more.
 <h2><span class="num">02</span>What ends the attempts that fail</h2>
 <div class="scroll"><table>
 <tr><th>Cause</th><th>Share of all attempts</th></tr>
-%(killrows)s
+<tr><td><b>the %(maxloss)g%% maximum loss</b></td><td><span data-mc="maxloss">%(kmax)s</span>%%</td></tr>
+<tr><td><b>the %(daily)g%% daily limit</b></td><td><span data-mc="daily">%(kdaily)s</span>%%</td></tr>
+<tr><td><b>ran out of time</b> <span class="lbn">%(horizon)d trading days</span></td><td><span data-mc="timeout">%(ktime)s</span>%%</td></tr>
 </table></div>
-<p class="note">Two trades at %(risk)g%% cannot breach a %(daily)g%% daily limit — the worst
-possible day is %(risk2)g%%, leaving %(headroom)g%% of room. The daily limit is not what kills
-this account; the %(maxloss)g%% maximum loss is, and it takes a run of losing <b>days</b> rather
-than a run of losing trades.</p>
+<p class="note" id="dailynote"></p>
 </section>
 
 <section id="worst">
@@ -502,6 +540,49 @@ real data to "would that attempt have passed".</p>
 %(mlrows)s
 </table></div>
 </section>
+
+<script id="mcdata" type="application/json">%(mcjson)s</script>
+<script>
+(function(){
+  var D=JSON.parse(document.getElementById('mcdata').textContent), R="%(risk)g";
+  var note=document.getElementById('dailynote'), warn=document.getElementById('riskwarn');
+  function apply(r){
+    R=r; var d=D[r];
+    document.querySelectorAll('[data-mc]').forEach(function(e){ e.textContent=d[e.dataset.mc]; });
+    document.querySelectorAll('.mch').forEach(function(e){ e.hidden = e.dataset.risk!==r; });
+    document.querySelectorAll('#riskchips .chip').forEach(function(b){
+      b.setAttribute('aria-pressed', b.dataset.v===r ? 'true':'false'); });
+    // the daily limit only bites once two losses can reach it
+    if(d.safe==='yes'){
+      note.className='note';
+      note.innerHTML='Two trades at <b>'+r+'%%</b> cannot breach a %(daily)g%% daily limit &mdash; '+
+        'the worst possible day is <b>'+d.two+'%%</b>, leaving '+d.room+'%% of room. What kills '+
+        'this account is the %(maxloss)g%% maximum loss, and that takes a run of losing '+
+        '<b>days</b> rather than a run of losing trades.';
+      warn.hidden=true;
+    } else {
+      note.className='note';
+      note.innerHTML='At <b>'+r+'%%</b> two losses in a day come to <b>'+d.two+'%%</b>, past the '+
+        '%(daily)g%% daily limit. Both strategies can fire on the same day, so the limit is now '+
+        'reachable and ends <b>'+d.daily+'%%</b> of attempts on its own.';
+      warn.hidden=false;
+      warn.innerHTML='<b>'+r+'%% is past the safe size.</b> Two losses on one day is '+d.two+
+        '%%, and the daily limit is %(daily)g%%. '+d.daily+'%% of attempts die on it.';
+    }
+    // the risk selector also drives every R-derived percentage on the page
+    document.querySelectorAll('[data-pct]').forEach(function(e){
+      var v=parseFloat(e.dataset.pct)*parseFloat(r), f=e.dataset.fmt;
+      if(f==='int') e.textContent=Math.round(v)+'%%';
+      else if(f==='signint') e.textContent='  '+(v>=0?'+':'')+Math.round(v)+'%%';
+      else e.textContent=(v>=0?'+':'')+v.toFixed(1);
+    });
+  }
+  document.querySelectorAll('#riskchips .chip').forEach(function(b){
+    b.addEventListener('click', function(){ apply(b.dataset.v); });
+  });
+  apply(R);
+})();
+</script>
 
 <section id="limits">
 <h2><span class="num">08</span>What this does not show</h2>
