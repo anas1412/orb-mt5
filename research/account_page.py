@@ -328,9 +328,10 @@ def build():
     for wk, tr in weeks(book):
         tot = sum(r for _, r, _ in tr)
         w = len([1 for _, r, _ in tr if r > BE]); l = len([1 for _, r, _ in tr if r < -BE])
-        wrows += ('<tr><td><b>%s</b></td><td>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>'
-                  % (wk.strftime("%d %b"), len(tr),
-                     "%d&ndash;%d" % (w, l), FP.sgn(tot, 2), seq_cell(tr, RISK)))
+        wrows += ('<tr><td><b>%s</b></td><td>%d</td><td>%s</td><td>%s</td><td>%s</td>'
+                  '<td>%s</td></tr>'
+                  % (wk.strftime("%d %b"), len(tr), "%d&ndash;%d" % (w, l),
+                     FP.sgn(tot, 2), FP.pct(tot, 1), seq_cell(tr, RISK)))
 
     # --- worst sequences ---------------------------------------------------
     srows = ""; orbworst = 0.0
@@ -469,7 +470,7 @@ passes land in the middle band, but the slowest tenth take %(d90)d days or more.
 <p class="sub">A pooled losing run across two strategies is not a thing you sit through. These
 are each strategy's own run, and then the account's run of losing days.</p>
 <div class="scroll"><table>
-<tr><th></th><th>Longest run</th><th>Cost</th><th>Worst run</th><th>Cost</th><th>At %(risk)g%%</th></tr>
+<tr><th></th><th>Longest run</th><th>Cost</th><th>Worst run</th><th>Cost</th><th>%% of account</th></tr>
 %(srows)s
 </table></div>
 <p>On the real 2026 sequence the account's worst <b>peak-to-trough</b> was %(ddR).1f R —
@@ -494,7 +495,7 @@ run after +8%% is survivable. That is what the pass rate is really measuring.</p
 <h2><span class="num">04</span>Month by month</h2>
 <p class="sub">Every trade in the order it happened, as its percentage of the account.</p>
 <div class="scroll"><table>
-<tr><th>Month</th><th>Trades</th><th>ORB</th><th>NQ</th><th>Total</th><th>At %(risk)g%%</th>
+<tr><th>Month</th><th>Trades</th><th>ORB</th><th>NQ</th><th>Total</th><th>%% of account</th>
 <th>Sequence, %% of the account</th></tr>
 %(mrows)s
 </table></div>
@@ -512,7 +513,7 @@ run after +8%% is survivable. That is what the pass rate is really measuring.</p
 <p class="sub">%(nweeks)d weeks. This is the resolution a losing run is actually felt at — an
 attempt lasts about two of these.</p>
 <div class="scroll"><table>
-<tr><th>Week of</th><th>Trades</th><th>W&ndash;L</th><th>Total</th>
+<tr><th>Week of</th><th>Trades</th><th>W&ndash;L</th><th>Total</th><th>%% of account</th>
 <th>Sequence, %% of the account</th></tr>
 %(wrows)s
 </table></div>
@@ -523,7 +524,7 @@ attempt lasts about two of these.</p>
 <p class="sub">A quarter is roughly one attempt's length, so this is the closest thing in the
 real data to "would that attempt have passed".</p>
 <div class="scroll"><table>
-<tr><th>Quarter</th><th>Trades</th><th>ORB</th><th>NQ</th><th>Total</th><th>At %(risk)g%%</th></tr>
+<tr><th>Quarter</th><th>Trades</th><th>ORB</th><th>NQ</th><th>Total</th><th>%% of account</th></tr>
 %(qrows)s
 </table></div>
 </section>

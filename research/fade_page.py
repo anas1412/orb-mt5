@@ -164,9 +164,10 @@ def month_rows(T):
             continue
         v = mo[m]; R = [x["R"] for x in v]
         w = [x for x in R if x > BE]; l = [x for x in R if x < -BE]
-        out += ('<tr><td><b>%s</b></td><td>%d</td><td>%.0f%%</td><td>%s</td><td>%s</td></tr>'
+        out += ('<tr><td><b>%s</b></td><td>%d</td><td>%.0f%%</td><td>%s</td><td>%s</td>'
+                '<td>%s</td></tr>'
                 % (m, len(v), 100.0 * len(w) / max(len(w) + len(l), 1),
-                   sgn(sum(R) / len(R), 3), sgn(sum(R), 1)))
+                   sgn(sum(R) / len(R), 3), sgn(sum(R), 1), pct(sum(R), 1)))
     return out
 
 
@@ -176,9 +177,10 @@ def exit_rows(T, spec):
         kinds[t["kind"]].append(t["R"])
     lab = {"tp": ("hit the target", "pos"), "sl": ("stopped out", "neg"),
            "eod": ("closed at the session end", "")}
-    return "".join('<tr><td><b>%s</b></td><td>%d</td><td>%.0f%%</td><td>%s</td><td>%s</td></tr>'
+    return "".join('<tr><td><b>%s</b></td><td>%d</td><td>%.0f%%</td><td>%s</td><td>%s</td>'
+                   '<td>%s</td></tr>'
                    % (lab[k][0], len(v), 100.0 * len(v) / len(T),
-                      sgn(sum(v) / len(v), 2), sgn(sum(v), 1))
+                      sgn(sum(v) / len(v), 2), sgn(sum(v), 1), pct(sum(v), 1))
                    for k, v in sorted(kinds.items(), key=lambda z: -len(z[1])))
 
 
@@ -195,11 +197,11 @@ def entry_section(rows, num):
     best = max(rows, key=lambda r: r["total"])
     body = "".join(
         '<tr%s><td><b>%s</b>%s</td><td>%.0f%%</td><td>%d</td><td>%.1f%%</td>'
-        '<td>%.2f</td><td>%s</td><td>%s</td><td>%.1f R</td><td>%d</td></tr>'
+        '<td>%.2f</td><td>%s</td><td>%s</td><td>%s</td><td>%.1f R</td><td>%d</td></tr>'
         % (' class="hi"' if r["live"] else "", r["label"],
            ' <span class="pill">live</span>' if r["live"] else "",
            r["fill"], r["n"], r["wr"], r["rr"], sgn(r["ev"], 3), sgn(r["total"], 1),
-           r["dd"], r["worst"])
+           pct(r["total"], 1), r["dd"], r["worst"])
         for r in rows)
     note = ("" if best["live"] else
             "<p class=\"note\"><b>%s ends the year ahead</b> — %s against %s, on %d trades "
@@ -221,12 +223,12 @@ target are both pinned to the level, a fill at the level is always <b>%.2f / %.2
 reward to risk stops varying.</p>
 <div class="scroll"><table>
 <tr><th>Fill</th><th>Filled</th><th>Trades</th><th>Win rate</th><th>RR</th>
-<th>Per trade</th><th>Total</th><th>Drawdown</th><th>Worst run</th></tr>
+<th>Per trade</th><th>Total</th><th>At %.1f%%</th><th>Drawdown</th><th>Worst run</th></tr>
 %s
 </table></div>
 %s
 </section>
-""" % (num, TPF, SLF, body, note)
+""" % (num, TPF, SLF, RISK_PCT, body, note)
 
 
 def report(name, pagefile):
@@ -289,7 +291,8 @@ You take that close and trade against the sweep. %(symbol)s, %(daystxt)s, entrie
 <h2><span class="num">03</span>Month by month</h2>
 <p class="sub">%(green)d of %(nmonths)d months green.</p>
 <div class="scroll"><table>
-<tr><th>Month</th><th>Trades</th><th>Win rate</th><th>Per trade</th><th>Total</th></tr>
+<tr><th>Month</th><th>Trades</th><th>Win rate</th><th>Per trade</th><th>Total</th>
+<th>At %(risk)g%%</th></tr>
 %(months)s
 </table></div>
 </section>
@@ -297,7 +300,8 @@ You take that close and trade against the sweep. %(symbol)s, %(daystxt)s, entrie
 <section id="exits">
 <h2><span class="num">04</span>How the trades ended</h2>
 <div class="scroll"><table>
-<tr><th>Exit</th><th>Trades</th><th>Share</th><th>Average</th><th>Total</th></tr>
+<tr><th>Exit</th><th>Trades</th><th>Share</th><th>Average</th><th>Total</th>
+<th>At %(risk)g%%</th></tr>
 %(exits)s
 </table></div>
 <p class="note">A trade that reaches neither level is closed at the end of the window, at whatever
@@ -414,10 +418,11 @@ def combined(sets, outfile, h1, lede, current=None):
             continue
         cells = "".join("<td>%s</td>" % sgn(s["months"].get(m, 0.0), 2) for s in S[:-1])
         tot = sum(s["months"].get(m, 0.0) for s in S[:-1])
-        mrows += "<tr><td><b>%s</b></td>%s<td>%s</td></tr>" % (m, cells, sgn(tot, 2))
+        mrows += ("<tr><td><b>%s</b></td>%s<td>%s</td><td>%s</td></tr>"
+                  % (m, cells, sgn(tot, 2), pct(tot, 1)))
     tot_cells = "".join("<td>%s</td>" % sgn(s["total"], 1) for s in S[:-1])
-    mrows += ("<tr><td><b>Total</b></td>%s<td>%s</td></tr>"
-              % (tot_cells, sgn(AS["total"], 1)))
+    mrows += ("<tr><td><b>Total</b></td>%s<td>%s</td><td>%s</td></tr>"
+              % (tot_cells, sgn(AS["total"], 1), pct(AS["total"], 1)))
 
     # correlation of monthly R
     ms = sorted({m for s in S[:-1] for m in s["months"]},
@@ -478,7 +483,7 @@ pooled in date order, one unit of risk each.</p>
 <section id="months">
 <h2><span class="num">03</span>Month by month</h2>
 <div class="scroll"><table>
-<tr><th>Month</th>%(cols2)s<th>Total</th></tr>
+<tr><th>Month</th>%(cols2)s<th>Total</th><th>At %(risk)g%%</th></tr>
 %(mrows)s
 </table></div>
 </section>
