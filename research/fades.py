@@ -4,7 +4,7 @@ Both fade a level that a session already established. Only the source of the
 level and the session they are traded in differ, so they share one engine:
 
     gold   the level is YESTERDAY'S high and low, faded in the Asia session
-    nq     the level is today's 00:00-13:30 UTC high and low, faded in New York
+    nq     the level is today's 00:00-13:29 UTC high and low, faded in New York
 
 Stop and target are both fractions of that range, read off a fib drawn on it:
 a stop at -0.10 sits a tenth of the range beyond the level, a target at 0.35
@@ -51,6 +51,8 @@ SPECS = {
     ),
     "nq": dict(
         name="nq", symbol="US100.cash", bars="bars_US100.cash.csv",
+        # end is EXCLUSIVE: the range is 00:00-13:29, and 13:30 is the first
+        # minute the session can signal on
         rangesrc=(0, 13 * 60 + 30), rangetxt="the pre-New-York",
         window=(13 * 60 + 30, 20 * 60), windowtxt="13:30–20:00 UTC, the New York session",
         days=(0, 1, 3, 4), daystxt="Monday, Tuesday, Thursday and Friday",

@@ -235,10 +235,13 @@ def report(name, pagefile):
     web = "trades-" + spec["name"]
     cards, mchips = gallery(T, web)
     elig = len(d["days"])
+    # rangesrc's end is EXCLUSIVE -- the session it feeds starts on that
+    # minute. Printing it as the range's end reads as though the range
+    # included the bar the first signal candle is built from.
     rangetxt = ("yesterday's high and low" if d["rangesrc"] == "prevday"
                 else "the high and low of %02d:%02d–%02d:%02d UTC"
                      % (d["rangesrc"][0] // 60, d["rangesrc"][0] % 60,
-                        d["rangesrc"][1] // 60, d["rangesrc"][1] % 60))
+                        (d["rangesrc"][1] - 1) // 60, (d["rangesrc"][1] - 1) % 60))
     body = """
 <header>
 <h1>%(title)s</h1>
@@ -270,7 +273,7 @@ You take that close and trade against the sweep. %(symbol)s, %(daystxt)s, entrie
 <p class="sub">Draw one fib on the range before the session. Everything else reads off it.</p>
 <table>
 <tr><th>Step</th><th></th></tr>
-<tr><td><b>The range</b></td><td>%(rangetxt_c)s</td></tr>
+<tr><td><b>The range</b></td><td>%(rangetxt_c)s — everything up to but <b>not including</b> the minute the session opens on</td></tr>
 <tr><td><b>Draw the fib</b></td><td>Anchor 0 on the level you are fading, 1 on the other side. Longs: drag low→high. Shorts: high→low.</td></tr>
 <tr><td><b>The sweep</b></td><td>Price trades beyond the level during %(windowtxt)s</td></tr>
 <tr><td><b>The entry</b></td><td>An <b>M5 candle closes back inside</b> the level. Enter at that close, at market. One trade a day — the first signal only.</td></tr>
