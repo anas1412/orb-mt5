@@ -184,6 +184,51 @@ def exit_rows(T, spec):
 
 
 
+def entry_section(rows, num):
+    """Market on the close against a limit back at the level.
+
+    Rendered from measured rows, never asserted: the live rule is marked, and
+    the alternative that beats it on this data is shown beating it."""
+    if not rows:
+        return ""
+    live = next(r for r in rows if r["live"])
+    best = max(rows, key=lambda r: r["total"])
+    body = "".join(
+        '<tr%s><td><b>%s</b>%s</td><td>%.0f%%</td><td>%d</td><td>%.1f%%</td>'
+        '<td>%.2f</td><td>%s</td><td>%s</td><td>%.1f R</td><td>%d</td></tr>'
+        % (' class="hi"' if r["live"] else "", r["label"],
+           ' <span class="pill">live</span>' if r["live"] else "",
+           r["fill"], r["n"], r["wr"], r["rr"], sgn(r["ev"], 3), sgn(r["total"], 1),
+           r["dd"], r["worst"])
+        for r in rows)
+    note = ("" if best["live"] else
+            "<p class=\"note\"><b>%s ends the year ahead</b> — %s against %s, on %d trades "
+            "rather than %d, with a %.1f R drawdown against %.1f. It is not what this page "
+            "reports, because it was measured after the parameters were fixed and on the same "
+            "year, and because the %.0f%% of signals it never fills are not a cost you can see "
+            "until you have lived through them. The live rule takes every signal.</p>"
+            % (best["label"][0].upper() + best["label"][1:],
+               "%+.1f R" % best["total"], "%+.1f R" % live["total"],
+               best["n"], live["n"], best["dd"], live["dd"], 100 - best["fill"]))
+    return """
+<section id="entry">
+<h2><span class="num">%s</span>Market or limit?</h2>
+<p class="sub">The signal is the same either way. This is only about the fill.</p>
+<p>The confirming candle closes some way back inside the level, and you buy that close. The
+alternative is to rest a limit between the level and that close and wait for price to come back:
+a better price when it fills, and no trade at all when it does not. Because the stop and the
+target are both pinned to the level, a fill at the level is always <b>%.2f / %.2f</b> — the
+reward to risk stops varying.</p>
+<div class="scroll"><table>
+<tr><th>Fill</th><th>Filled</th><th>Trades</th><th>Win rate</th><th>RR</th>
+<th>Per trade</th><th>Total</th><th>Drawdown</th><th>Worst run</th></tr>
+%s
+</table></div>
+%s
+</section>
+""" % (num, TPF, SLF, body, note)
+
+
 def report(name, pagefile):
     d = load_fade(name)
     spec = d["spec"]; T = d["trades"]; S = stats(T)
@@ -256,8 +301,9 @@ You take that close and trade against the sweep. %(symbol)s, %(daystxt)s, entrie
 price is there. Those are neither wins by design nor failures — they are the rule running out of time.</p>
 </section>
 
+%(entrysection)s
 <section id="trades">
-<h2><span class="num">05</span>Every trade</h2>
+<h2><span class="num">%(ntrades)s</span>Every trade</h2>
 <p class="sub">All %(n)d, drawn from the same bars the result was computed on. Click to open full size.</p>
 <div class="filters">
 <div class="fgroup"><span class="lbl">Outcome</span>
@@ -274,7 +320,7 @@ price is there. Those are neither wins by design nor failures — they are the r
 </section>
 
 <section id="limits">
-<h2><span class="num">06</span>What this does not show</h2>
+<h2><span class="num">%(nlimits)s</span>What this does not show</h2>
 <ul>
 <li><b>2026 only.</b> %(n)d trades on %(elig)d eligible days.%(oos)s</li>
 <li><b>Bar replay, not the Strategy Tester.</b> Entries and exits are walked over M1 bars with a fixed
@@ -286,6 +332,8 @@ over this same year, so the exact figures are optimistic even where the shape of
 </ul>
 </section>
 """
+    global TPF, SLF
+    TPF, SLF = spec["tp"], spec["sl"]
     vals = dict(
         sub=spec["sub"], title=spec["title"], symbol=spec["symbol"],
         daystxt=spec["daystxt"], windowtxt=spec["windowtxt"], why=spec["why"],
@@ -302,6 +350,9 @@ over this same year, so the exact figures are optimistic even where the shape of
         slfib="−%.2f" % spec["sl"], tpfib="%.2f" % spec["tp"],
         slpct="%g%%" % (spec["sl"] * 100), tppct="%g%%" % (spec["tp"] * 100),
         spread="%g-point" % spec["spread"],
+        entrysection=entry_section(d.get("entrycmp"), "05"),
+        ntrades="06" if d.get("entrycmp") else "05",
+        nlimits="07" if d.get("entrycmp") else "06",
         oos=(" " + spec["oos"]) if spec.get("oos")
             else " There is no out-of-sample test behind these numbers.",
     )
@@ -444,7 +495,7 @@ to be set for the number of strategies running, not for one of them.</p>
 </section>
 
 <section id="limits">
-<h2><span class="num">06</span>What this does not show</h2>
+<h2><span class="num">%(nlimits)s</span>What this does not show</h2>
 <ul>
 <li><b>2026 only, for all three.</b> No out-of-sample test stands behind any of these numbers.</li>
 <li><b>The ORB is real-tick Strategy Tester output; the two fades are bar replays</b> with an assumed
@@ -464,7 +515,8 @@ breach a 3%% daily limit long before the drawdown figure does.</li>
                 evpct=pct(AS["ev"], 2), total=AS["total"], totpct=pct(AS["total"]),
                 dd=AS["dd"], ddpct=pct(-AS["dd"]), worst=AS["worst"],
                 risk=RISK_PCT, curve=curve_svg(AS["curve"]),
-                worstday=worstday, worstpct=pct(worstday, 2))
+                worstday=worstday, worstpct=pct(worstday, 2),
+                nlimits="06")
     html = page.shell("Three edges — 2026", "index.html", body % vals,
                       risk=RISK_PCT, gallery=False)
     open(os.path.join(REPO, "index.html"), "w").write(html)

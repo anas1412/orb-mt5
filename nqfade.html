@@ -73,8 +73,25 @@ You take that close and trade against the sweep. US100.cash, Monday, Tuesday, Th
 price is there. Those are neither wins by design nor failures — they are the rule running out of time.</p>
 </section>
 
+
+<section id="entry">
+<h2><span class="num">05</span>Market or limit?</h2>
+<p class="sub">The signal is the same either way. This is only about the fill.</p>
+<p>The confirming candle closes some way back inside the level, and you buy that close. The
+alternative is to rest a limit between the level and that close and wait for price to come back:
+a better price when it fills, and no trade at all when it does not. Because the stop and the
+target are both pinned to the level, a fill at the level is always <b>0.50 / 0.25</b> — the
+reward to risk stops varying.</p>
+<div class="scroll"><table>
+<tr><th>Fill</th><th>Filled</th><th>Trades</th><th>Win rate</th><th>RR</th>
+<th>Per trade</th><th>Total</th><th>Drawdown</th><th>Worst run</th></tr>
+<tr class="hi"><td><b>market on the close</b> <span class="pill">live</span></td><td>100%</td><td>117</td><td>61.7%</td><td>1.24</td><td><span class="pos">+0.246 R</span></td><td><span class="pos">+28.8 R</span></td><td>7.8 R</td><td>4</td></tr><tr><td><b>limit at the level</b></td><td>92%</td><td>108</td><td>49.1%</td><td>2.00</td><td><span class="pos">+0.331 R</span></td><td><span class="pos">+35.7 R</span></td><td>6.8 R</td><td>5</td></tr><tr><td><b>limit 25% back toward the close</b></td><td>96%</td><td>112</td><td>50.5%</td><td>1.79</td><td><span class="pos">+0.284 R</span></td><td><span class="pos">+31.9 R</span></td><td>7.5 R</td><td>5</td></tr><tr><td><b>limit 50% back toward the close</b></td><td>97%</td><td>114</td><td>54.1%</td><td>1.61</td><td><span class="pos">+0.247 R</span></td><td><span class="pos">+28.2 R</span></td><td>8.1 R</td><td>5</td></tr><tr><td><b>limit 75% back toward the close</b></td><td>100%</td><td>117</td><td>55.8%</td><td>1.44</td><td><span class="pos">+0.218 R</span></td><td><span class="pos">+25.5 R</span></td><td>7.2 R</td><td>4</td></tr>
+</table></div>
+<p class="note"><b>Limit at the level ends the year ahead</b> — +35.7 R against +28.8 R, on 108 trades rather than 117, with a 6.8 R drawdown against 7.8. It is not what this page reports, because it was measured after the parameters were fixed and on the same year, and because the 8% of signals it never fills are not a cost you can see until you have lived through them. The live rule takes every signal.</p>
+</section>
+
 <section id="trades">
-<h2><span class="num">05</span>Every trade</h2>
+<h2><span class="num">06</span>Every trade</h2>
 <p class="sub">All 117, drawn from the same bars the result was computed on. Click to open full size.</p>
 <div class="filters">
 <div class="fgroup"><span class="lbl">Outcome</span>
@@ -91,7 +108,7 @@ price is there. Those are neither wins by design nor failures — they are the r
 </section>
 
 <section id="limits">
-<h2><span class="num">06</span>What this does not show</h2>
+<h2><span class="num">07</span>What this does not show</h2>
 <ul>
 <li><b>2026 only.</b> 117 trades on 143 eligible days. Tested on 2024 and 2025 as well, which these parameters were not chosen on: positive in both (+0.047 and +0.053 R a trade against +0.246 here), 24 of 33 months green across the three years, and Wednesday negative in every one. The out-of-sample expectancy is <b>+0.050 R</b>, a fifth of what this page shows, and the worst losing run is <b>9</b> rather than 4. Take the 2026 figures below as the best case, not the expectation.</li>
 <li><b>Bar replay, not the Strategy Tester.</b> Entries and exits are walked over M1 bars with a fixed

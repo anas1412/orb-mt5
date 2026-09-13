@@ -56,6 +56,7 @@ SPECS = {
         days=(0, 1, 3, 4), daystxt="Monday, Tuesday, Thursday and Friday",
         sl=0.25, tp=0.50,
         spread=1.5, comm=0.0, pt=1.0, digits=1,
+        compare_entry=True,
         title="Fading the pre-New-York range",
         sub="US100, New York session",
         # Wednesday was the only losing day of the week, negative in six months
@@ -266,6 +267,124 @@ def draw(spec, t, days, n, outdir):
     return fn
 
 
+
+def compare_entry(spec, days, ds, ks=(0.0, 0.25, 0.50, 0.75)):
+    """The same signals, filled a different way.
+
+    The live rule takes the confirming candle's close at market. The
+    alternative is to rest a limit between the level and that close and wait
+    for price to come back: a better price when it fills, nothing when it does
+    not. k = 0 is the level itself, k = 1 would be the close.
+
+    Returns one row per fill rule, market first, so the report can show the
+    choice instead of asserting it.
+    """
+    import statistics as _st
+    SP = spec["spread"]; CM = spec["comm"]
+
+    def walk(k):
+        """k=None is the live rule."""
+        taken = []; signals = 0
+        for i in range(1, len(ds)):
+            c = ds[i]
+            if c.year != YEAR or c.weekday() not in spec["days"]:
+                continue
+            b = days[c]; off = broker_offset(c) * 60
+            if spec["rangesrc"] == "prevday":
+                p = ds[i - 1]
+                hi = max(x[2] for x in days[p]); lo = min(x[3] for x in days[p])
+            else:
+                rs, re = spec["rangesrc"]
+                seg = [x for x in b if rs + off <= x[0] < re + off]
+                if len(seg) < 300:
+                    continue
+                hi = max(x[2] for x in seg); lo = min(x[3] for x in seg)
+            rg = hi - lo
+            if rg <= 0:
+                continue
+            w = (spec["window"][0] + off, spec["window"][1] + off)
+            cands = [x for x in to_m5(b) if w[0] <= x[0] < w[1]]
+            bymin = {x[0]: n for n, x in enumerate(b)}
+            got = []; sigs = []
+            for lvl, sgn in ((lo, -1), (hi, 1)):
+                d_ = -sgn; state = 0; sig = None
+                for ms, o, h, l, cl in cands:
+                    if state == 0:
+                        if (h >= lvl if sgn > 0 else l <= lvl):
+                            state = 1
+                        continue
+                    if (cl < lvl) if sgn > 0 else (cl > lvl):
+                        sig = (ms + TF - 1, cl); break
+                if sig is None:
+                    continue
+                em, close = sig
+                if em not in bymin:
+                    continue
+                si = bymin[em]
+                sigs.append(si)
+                sl = lvl + sgn * spec["sl"] * rg
+                tp = lvl - sgn * spec["tp"] * rg
+                if k is None:
+                    ei = si; entry = close + (SP if d_ > 0 else 0.0)
+                else:
+                    want = lvl + k * (close - lvl); ei = None
+                    for j in range(si + 1, len(b)):
+                        if b[j][0] >= w[1]:
+                            break
+                        if (b[j][3] <= want - SP) if d_ > 0 else (b[j][2] >= want):
+                            ei = j; break
+                    if ei is None:
+                        continue                 # the order never filled
+                    entry = want
+                risk = abs(entry - sl)
+                if risk <= SP or (tp - entry) * d_ <= 0:
+                    continue
+                rr = (tp - entry) * d_ / risk
+                R = None
+                for j in range(ei + 1, len(b)):
+                    mi, o, h, l, cl2 = b[j]
+                    if mi >= w[1]:
+                        break
+                    adv = l if d_ > 0 else h + SP
+                    fav = h if d_ > 0 else l
+                    if (adv - sl) * d_ <= 0:
+                        R = -1.0; break
+                    if (fav - tp) * d_ >= 0:
+                        R = rr; break
+                if R is None:
+                    tail = [x for x in b if x[0] < w[1]]
+                    if not tail:
+                        continue
+                    R = (tail[-1][4] - entry) * d_ / risk
+                got.append(dict(si=si, R=R - CM / risk, rr=rr))
+            if sigs:
+                signals += 1
+            if got:
+                taken.append(min(got, key=lambda g: g["si"]))
+        return taken, signals
+
+    rows = []
+    for k, label in [(None, "market on the close")] + \
+                    [(x, ("limit at the level" if x == 0 else
+                          "limit %d%% back toward the close" % (x * 100))) for x in ks]:
+        T, signals = walk(k)
+        if len(T) < 5:
+            continue
+        Rs = [t["R"] for t in T]; n = len(Rs)
+        W = [x for x in Rs if x > 0.05]; L = [x for x in Rs if x < -0.05]
+        cum = pk = dd = lr = worst = 0
+        for x in Rs:
+            cum += x; pk = max(pk, cum); dd = max(dd, pk - cum)
+            lr = lr + 1 if x <= 0.05 else 0; worst = max(worst, lr)
+        rows.append(dict(label=label, live=(k is None), n=n,
+                         fill=round(100.0 * n / signals, 1),
+                         wr=round(100.0 * len(W) / max(len(W) + len(L), 1), 1),
+                         rr=round(_st.median(t["rr"] for t in T), 2),
+                         ev=round(sum(Rs) / n, 3), total=round(sum(Rs), 1),
+                         dd=round(dd, 1), worst=worst))
+    return rows
+
+
 def build(key):
     spec = SPECS[key]
     outdir = os.path.join(REPO, "trades-" + spec["name"])
@@ -286,11 +405,13 @@ def build(key):
         if f.endswith(".png") and f not in keep:
             os.remove(os.path.join(outdir, f)); print("  removed orphan %s" % f)
     elig = [d for d in ds if d.year == YEAR and d.weekday() in spec["days"]]
+    entrycmp = compare_entry(spec, days, ds) if spec.get("compare_entry") else None
     os.makedirs(os.path.join(HERE, "data"), exist_ok=True)
     out = dict(
         spec={k: v for k, v in spec.items() if k != "rangesrc"},
         rangesrc=("prevday" if spec["rangesrc"] == "prevday" else list(spec["rangesrc"])),
         days=[d.isoformat() for d in elig],
+        entrycmp=entrycmp,
         trades=[dict(date=t["date"].isoformat(), buy=t["buy"], R=round(t["R"], 4),
                      rr=round(t["rr"], 3), risk=t["risk"], rg=t["rg"], depth=t["depth"],
                      kind=t["kind"], file=t["file"], n=t["n"],
