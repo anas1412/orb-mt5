@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORB and NQ — 2026</title>
+<link rel="stylesheet" href="site.css">
+</head><body><div class="wrap">
+<nav class="site"><a href="index.html">All three</a><a href="orbnq.html" aria-current="page">ORB + NQ</a><a href="orb.html">ORB Asia</a><a href="pdfade.html">Gold PD fade</a><a href="nqfade.html">NQ range fade</a></nav>
+
+<header>
+<h1>ORB and NQ</h1>
+<p class="lede">The two strongest of the three: the Asia opening range on gold, and the pre-New-York range faded in New York. Different instruments, different sessions, twelve hours apart. This page pools just those two.</p>
+<div class="riskbar">
+    <label for="riskin">Risk per trade</label>
+    <div class="riskin"><input id="riskin" type="number" min="0.25" max="10" step="0.25"
+      value="2.5" inputmode="decimal" aria-label="Risk per trade, percent"><span>%</span></div>
+    <p class="risknote">Every percentage here is <b>R &times; risk</b>. R values, win rate and profit factor do not move.</p>
+  </div>
+</header>
+
+<section id="side">
+<h2><span class="num">01</span>The two</h2>
+<div class="scroll"><table class="cmp">
+<tr><th></th><th>ORB Asia</th><th>NQ range fade</th><th>Together</th></tr>
+<tr><td><b>Trades</b></td><td>75</td><td class="hi">117</td><td>192</td></tr><tr><td><b>Win rate</b></td><td>52.0%</td><td class="hi">61.7%</td><td>57.9%</td></tr><tr><td><b>Median RR</b></td><td class="hi">2.00</td><td>1.24</td><td>1.69</td></tr><tr><td><b>Average RR</b></td><td class="hi">2.00</td><td>1.16</td><td>1.49</td></tr><tr><td><b>Per trade</b></td><td class="hi">+0.582 R</td><td>+0.246 R</td><td>+0.377 R</td></tr><tr><td><b>Total</b></td><td class="hi">+43.6 R</td><td>+28.8 R</td><td>+72.4 R</td></tr><tr><td><b>Profit factor</b></td><td class="hi">2.40</td><td>1.75</td><td>2.04</td></tr><tr><td><b>Worst drawdown</b></td><td class="hi">6.2 R</td><td>7.8 R</td><td>8.1 R</td></tr><tr><td><b>Worst losing run</b></td><td>6</td><td class="hi">4</td><td>6</td></tr><tr><td><b>Best winning run</b></td><td>6</td><td class="hi">10</td><td>8</td></tr><tr><td><b>t-statistic</b></td><td class="hi">+3.51</td><td>+2.70</td><td>+4.39</td></tr>
+</table></div>
+<p class="note">Bold marks the best of the two on each line. The last column is every trade
+pooled in date order, one unit of risk each.</p>
+</section>
+
+<section id="pooled">
+<h2><span class="num">02</span>Pooled</h2>
+<div class="kpi">
+<div class="card"><div class="l">Trades</div><div class="v">192</div><div class="t">21.3 a month</div></div>
+<div class="card"><div class="l">Win rate</div><div class="v">57.9%</div><div class="t">110 W · 80 L</div></div>
+<div class="card"><div class="l">Per trade</div><div class="v pos">+0.377 R</div><div class="t"><span data-pct="0.3772">+0.94</span>% of the account</div></div>
+<div class="card"><div class="l">Total</div><div class="v pos">+72.4 R</div><div class="t"><span data-pct="72.4128">+181.0</span>% at 2.5% risk</div></div>
+<div class="card"><div class="l">Worst drawdown</div><div class="v neg">8.1 R</div><div class="t"><span data-pct="-8.1412">-20.4</span>% at 2.5% risk</div></div>
+<div class="card"><div class="l">Worst losing run</div><div class="v neg">6</div><div class="t">across both</div></div>
+</div>
+<figure><div class="fig"><svg viewBox="0 0 1080 300" width="100%" role="img"><title>Cumulative return</title><desc>Cumulative return, ending at +181% at 2.5% risk.</desc><defs><linearGradient id="eq" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--pos)" stop-opacity=".28"/><stop offset="100%" stop-color="var(--pos)" stop-opacity="0"/></linearGradient></defs><polygon points="46.0,254.0 46.0,248.2 51.1,242.1 56.2,245.1 61.2,248.1 66.3,251.1 71.4,249.4 76.5,243.4 81.5,246.4 86.6,240.3 91.7,236.4 96.8,232.5 101.9,228.5 106.9,224.1 112.0,227.2 117.1,222.2 122.2,216.2 127.3,210.3 132.3,211.5 137.4,211.9 142.5,215.0 147.6,216.6 152.6,210.6 157.7,210.3 162.8,213.3 167.9,212.9 173.0,211.0 178.0,214.1 183.1,209.4 188.2,206.2 193.3,199.6 198.4,196.5 203.4,190.5 208.5,188.8 213.6,184.8 218.7,187.9 223.7,183.0 228.8,186.1 233.9,185.0 239.0,179.0 244.1,174.0 249.1,177.0 254.2,178.5 259.3,181.5 264.4,183.3 269.5,179.1 274.5,180.6 279.6,176.3 284.7,176.3 289.8,179.3 294.8,174.8 299.9,171.2 305.0,165.2 310.1,168.2 315.2,162.8 320.2,165.8 325.3,167.3 330.4,166.7 335.5,163.1 340.6,166.2 345.6,160.1 350.7,154.1 355.8,150.2 360.9,144.2 365.9,143.8 371.0,146.8 376.1,149.8 381.2,149.0 386.3,141.7 391.3,144.7 396.4,138.5 401.5,141.6 406.6,141.9 411.7,145.1 416.7,144.2 421.8,141.7 426.9,135.7 432.0,132.9 437.0,132.2 442.1,126.2 447.2,129.2 452.3,130.8 457.4,133.8 462.4,136.8 467.5,139.8 472.6,140.4 477.7,133.8 482.8,132.5 487.8,129.3 492.9,132.3 498.0,129.8 503.1,123.7 508.1,126.7 513.2,125.5 518.3,122.6 523.4,120.1 528.5,117.8 533.5,119.3 538.6,117.0 543.7,120.0 548.8,123.1 553.9,124.6 558.9,127.6 564.0,125.6 569.1,119.6 574.2,116.2 579.2,110.2 584.3,104.4 589.4,98.2 594.5,101.4 599.6,97.4 604.6,93.9 609.7,91.8 614.8,94.8 619.9,93.9 625.0,91.7 630.0,94.7 635.1,96.3 640.2,99.3 645.3,100.8 650.3,99.8 655.4,97.8 660.5,92.9 665.6,96.1 670.7,90.1 675.7,85.8 680.8,82.9 685.9,84.6 691.0,81.6 696.1,84.7 701.1,78.7 706.2,78.6 711.3,76.6 716.4,70.4 721.4,67.9 726.5,69.1 731.6,62.8 736.7,65.9 741.8,62.8 746.8,65.8 751.9,68.8 757.0,71.8 762.1,71.5 767.2,74.5 772.2,77.5 777.3,80.8 782.4,83.8 787.5,81.2 792.5,84.2 797.6,87.3 802.7,83.5 807.8,77.2 812.9,74.2 817.9,68.1 823.0,71.1 828.1,65.1 833.2,68.1 838.3,71.1 843.3,74.1 848.4,68.1 853.5,63.3 858.6,57.2 863.6,56.1 868.7,50.1 873.8,49.6 878.9,47.6 884.0,42.5 889.0,44.1 894.1,43.1 899.2,37.1 904.3,31.1 909.4,29.4 914.4,23.4 919.5,20.0 924.6,23.0 929.7,26.0 934.7,29.1 939.8,27.8 944.9,30.8 950.0,31.6 955.1,25.6 960.1,28.7 965.2,24.7 970.3,23.5 975.4,26.5 980.5,29.6 985.5,29.8 990.6,32.9 995.7,35.9 1000.8,32.6 1005.8,35.6 1010.9,33.3 1016.0,36.4 1016.0,254.0" fill="url(#eq)" opacity=".5"/><polyline points="46.0,248.2 51.1,242.1 56.2,245.1 61.2,248.1 66.3,251.1 71.4,249.4 76.5,243.4 81.5,246.4 86.6,240.3 91.7,236.4 96.8,232.5 101.9,228.5 106.9,224.1 112.0,227.2 117.1,222.2 122.2,216.2 127.3,210.3 132.3,211.5 137.4,211.9 142.5,215.0 147.6,216.6 152.6,210.6 157.7,210.3 162.8,213.3 167.9,212.9 173.0,211.0 178.0,214.1 183.1,209.4 188.2,206.2 193.3,199.6 198.4,196.5 203.4,190.5 208.5,188.8 213.6,184.8 218.7,187.9 223.7,183.0 228.8,186.1 233.9,185.0 239.0,179.0 244.1,174.0 249.1,177.0 254.2,178.5 259.3,181.5 264.4,183.3 269.5,179.1 274.5,180.6 279.6,176.3 284.7,176.3 289.8,179.3 294.8,174.8 299.9,171.2 305.0,165.2 310.1,168.2 315.2,162.8 320.2,165.8 325.3,167.3 330.4,166.7 335.5,163.1 340.6,166.2 345.6,160.1 350.7,154.1 355.8,150.2 360.9,144.2 365.9,143.8 371.0,146.8 376.1,149.8 381.2,149.0 386.3,141.7 391.3,144.7 396.4,138.5 401.5,141.6 406.6,141.9 411.7,145.1 416.7,144.2 421.8,141.7 426.9,135.7 432.0,132.9 437.0,132.2 442.1,126.2 447.2,129.2 452.3,130.8 457.4,133.8 462.4,136.8 467.5,139.8 472.6,140.4 477.7,133.8 482.8,132.5 487.8,129.3 492.9,132.3 498.0,129.8 503.1,123.7 508.1,126.7 513.2,125.5 518.3,122.6 523.4,120.1 528.5,117.8 533.5,119.3 538.6,117.0 543.7,120.0 548.8,123.1 553.9,124.6 558.9,127.6 564.0,125.6 569.1,119.6 574.2,116.2 579.2,110.2 584.3,104.4 589.4,98.2 594.5,101.4 599.6,97.4 604.6,93.9 609.7,91.8 614.8,94.8 619.9,93.9 625.0,91.7 630.0,94.7 635.1,96.3 640.2,99.3 645.3,100.8 650.3,99.8 655.4,97.8 660.5,92.9 665.6,96.1 670.7,90.1 675.7,85.8 680.8,82.9 685.9,84.6 691.0,81.6 696.1,84.7 701.1,78.7 706.2,78.6 711.3,76.6 716.4,70.4 721.4,67.9 726.5,69.1 731.6,62.8 736.7,65.9 741.8,62.8 746.8,65.8 751.9,68.8 757.0,71.8 762.1,71.5 767.2,74.5 772.2,77.5 777.3,80.8 782.4,83.8 787.5,81.2 792.5,84.2 797.6,87.3 802.7,83.5 807.8,77.2 812.9,74.2 817.9,68.1 823.0,71.1 828.1,65.1 833.2,68.1 838.3,71.1 843.3,74.1 848.4,68.1 853.5,63.3 858.6,57.2 863.6,56.1 868.7,50.1 873.8,49.6 878.9,47.6 884.0,42.5 889.0,44.1 894.1,43.1 899.2,37.1 904.3,31.1 909.4,29.4 914.4,23.4 919.5,20.0 924.6,23.0 929.7,26.0 934.7,29.1 939.8,27.8 944.9,30.8 950.0,31.6 955.1,25.6 960.1,28.7 965.2,24.7 970.3,23.5 975.4,26.5 980.5,29.6 985.5,29.8 990.6,32.9 995.7,35.9 1000.8,32.6 1005.8,35.6 1010.9,33.3 1016.0,36.4" fill="none" stroke="var(--pos)" stroke-width="2.4" stroke-linejoin="round"/><line x1="46" y1="254.0" x2="1016" y2="254.0" stroke="currentColor" stroke-opacity=".25"/><line x1="46" y1="254.0" x2="1016" y2="254.0" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="254.0" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="0.0000" data-fmt="int">0%</text><line x1="46" y1="224.0" x2="1016" y2="224.0" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="224.0" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="10.0000" data-fmt="int">25%</text><line x1="46" y1="193.9" x2="1016" y2="193.9" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="193.9" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="20.0000" data-fmt="int">50%</text><line x1="46" y1="163.9" x2="1016" y2="163.9" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="163.9" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="30.0000" data-fmt="int">75%</text><line x1="46" y1="133.8" x2="1016" y2="133.8" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="133.8" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="40.0000" data-fmt="int">100%</text><line x1="46" y1="103.8" x2="1016" y2="103.8" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="103.8" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="50.0000" data-fmt="int">125%</text><line x1="46" y1="73.7" x2="1016" y2="73.7" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="73.7" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="60.0000" data-fmt="int">150%</text><line x1="46" y1="43.7" x2="1016" y2="43.7" stroke="currentColor" stroke-opacity=".08"/><text x="38" y="43.7" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="end" dy="3.5" data-pct="70.0000" data-fmt="int">175%</text><circle cx="1016.0" cy="36.4" r="4" fill="var(--pos)"/><text x="1023.0" y="36.4" font-size="13" font-weight="700" fill="var(--pos)" dy="4" data-pct="72.4128" data-fmt="signint">  +181%</text></svg></div>
+<figcaption>All 192 trades in date order, one unit of risk each.</figcaption></figure>
+</section>
+
+<section id="months">
+<h2><span class="num">03</span>Month by month</h2>
+<div class="scroll"><table>
+<tr><th>Month</th><th>ORB Asia</th><th>NQ range fade</th><th>Total</th></tr>
+<tr><td><b>Jan</b></td><td><span class="pos">+8.36 R</span></td><td><span class="pos">+5.64 R</span></td><td><span class="pos">+14.00 R</span></td></tr><tr><td><b>Feb</b></td><td><span class="pos">+3.57 R</span></td><td><span class="pos">+8.06 R</span></td><td><span class="pos">+11.63 R</span></td></tr><tr><td><b>Mar</b></td><td><span class="pos">+9.61 R</span></td><td><span class="pos">+1.14 R</span></td><td><span class="pos">+10.75 R</span></td></tr><tr><td><b>Apr</b></td><td><span class="pos">+5.65 R</span></td><td><span class="pos">+1.71 R</span></td><td><span class="pos">+7.36 R</span></td></tr><tr><td><b>May</b></td><td><span class="pos">+3.64 R</span></td><td><span class="pos">+6.63 R</span></td><td><span class="pos">+10.28 R</span></td></tr><tr><td><b>Jun</b></td><td><span class="pos">+3.43 R</span></td><td><span class="pos">+5.19 R</span></td><td><span class="pos">+8.62 R</span></td></tr><tr><td><b>Jul</b></td><td><span class="pos">+8.04 R</span></td><td><span class="neg">-4.82 R</span></td><td><span class="pos">+3.22 R</span></td></tr><tr><td><b>Aug</b></td><td><span class="pos">+5.38 R</span></td><td><span class="pos">+4.47 R</span></td><td><span class="pos">+9.85 R</span></td></tr><tr><td><b>Sep</b></td><td><span class="neg">-4.07 R</span></td><td><span class="pos">+0.78 R</span></td><td><span class="neg">-3.30 R</span></td></tr><tr><td><b>Total</b></td><td><span class="pos">+43.6 R</span></td><td><span class="pos">+28.8 R</span></td><td><span class="pos">+72.4 R</span></td></tr>
+</table></div>
+</section>
+
+<section id="corr">
+<h2><span class="num">04</span>Do they move together?</h2>
+<p class="sub">Correlation of monthly R. Near zero means a bad month in one says nothing about the others.</p>
+<div class="scroll"><table>
+<tr><th>Pair</th><th>Correlation</th></tr>
+<tr><td><b>ORB Asia</b> vs <b>NQ range fade</b></td><td>-0.15</td></tr>
+</table></div>
+</section>
+
+<section id="load">
+<h2><span class="num">05</span>Trades on the same day</h2>
+<p class="sub">They can fire on the same day, and a prop firm's daily loss limit counts the day, not the trade.</p>
+<div class="scroll"><table>
+<tr><th>Trades in a day</th><th>How often</th></tr>
+<tr><td><b>1</b></td><td>98 days</td></tr><tr><td><b>2</b></td><td>47 days</td></tr>
+</table></div>
+<p class="note">The worst single day across both was <b>-2.09 R</b> — <span data-pct="-2.0940">-5.24</span>% at
+2.5% risk. A 3% daily limit is breached by two full losses at 2.5% risk, so position size has
+to be set for the number of strategies running, not for one of them.</p>
+</section>
+
+<section id="limits">
+<h2><span class="num">06</span>What this does not show</h2>
+<ul>
+<li><b>2026 only.</b> The NQ fade has since been run on 2024 and 2025 as well and stays positive, at about a fifth of the expectancy it shows here. Nothing else on this page has an out-of-sample test behind it.</li>
+<li><b>The ORB is real-tick Strategy Tester output; the fades are bar replays</b> with an assumed
+spread. They are not measured to the same standard and the fades will read slightly optimistic.</li>
+<li><b>The fade parameters were chosen on this data.</b> Stop and target levels came out of
+sweeps over this same year.</li>
+<li><b>Pooling assumes equal risk on every trade</b> and ignores that simultaneous losses
+breach a 3% daily limit long before the drawdown figure does.</li>
+</ul>
+</section>
+
+<footer><p>Generated from the run — no figure on this page is typed by hand. 2026 only, and the limits each page states are the ones that matter. Not financial advice.</p></footer>
+</div>
+
+<script>
+var RISK=2.5;
+function paint(){
+  document.querySelectorAll('[data-pct]').forEach(function(e){
+    var r=parseFloat(e.dataset.pct), f=e.dataset.fmt, v=r*RISK;
+    if(f==='int') e.textContent=Math.round(v)+'%';
+    else if(f==='signint') e.textContent='  '+(v>=0?'+':'')+Math.round(v)+'%';
+    else e.textContent=(v>=0?'+':'')+v.toFixed(1);
+  });
+}
+var sl=document.getElementById('riskin');
+if(sl){sl.addEventListener('input',function(){
+  var v=parseFloat(sl.value);
+  if(isFinite(v)&&v>0){RISK=v;paint();}   // a half-typed number must not blank the page
+});}
+paint();
+</script>
+</body></html>

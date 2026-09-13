@@ -14,10 +14,11 @@ from the run:
 
 | Report | |
 |---|---|
-| [ORB Asia](https://anas1412.github.io/orb-mt5/) | gold, 00:00 UTC opening range |
+| [ORB + NQ](https://anas1412.github.io/orb-mt5/orbnq.html) | the two that carry the result |
+| [ORB Asia](https://anas1412.github.io/orb-mt5/orb.html) | gold, 00:00 UTC opening range |
 | [Previous-day fade](https://anas1412.github.io/orb-mt5/pdfade.html) | gold, Asia session |
 | [NQ range fade](https://anas1412.github.io/orb-mt5/nqfade.html) | US100, New York session |
-| [All three together](https://anas1412.github.io/orb-mt5/edges.html) | pooled stats |
+| [All three together](https://anas1412.github.io/orb-mt5/) | pooled stats |
 
 Account rules behind the pass rates:
 [`fundingpips-1step-flex.md`](fundingpips-1step-flex.md).

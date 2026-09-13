@@ -16,6 +16,7 @@ STYLESHEET = "site.css"
 # One list, in the order the pages should be read: the overview, then each edge.
 PAGES = (
     ("index.html",  "All three"),
+    ("orbnq.html",  "ORB + NQ"),
     ("orb.html",    "ORB Asia"),
     ("pdfade.html", "Gold PD fade"),
     ("nqfade.html", "NQ range fade"),

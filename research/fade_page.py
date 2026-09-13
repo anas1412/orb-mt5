@@ -378,9 +378,10 @@ over this same year, so the exact figures are optimistic even where the shape of
 
 
 # ------------------------------------------------------------ combined ----
-def combined(sets):
-    """sets: [(label, page, trades, stats)] -- ORB first."""
-    cols = "".join("<th>%s</th>" % s[0] for s in sets) + "<th>All three</th>"
+def combined(sets, outfile, h1, lede, current=None):
+    """sets: [(label, page, trades, stats)]. Any subset, on its own page."""
+    NW = {2: "two", 3: "three", 4: "four"}.get(len(sets), str(len(sets)))
+    cols = "".join("<th>%s</th>" % s[0] for s in sets) + "<th>Together</th>"
     allT = sorted([dict(t, _o=i) for i, (_, _, T, _) in enumerate(sets) for t in T],
                   key=lambda x: (x["d"], x["_o"]))
     AS = stats(allT)
@@ -445,20 +446,19 @@ def combined(sets):
 
     body = """
 <header>
-<h1>All three, side by side</h1>
-<p class="lede">One opening-range breakout and two range fades, on gold and the Nasdaq, in three
-different sessions. Same year, same risk, one trade a day each. This page pools them.</p>
+<h1>%(h1)s</h1>
+<p class="lede">%(lede)s</p>
 %(riskbar)s
 </header>
 
 <section id="side">
-<h2><span class="num">01</span>The three</h2>
+<h2><span class="num">01</span>The %(nword)s</h2>
 <div class="scroll"><table class="cmp">
 <tr><th></th>%(cols)s</tr>
 %(rows)s
 </table></div>
-<p class="note">Bold marks the best of the three on each line. The last column is every trade pooled
-in date order, one unit of risk each.</p>
+<p class="note">Bold marks the best of the %(nword)s on each line. The last column is every trade
+pooled in date order, one unit of risk each.</p>
 </section>
 
 <section id="pooled">
@@ -469,7 +469,7 @@ in date order, one unit of risk each.</p>
 <div class="card"><div class="l">Per trade</div><div class="v pos">%(ev)+.3f R</div><div class="t">%(evpct)s of the account</div></div>
 <div class="card"><div class="l">Total</div><div class="v pos">%(total)+.1f R</div><div class="t">%(totpct)s at %(risk)g%% risk</div></div>
 <div class="card"><div class="l">Worst drawdown</div><div class="v neg">%(dd).1f R</div><div class="t">%(ddpct)s at %(risk)g%% risk</div></div>
-<div class="card"><div class="l">Worst losing run</div><div class="v neg">%(worst)d</div><div class="t">across all three</div></div>
+<div class="card"><div class="l">Worst losing run</div><div class="v neg">%(worst)d</div><div class="t">across %(nall)s</div></div>
 </div>
 <figure><div class="fig">%(curve)s</div>
 <figcaption>All %(n)d trades in date order, one unit of risk each.</figcaption></figure>
@@ -494,12 +494,12 @@ in date order, one unit of risk each.</p>
 
 <section id="load">
 <h2><span class="num">05</span>Trades on the same day</h2>
-<p class="sub">All three can fire on one day, and a prop firm's daily loss limit counts the day, not the trade.</p>
+<p class="sub">They can fire on the same day, and a prop firm's daily loss limit counts the day, not the trade.</p>
 <div class="scroll"><table>
 <tr><th>Trades in a day</th><th>How often</th></tr>
 %(drows)s
 </table></div>
-<p class="note">The worst single day across all three was <b>%(worstday)+.2f R</b> — %(worstpct)s at
+<p class="note">The worst single day across %(nall)s was <b>%(worstday)+.2f R</b> — %(worstpct)s at
 %(risk)g%% risk. A 3%% daily limit is breached by two full losses at 2.5%% risk, so position size has
 to be set for the number of strategies running, not for one of them.</p>
 </section>
@@ -507,12 +507,12 @@ to be set for the number of strategies running, not for one of them.</p>
 <section id="limits">
 <h2><span class="num">%(nlimits)s</span>What this does not show</h2>
 <ul>
-<li><b>2026 only, for all three.</b> No out-of-sample test stands behind any of these numbers.</li>
-<li><b>The ORB is real-tick Strategy Tester output; the two fades are bar replays</b> with an assumed
+<li><b>2026 only.</b> %(oosnote)s</li>
+<li><b>The ORB is real-tick Strategy Tester output; the fades are bar replays</b> with an assumed
 spread. They are not measured to the same standard and the fades will read slightly optimistic.</li>
-<li><b>The fade parameters were chosen on this data.</b> Both stop and target levels came out of
+<li><b>The fade parameters were chosen on this data.</b> Stop and target levels came out of
 sweeps over this same year.</li>
-<li><b>Pooling assumes equal risk on every trade</b> and ignores that three simultaneous losses
+<li><b>Pooling assumes equal risk on every trade</b> and ignores that simultaneous losses
 breach a 3%% daily limit long before the drawdown figure does.</li>
 </ul>
 </section>
@@ -526,11 +526,16 @@ breach a 3%% daily limit long before the drawdown figure does.</li>
                 dd=AS["dd"], ddpct=pct(-AS["dd"]), worst=AS["worst"],
                 risk=RISK_PCT, curve=curve_svg(AS["curve"]),
                 worstday=worstday, worstpct=pct(worstday, 2),
-                nlimits="06")
-    html = page.shell("Three edges — 2026", "index.html", body % vals,
+                nlimits="06", h1=h1, lede=lede, nword=NW,
+                # "across all two" is not English
+                nall=("both" if len(sets) == 2 else "all " + NW),
+                oosnote=("The NQ fade has since been run on 2024 and 2025 as well and stays "
+                         "positive, at about a fifth of the expectancy it shows here. Nothing "
+                         "else on this page has an out-of-sample test behind it."))
+    html = page.shell(h1 + " — 2026", current or outfile, body % vals,
                       risk=RISK_PCT, gallery=False)
-    open(os.path.join(REPO, "index.html"), "w").write(html)
-    print("wrote index.html  (%d trades pooled, %+.1f R)" % (AS["n"], AS["total"]))
+    open(os.path.join(REPO, outfile), "w").write(html)
+    print("wrote %s  (%d trades pooled, %+.1f R)" % (outfile, AS["n"], AS["total"]))
 
 
 if __name__ == "__main__":
@@ -539,6 +544,15 @@ if __name__ == "__main__":
     orb = load_orb()
     oS = stats(orb["trades"])
     print("ORB: %d trades, %+.1f R" % (oS["n"], oS["total"]))
-    combined([("ORB Asia", "orb.html", orb["trades"], oS),
-              ("Gold PD fade", "pdfade.html", gT, gS),
-              ("NQ range fade", "nqfade.html", nT, nS)])
+    ORB  = ("ORB Asia", "orb.html", orb["trades"], oS)
+    GOLD = ("Gold PD fade", "pdfade.html", gT, gS)
+    NQ   = ("NQ range fade", "nqfade.html", nT, nS)
+    combined([ORB, GOLD, NQ], "index.html", "All three, side by side",
+             "One opening-range breakout and two range fades, on gold and the Nasdaq, in three "
+             "different sessions. Same year, same risk, one trade a day each. This page pools them.")
+    # The two that carry the result. Gold's fade earns a fifth of what these do
+    # and is the only one of the three whose t-statistic is under 1.
+    combined([ORB, NQ], "orbnq.html", "ORB and NQ",
+             "The two strongest of the three: the Asia opening range on gold, and the "
+             "pre-New-York range faded in New York. Different instruments, different sessions, "
+             "twelve hours apart. This page pools just those two.")
